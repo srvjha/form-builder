@@ -9,13 +9,14 @@ import {
 import { apiReference } from "@scalar/express-api-reference";
 
 import { serverRouter, createContext } from "@repo/trpc/server";
+import { env } from "./env";
 
 export const app = express();
 const openApiDocument = generateOpenApiDocument(serverRouter, {
   title: "Form Builder",
   description: "Form Builder API",
   version: "1.0.0",
-  baseUrl: process.env.APP_URL || "http://localhost:3000",
+  baseUrl: env.BASE_URL.concat("/api")
 });
 
 if (process.env.NODE_ENV !== "production") {
