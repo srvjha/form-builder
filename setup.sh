@@ -3,7 +3,7 @@
 if [ -f ".env" ]; then
   echo ".env file exists. ✅"
 else
-  echo ".env file does not exist."
+  echo ".env file does not exist. Copying from .env.example..."
   cp .env.example .env
 fi
 
@@ -13,8 +13,11 @@ for dir in apps/* packages/*; do
     # Only link if target does not exist or is not already a symlink to the right location
     if [ ! -L "$target" ] || [ "$(readlink -- "$target")" != "$(realpath .env)" ]; then
       if [ ! -e "$target" ]; then
-        link .env "$target"
+        ln -s "$(realpath .env)" "$target"
+        echo "Linked .env -> $target ✅"
       fi
+    else
+      echo "Already linked: $target ✅"
     fi
   fi
 done
