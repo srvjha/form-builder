@@ -1,2 +1,4 @@
 import { z } from "zod";
-//model
+
+export {z};
+export const zodUndefinedModel = z.undefined().describe("undefined")
