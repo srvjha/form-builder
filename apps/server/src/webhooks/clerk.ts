@@ -32,6 +32,12 @@ export async function handleClerkWebhook(req: Request, res: Response): Promise<v
     return;
   }
 
+  if (!env.CLERK_WEBHOOK_SECRET) {
+    logger.error("CLERK_WEBHOOK_SECRET is not set — cannot verify webhook");
+    res.status(500).json({ error: "Webhook secret not configured" });
+    return;
+  }
+
   const wh = new Webhook(env.CLERK_WEBHOOK_SECRET);
   let event: { type: string; data: ClerkUserPayload };
 

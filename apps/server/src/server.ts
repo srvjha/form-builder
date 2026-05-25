@@ -4,11 +4,10 @@ import { clerkMiddleware, getAuth } from "@clerk/express";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { generateOpenApiDocument, createOpenApiExpressMiddleware } from "trpc-to-openapi";
-import { apiReference } from "@scalar/express-api-reference";
 
 import { serverRouter, createBaseContext } from "@repo/trpc/server";
-import { handleClerkWebhook } from "./webhooks/clerk";
-import { env } from "./env";
+import { handleClerkWebhook } from "./webhooks/clerk.js";
+import { env } from "./env.js";
 
 export const app = express();
 
@@ -20,6 +19,7 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
   baseUrl: env.BASE_URL.concat("/api"),
 });
 
+// ─── CORS ─────────────────────────────────────────────────────────────────────
 app.use(
   cors({
     origin: env.NODE_ENV === "development" ? "*" : env.BASE_URL,
@@ -27,24 +27,22 @@ app.use(
   }),
 );
 
-//Clerk webhook
+// ─── Clerk webhook ────────────────────────────────────────────────────────────
+// MUST be before express.json() — svix needs raw Buffer body
 app.post(
   "/webhooks/clerk",
   express.raw({ type: "application/json" }),
   handleClerkWebhook,
 );
 
-// Clerk auth middleware
-// Attaches auth state to every request so getAuth(req) works inside createContext.
-// Public routes are still accessible — Clerk attaches null userId for unauthenticated requests.
+// ─── Clerk auth middleware ─────────────────────────────────────────────────────
 app.use(clerkMiddleware());
 
+// ─── Body parsers ─────────────────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ─── Context factory ──────────────────────────────────────────────────────────
-// Reads Clerk's verified auth state from the request and passes it into tRPC.
-// @clerk/express lives here (apps/server) — @repo/trpc stays framework-agnostic.
 const createContext = ({ req }: CreateExpressContextOptions) =>
   createBaseContext({ userId: getAuth(req).userId ?? null });
 
@@ -57,9 +55,16 @@ app.get("/openapi.json", (_req, res) => {
   res.json(openApiDocument);
 });
 
-app.use("/docs", apiReference({ url: "/openapi.json" }));
+// Scalar docs — dynamic import because @scalar/express-api-reference is ESM-only.
+// Cast req to any to bridge the Express v4 types expected by @scalar and Express v5 we use.
+app.use("/docs", async (req, res, next) => {
+  const { apiReference } = await import("@scalar/express-api-reference");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return apiReference({ url: "/openapi.json" })(req as any, res, next);
+});
 
-// REST (OpenAPI) adapter
+// ─── API adapters ─────────────────────────────────────────────────────────────
+// REST (OpenAPI) adapter — for external/REST clients
 app.use(
   "/api",
   createOpenApiExpressMiddleware({
@@ -68,7 +73,7 @@ app.use(
   }),
 );
 
-// tRPC adapter — for the Next.js frontend 
+// tRPC adapter — for the Next.js frontend (full type-safety)
 app.use(
   "/api",
   trpcExpress.createExpressMiddleware({

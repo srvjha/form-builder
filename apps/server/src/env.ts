@@ -6,6 +6,7 @@ const envSchema = z.object({
   BASE_URL: z.string().default("http://localhost:8000"),
   CLERK_SECRET_KEY: z.string().startsWith("sk_"),
   CLERK_WEBHOOK_SECRET: z.string().startsWith("whsec_"),
+  CLERK_PUBLISHABLE_KEY:z.string()
 });
 
 function createEnv(env: NodeJS.ProcessEnv) {
