@@ -4,6 +4,8 @@ const envSchema = z.object({
   PORT: z.string().optional(),
   NODE_ENV: z.enum(["development", "production"]).default("development"),
   BASE_URL: z.string().default("http://localhost:8000"),
+  CLERK_SECRET_KEY: z.string().startsWith("sk_"),
+  CLERK_WEBHOOK_SECRET: z.string().startsWith("whsec_"),
 });
 
 function createEnv(env: NodeJS.ProcessEnv) {

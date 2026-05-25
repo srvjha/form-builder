@@ -1,33 +1,26 @@
-import { createUserWithEmailAndPasswordInput } from "@repo/services/user/model";
-import { publicProcedure, router } from "../../trpc";
+import { TRPCError } from "@trpc/server";
+import { protectedProcedure, router } from "../../trpc";
+import { zodUndefinedModel } from "../../schema";
 import { generatePath } from "../../utils/path-generator";
-import {
-  createUserWithEmailAndPasswordInputModel,
-  createUserWithEmailAndPasswordOutputModel,
-} from "./model";
+import { getMeOutputModel } from "./model";
 import { userService } from "../../services";
 
 const TAGS = ["Authentication"];
 const getPath = generatePath("/authentication");
 
 export const authRouter = router({
-  createUserWithEmailAndPassword: publicProcedure
-    .meta({
-      openapi: {
-        method: "POST",
-        path: getPath("/createUserWithEmailAndPassword"),
-        tags: TAGS,
-      },
-    })
-    .input(createUserWithEmailAndPasswordInputModel)
-    .output(createUserWithEmailAndPasswordOutputModel)
-    .mutation(async ({ input }) => {
-      const { fullName, email, password } = input;
-      const { id } = await userService.createUserWithEmailAndPassword({
-        fullName,
-        email,
-        password,
-      });
-      return { id };
+  getMe: protectedProcedure
+    .meta({ openapi: { method: "GET", path: getPath("/me"), tags: TAGS } })
+    .input(zodUndefinedModel)
+    .output(getMeOutputModel)
+    .query(async ({ ctx }) => {
+      const user = await userService.getUserByClerkId(ctx.auth.userId);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found — webhook may not have fired yet",
+        });
+      }
+      return user;
     }),
 });

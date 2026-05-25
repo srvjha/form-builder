@@ -15,6 +15,13 @@
       "when": 1779640119076,
       "tag": "0001_closed_skreet",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779728295989,
+      "tag": "0002_hard_reptil",
+      "breakpoints": true
     }
   ]
 }
