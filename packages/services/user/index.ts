@@ -30,6 +30,14 @@ class UserService {
     return user;
   }
 
+  async getUserById(id: string): Promise<SelectUser | undefined> {
+    const [user] = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.id, id));
+    return user;
+  }
+
   async deleteUserByClerkId(clerkId: string): Promise<void> {
     await db.delete(usersTable).where(eq(usersTable.clerkId, clerkId));
   }
