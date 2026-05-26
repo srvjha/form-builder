@@ -20,7 +20,7 @@ export const protectedProcedure = tRPCContext.procedure.use(({ ctx, next }) => {
   return next({
     ctx: {
       ...ctx,
-      auth: { userId: ctx.auth.userId }, // narrowed: userId is string here
+      auth: { userId: ctx.auth.userId },
     },
   });
 });

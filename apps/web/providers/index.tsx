@@ -15,7 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // 1 min — avoid refetching immediately on focus
+            staleTime: 60 * 1000,
             retry: 1,
           },
         },
@@ -26,11 +26,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     trpc.createClient({
       links: [
         httpBatchLink({
-          // Appends /api/trpc — matches the mount point in apps/server/src/server.ts
           url: `${getApiUrl()}/api/trpc`,
           headers() {
             return {
-              // Bypasses ngrok's browser-warning interstitial page on free tier
               "ngrok-skip-browser-warning": "true",
             };
           },

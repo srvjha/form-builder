@@ -9,7 +9,5 @@ export const serverRouter = router({
 
 export type ServerRouter = typeof serverRouter;
 
-// createBaseContext is used by apps/server to build the per-request context.
-// The server wraps it with Clerk's getAuth() before passing to tRPC adapters.
 export { createBaseContext } from "./context";
 export type { Context, AuthContext } from "./context";

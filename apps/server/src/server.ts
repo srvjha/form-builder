@@ -7,11 +7,12 @@ import { generateOpenApiDocument, createOpenApiExpressMiddleware } from "trpc-to
 
 import { serverRouter, createBaseContext } from "@repo/trpc/server";
 import { handleClerkWebhook } from "./webhooks/clerk.js";
+import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
+import { ApiResponse } from "./lib/api-response.js";
 import { env } from "./env.js";
 
 export const app = express();
 
-// ─── OpenAPI document (generated once at startup) ────────────────────────────
 const openApiDocument = generateOpenApiDocument(serverRouter, {
   title: "Form Builder",
   description: "Form Builder API",
@@ -19,7 +20,6 @@ const openApiDocument = generateOpenApiDocument(serverRouter, {
   baseUrl: env.BASE_URL.concat("/api"),
 });
 
-// ─── CORS ─────────────────────────────────────────────────────────────────────
 app.use(
   cors({
     origin: env.NODE_ENV === "development" ? "*" : env.BASE_URL,
@@ -27,44 +27,34 @@ app.use(
   }),
 );
 
-// ─── Clerk webhook ────────────────────────────────────────────────────────────
-// MUST be before express.json() — svix needs raw Buffer body
 app.post(
   "/webhooks/clerk",
   express.raw({ type: "application/json" }),
   handleClerkWebhook,
 );
 
-// ─── Clerk auth middleware ─────────────────────────────────────────────────────
 app.use(clerkMiddleware());
 
-// ─── Body parsers ─────────────────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── Context factory ──────────────────────────────────────────────────────────
 const createContext = ({ req }: CreateExpressContextOptions) =>
   createBaseContext({ userId: getAuth(req).userId ?? null });
 
-// ─── Routes ───────────────────────────────────────────────────────────────────
 app.get("/", (_req, res) => {
-  res.json({ message: "Form builder is up and running" });
+  ApiResponse.ok(res, { message: "Form builder is up and running" });
 });
 
 app.get("/openapi.json", (_req, res) => {
-  res.json(openApiDocument);
+  ApiResponse.ok(res, openApiDocument);
 });
 
-// Scalar docs — dynamic import because @scalar/express-api-reference is ESM-only.
-// Cast req to any to bridge the Express v4 types expected by @scalar and Express v5 we use.
 app.use("/docs", async (req, res, next) => {
   const { apiReference } = await import("@scalar/express-api-reference");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return apiReference({ url: "/openapi.json" })(req as any, res, next);
 });
 
-// ─── API adapters ─────────────────────────────────────────────────────────────
-// REST (OpenAPI) adapter — for external/REST clients
 app.use(
   "/api",
   createOpenApiExpressMiddleware({
@@ -73,7 +63,6 @@ app.use(
   }),
 );
 
-// tRPC adapter — for the Next.js frontend (full type-safety)
 app.use(
   "/api",
   trpcExpress.createExpressMiddleware({
@@ -81,5 +70,8 @@ app.use(
     createContext,
   }),
 );
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

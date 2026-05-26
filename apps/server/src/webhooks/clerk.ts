@@ -1,12 +1,13 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { Webhook } from "svix";
 import { logger } from "@repo/logger";
 import UserService from "@repo/services/user";
-import { env } from "../env";
+import { ApiError } from "../lib/api-error.js";
+import { ApiResponse } from "../lib/api-response.js";
+import { env } from "../env.js";
 
 const userService = new UserService();
 
-// Clerk sends these fields on user.created and user.updated events
 interface ClerkUserPayload {
   id: string;
   first_name: string | null;
@@ -20,22 +21,21 @@ function buildFullName(first: string | null, last: string | null): string | null
   return [first, last].filter(Boolean).join(" ") || null;
 }
 
-export async function handleClerkWebhook(req: Request, res: Response): Promise<void> {
-  // svix requires the raw request body (Buffer), not the parsed JSON.
-  // That's why this route uses express.raw() in server.ts — before express.json().
-  const svixId = req.headers["svix-id"] as string;
-  const svixTimestamp = req.headers["svix-timestamp"] as string;
-  const svixSignature = req.headers["svix-signature"] as string;
-
-  if (!svixId || !svixTimestamp || !svixSignature) {
-    res.status(400).json({ error: "Missing svix headers" });
-    return;
+export async function handleClerkWebhook(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  if (!env.CLERK_WEBHOOK_SECRET) {
+    return next(ApiError.internal("Webhook secret not configured"));
   }
 
-  if (!env.CLERK_WEBHOOK_SECRET) {
-    logger.error("CLERK_WEBHOOK_SECRET is not set — cannot verify webhook");
-    res.status(500).json({ error: "Webhook secret not configured" });
-    return;
+  const svixId = req.headers["svix-id"] as string | undefined;
+  const svixTimestamp = req.headers["svix-timestamp"] as string | undefined;
+  const svixSignature = req.headers["svix-signature"] as string | undefined;
+
+  if (!svixId || !svixTimestamp || !svixSignature) {
+    return next(ApiError.badRequest("Missing svix signature headers"));
   }
 
   const wh = new Webhook(env.CLERK_WEBHOOK_SECRET);
@@ -48,9 +48,8 @@ export async function handleClerkWebhook(req: Request, res: Response): Promise<v
       "svix-signature": svixSignature,
     }) as typeof event;
   } catch (err) {
-    logger.error("Clerk webhook signature verification failed", { error: err });
-    res.status(400).json({ error: "Webhook verification failed" });
-    return;
+    logger.warn("Clerk webhook signature verification failed", { error: err });
+    return next(ApiError.unauthorized("Webhook signature verification failed"));
   }
 
   const { type, data } = event;
@@ -63,9 +62,7 @@ export async function handleClerkWebhook(req: Request, res: Response): Promise<v
       );
 
       if (!primaryEmail) {
-        logger.error("No primary email found in Clerk payload", { clerkId: data.id });
-        res.status(400).json({ error: "No primary email in payload" });
-        return;
+        return next(ApiError.badRequest("No primary email found in Clerk payload"));
       }
 
       await userService.upsertUser({
@@ -85,9 +82,9 @@ export async function handleClerkWebhook(req: Request, res: Response): Promise<v
       logger.info("User deleted from DB", { clerkId: data.id });
     }
 
-    res.json({ received: true });
+    ApiResponse.ok(res, { received: true });
   } catch (err) {
     logger.error("Clerk webhook handler error", { type, error: err });
-    res.status(500).json({ error: "Internal server error" });
+    next(ApiError.internal("Failed to process webhook event"));
   }
 }

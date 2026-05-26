@@ -11,7 +11,6 @@ import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-// ─── Feature data ─────────────────────────────────────────────────────────────
 const features = [
   {
     icon: Zap,
@@ -45,15 +44,12 @@ const highlights = [
   "Free tier includes 100 responses/mo",
 ];
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
 
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-16 text-center">
-        {/* Gradient blobs */}
         <div
           aria-hidden
           className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
@@ -64,13 +60,11 @@ export default function HomePage() {
         />
 
         <div className="relative z-10 flex max-w-3xl flex-col items-center gap-6">
-          {/* Eyebrow badge */}
           <Badge variant="secondary" className="gap-1.5 px-3 py-1 text-xs">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
             Now with AI-powered field suggestions
           </Badge>
 
-          {/* Headline */}
           <h1 className="text-5xl font-extrabold leading-tight tracking-tight md:text-6xl lg:text-7xl">
             Build forms that
             <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -78,13 +72,11 @@ export default function HomePage() {
             </span>
           </h1>
 
-          {/* Subtitle */}
           <p className="max-w-xl text-lg text-muted-foreground md:text-xl">
             Create beautiful, high-converting forms in minutes. Collect data,
             analyse responses, and automate your workflow — all in one place.
           </p>
 
-          {/* CTAs */}
           <div className="flex flex-wrap items-center justify-center gap-3">
             <SignUpButton mode="modal">
               <Button size="lg" className="gap-2">
@@ -98,7 +90,6 @@ export default function HomePage() {
             </Button>
           </div>
 
-          {/* Trust bullets */}
           <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             {highlights.map((item) => (
               <li
@@ -113,12 +104,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Features ─────────────────────────────────────────────────────── */}
       <section
         id="features"
         className="container mx-auto px-6 py-24"
       >
-        {/* Section header */}
         <div className="mb-16 text-center">
           <Badge variant="outline" className="mb-4">
             Features
@@ -131,7 +120,6 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Cards grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {features.map(({ icon: Icon, title, description }) => (
             <div
@@ -150,7 +138,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── How it works ─────────────────────────────────────────────────── */}
       <section
         id="how-it-works"
         className="border-t border-border bg-muted/30 px-6 py-24"
@@ -200,7 +187,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── CTA Banner ───────────────────────────────────────────────────── */}
       <section className="container mx-auto px-6 py-24 text-center">
         <div className="rounded-2xl bg-primary px-8 py-16 text-primary-foreground">
           <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
@@ -224,7 +210,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
       <footer className="border-t border-border px-6 py-8">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
           <div className="flex items-center gap-2 font-medium text-foreground">

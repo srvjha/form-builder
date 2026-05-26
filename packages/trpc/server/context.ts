@@ -1,7 +1,5 @@
-// Auth info is injected by the server (apps/server) via Clerk's getAuth().
-// Keeping this framework-agnostic means @repo/trpc does NOT depend on @clerk/express.
 export type AuthContext = {
-  userId: string | null; // null = unauthenticated
+  userId: string | null;
 };
 
 export function createBaseContext(auth: AuthContext) {
