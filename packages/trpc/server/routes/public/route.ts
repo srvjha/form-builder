@@ -78,7 +78,11 @@ export const publicRouter = router({
         ipAddress: ip,
         completionTimeMs: input.completionTimeMs,
         metadata: input.metadata,
-        answers: input.answers,
+        // Zod v4 infers `value` as optional; normalise to the required AnswerValue type
+        answers: input.answers.map((a) => ({
+          fieldId: a.fieldId,
+          value: (a.value ?? null) as string | number | boolean | string[] | null,
+        })),
       });
 
       analyticsService
