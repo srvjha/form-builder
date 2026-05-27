@@ -105,7 +105,7 @@ export const publicRouter = router({
             creatorEmail: creator.email,
             creatorName: creator.fullName,
             formTitle: form.title,
-            formSlug: input.slug,
+            formId: form.id,
             responseId: response.id,
             respondentEmail: input.respondentEmail,
             submittedAt: response.submittedAt,

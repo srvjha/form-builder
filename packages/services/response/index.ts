@@ -10,7 +10,6 @@ import {
   type AnswerValue,
 } from "@repo/database/models/response";
 import {
-  formsTable,
   formFieldsTable,
   type SelectFormField,
 } from "@repo/database/models/form";

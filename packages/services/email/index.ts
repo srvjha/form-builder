@@ -4,7 +4,7 @@ export interface NewResponseEmailData {
   creatorEmail: string;
   creatorName?: string | null;
   formTitle: string;
-  formSlug: string;
+  formId: string;
   responseId: string;
   respondentEmail?: string | null;
   submittedAt: Date;
@@ -101,7 +101,7 @@ export class EmailService {
       <td style="padding:8px;border:1px solid #e5e7eb">${data.respondentEmail}</td>
     </tr>` : ""}
   </table>
-  <a href="${data.dashboardUrl}/forms/${data.formSlug}/responses/${data.responseId}"
+  <a href="${data.dashboardUrl}/forms/${data.formId}/responses/${data.responseId}"
      style="display:inline-block;background:#6d28d9;color:#fff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold">
     View Response
   </a>

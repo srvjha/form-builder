@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, publicProcedure } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
-import { formService, themeService } from "../../services";
+import { formService } from "../../services";
 import { paginationSchema } from "../../schemas/form.schemas";
 
 const TAGS = ["Explore"];
@@ -32,33 +32,4 @@ export const exploreRouter = router({
       });
     }),
 
-  listThemes: publicProcedure
-    .meta({
-      openapi: {
-        method: "GET",
-        path: getPath("/themes"),
-        tags: ["Themes"],
-        summary: "List all available form themes",
-      },
-    })
-    .input(z.undefined())
-    .output(z.any())
-    .query(async () => {
-      return themeService.listThemes();
-    }),
-
-  getTheme: publicProcedure
-    .meta({
-      openapi: {
-        method: "GET",
-        path: getPath("/themes/{slug}"),
-        tags: ["Themes"],
-        summary: "Get a theme by slug",
-      },
-    })
-    .input(z.object({ slug: z.string().min(1) }))
-    .output(z.any())
-    .query(async ({ input }) => {
-      return themeService.getThemeBySlug(input.slug);
-    }),
 });

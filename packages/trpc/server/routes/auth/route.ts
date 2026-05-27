@@ -14,11 +14,14 @@ export const authRouter = router({
     .input(zodUndefinedModel)
     .output(getMeOutputModel)
     .query(async ({ ctx }) => {
-      const user = await userService.getUserByClerkId(ctx.auth.userId);
+      // After protectedProcedure ctx.auth.userId is the DB UUID (not Clerk ID).
+      // The middleware already auto-provisions the user, so this lookup should
+      // always succeed — but we guard just in case.
+      const user = await userService.getUserById(ctx.auth.userId);
       if (!user) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found — webhook may not have fired yet",
+          code: "INTERNAL_SERVER_ERROR",
+          message: "User record could not be created or retrieved",
         });
       }
       return user;

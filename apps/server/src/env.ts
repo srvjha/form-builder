@@ -18,7 +18,12 @@ const envSchema = z.object({
 
 function createEnv(env: NodeJS.ProcessEnv) {
   const result = envSchema.safeParse(env);
-  if (!result.success) throw new Error(result.error.message);
+  if (!result.success) {
+    const issues = result.error.issues
+      .map((i) => `  • ${i.path.join(".")}: ${i.message}`)
+      .join("\n");
+    throw new Error(`Missing / invalid environment variables:\n${issues}`);
+  }
   return result.data;
 }
 
