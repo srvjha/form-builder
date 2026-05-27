@@ -401,6 +401,9 @@ importers:
       '@clerk/backend':
         specifier: ^3.4.13
         version: 3.4.13(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      '@repo/services':
+        specifier: workspace:*
+        version: link:../services
       '@trpc/client':
         specifier: ^11.8.1
         version: 11.17.0(@trpc/server@11.17.0(typescript@6.0.3))(typescript@6.0.3)
@@ -417,9 +420,6 @@ importers:
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@repo/services':
-        specifier: workspace:*
-        version: link:../services
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../typescript-config
