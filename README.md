@@ -1,6 +1,10 @@
 # FormCraft
 
-> **The form builder that doesn't apologise.**
+> **Build forms. Get answers.**
+
+🌐 **Live:** [formcraft.srvjha.in](https://formcraft.srvjha.in) &nbsp;|&nbsp; 🔌 **API:** [form-builder-server-id5q.onrender.com](https://form-builder-server-id5q.onrender.com) &nbsp;|&nbsp; 📖 **Docs:** [/docs](https://form-builder-server-id5q.onrender.com/docs)
+
+---
 
 FormCraft is a production-grade, full-stack form builder built with a brutalist design philosophy — raw, honest, and zero-compromise. No modal-on-modal nightmares, no rounded-corner soup, no dark patterns. You build forms, people fill them, you own the data.
 
@@ -764,29 +768,31 @@ The tRPC client sends `ngrok-skip-browser-warning: true` automatically to bypass
 
 ## Deployment
 
-### Frontend → Vercel (recommended)
+### Frontend → Vercel
+
+**Live:** [formcraft.srvjha.in](https://formcraft.srvjha.in)
 
 1. Import the repo in Vercel
 2. Set **Root Directory** to `apps/web`
 3. Set **Framework Preset** to Next.js
-4. Add all `NEXT_PUBLIC_*` env vars
+4. Add all `NEXT_PUBLIC_*` env vars (see [Environment Variables](#environment-variables))
 5. Deploy
 
-### Backend → Railway / Render / Fly.io
+### Backend → Render
 
-```bash
-# Build
-pnpm --filter @repo/server build
+**Live:** [form-builder-server-id5q.onrender.com](https://form-builder-server-id5q.onrender.com) &nbsp;|&nbsp; **Docs:** [/docs](https://form-builder-server-id5q.onrender.com/docs)
 
-# Start
-pnpm --filter @repo/server start
-```
+| Setting | Value |
+|---|---|
+| **Build Command** | `NODE_ENV=production pnpm install --frozen-lockfile && pnpm --filter @repo/server build` |
+| **Start Command** | `node apps/server/dist/index.js` |
+| **Node Version** | 18+ |
 
-Set all server env vars on the platform. The entry point is `dist/index.js`.
+Set all server env vars in the Render dashboard. The entry point is `apps/server/dist/index.js`.
 
-### Database → Neon / Supabase / Railway
+### Database → Supabase
 
-Use any managed PostgreSQL provider. Set `DATABASE_URL` in all environments.
+Use any managed PostgreSQL provider. Set `DATABASE_URL` to the **Direct connection** string (not the Transaction pooler — Drizzle requires a persistent connection).
 
 ```bash
 # Run migrations against production
