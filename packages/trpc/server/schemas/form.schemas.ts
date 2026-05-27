@@ -42,12 +42,14 @@ export const formSettingsSchema = z
     shuffleFields: z.boolean().optional(),
     oneResponsePerIp: z.boolean().optional(),
     requireAuth: z.boolean().optional(),
+    maxFields: z.number().int().min(1).max(100).optional(),
   })
   .default({});
 
 export const createFormSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().max(2000).optional(),
+  slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/, "Slug may only contain lowercase letters, numbers and hyphens").optional(),
   visibility: z.enum(["public", "unlisted"]).default("unlisted"),
   themeId: uuidSchema.optional(),
   settings: formSettingsSchema,

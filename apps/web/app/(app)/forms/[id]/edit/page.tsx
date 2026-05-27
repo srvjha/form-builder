@@ -55,6 +55,7 @@ export default function FormEditPage() {
         shuffleFields:    data.settings?.shuffleFields    ?? false,
         oneResponsePerIp: data.settings?.oneResponsePerIp ?? false,
         requireAuth:      data.settings?.requireAuth      ?? false,
+        maxFields:        (data.settings as any)?.maxFields ?? 20,
       },
     });
     setFields(

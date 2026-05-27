@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, ArrowRight, Briefcase, CalendarDays,
-  Bug, BarChart2, MessageSquare, Users, Mail, Sparkles,
+  Bug, BarChart2, MessageSquare, Users, Mail, Sparkles, Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell }  from "@/components/layout/app-shell";
@@ -16,6 +16,7 @@ import { Textarea }  from "@/components/ui/textarea";
 import { trpc }      from "@/lib/trpc";
 import { ROUTES }    from "@/lib/constants";
 import { cn }        from "@/lib/utils";
+import { DEFAULT_MAX_FIELDS } from "@/stores/builder-store";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 type FieldType =
@@ -248,6 +249,7 @@ export default function NewFormPage() {
   const [title,       setTitle]       = useState("");
   const [description, setDescription] = useState("");
   const [template,    setTemplate]    = useState<TemplateId>("blank");
+  const [maxFields,   setMaxFields]   = useState<string>(String(DEFAULT_MAX_FIELDS));
   const [seeding,     setSeeding]     = useState(false);
 
   const utils          = trpc.useUtils();
@@ -261,9 +263,17 @@ export default function NewFormPage() {
     if (!title.trim()) return;
 
     try {
+      const parsedMax = Math.max(1, Math.min(100, parseInt(maxFields, 10) || DEFAULT_MAX_FIELDS));
       const form = await createMutation.mutateAsync({
         title:       title.trim(),
         description: description.trim() || undefined,
+        settings: {
+          showProgressBar:  true,
+          shuffleFields:    false,
+          oneResponsePerIp: false,
+          requireAuth:      false,
+          maxFields:        parsedMax,
+        },
       });
 
       const selectedTemplate = TEMPLATES.find((t) => t.id === template);
@@ -431,6 +441,43 @@ export default function NewFormPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
               />
+            </div>
+
+            {/* ── Field limit ──────────────────────────────────────── */}
+            <div className="border-2 border-[var(--border-muted)] bg-[var(--bg-inset)] p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Layers className="h-4 w-4 text-[var(--color-accent)] shrink-0" />
+                <p className="font-display text-xs font-extrabold uppercase tracking-wider">
+                  Field limit
+                </p>
+                <span className="ml-auto font-mono text-[10px] border border-[var(--border-muted)] bg-[var(--bg-panel)] px-1.5 py-0.5 text-[var(--text-muted)]">
+                  Default: {DEFAULT_MAX_FIELDS}
+                </span>
+              </div>
+              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                Maximum number of fields allowed in this form. The builder will lock once this limit is hit. Leave as-is to use the default.
+              </p>
+              <div className="flex items-center gap-3">
+                <Input
+                  id="max-fields"
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={maxFields}
+                  onChange={(e) => setMaxFields(e.target.value)}
+                  className="w-28 font-mono"
+                  leftSlot={<Layers className="h-4 w-4" />}
+                />
+                {maxFields !== String(DEFAULT_MAX_FIELDS) && (
+                  <button
+                    type="button"
+                    onClick={() => setMaxFields(String(DEFAULT_MAX_FIELDS))}
+                    className="font-mono text-[11px] text-[var(--text-muted)] underline underline-offset-2 hover:text-[var(--text-primary)] transition-colors"
+                  >
+                    Reset to default ({DEFAULT_MAX_FIELDS})
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-3 pt-2">

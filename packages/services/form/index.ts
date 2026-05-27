@@ -280,6 +280,46 @@ export class FormService extends BaseService {
     return this.getFieldsSorted(field.formId);
   }
 
+  async cloneForm(formId: string, userId: string): Promise<FormWithFields> {
+    const original = await this.findFormOrThrow(formId);
+    this.assertOwner(original, userId);
+
+    const fields = await this.getFieldsSorted(formId);
+    const newSlug = await this.generateUniqueSlug(`${original.title} Copy`);
+
+    const [cloned] = await db
+      .insert(formsTable)
+      .values({
+        userId,
+        title:          `${original.title} (Copy)`,
+        description:    original.description,
+        slug:           newSlug,
+        status:         "draft",
+        visibility:     original.visibility,
+        settings:       original.settings,
+        collectEmail:   original.collectEmail,
+        successMessage: original.successMessage,
+        redirectUrl:    original.redirectUrl,
+        maxResponses:   original.maxResponses,
+        closesAt:       original.closesAt,
+      })
+      .returning();
+
+    if (!cloned) this.internal("Failed to clone form");
+
+    if (fields.length > 0) {
+      await db.insert(formFieldsTable).values(
+        fields.map(({ id: _id, formId: _fid, createdAt: _ca, ...rest }) => ({
+          ...rest,
+          formId: cloned.id,
+        })),
+      );
+    }
+
+    const clonedFields = await this.getFieldsSorted(cloned.id);
+    return { ...cloned, fields: clonedFields };
+  }
+
   async findFormOrThrow(formId: string): Promise<SelectForm> {
     const [form] = await db.select().from(formsTable).where(eq(formsTable.id, formId));
     if (!form) this.notFound("Form");

@@ -52,6 +52,7 @@ export interface BuilderFormState {
     shuffleFields:    boolean;
     oneResponsePerIp: boolean;
     requireAuth:      boolean;
+    maxFields:        number;
   };
 }
 
@@ -68,7 +69,8 @@ interface BuilderState {
   /* Actions */
   setForm:       (patch: Partial<BuilderFormState>) => void;
   setFields:     (fields: BuilderField[]) => void;
-  addField:      (field: Omit<BuilderField, "order">) => void;
+  /** Returns false if the field limit was reached and the field was NOT added */
+  addField:      (field: Omit<BuilderField, "order">) => boolean;
   updateField:   (id: string, patch: Partial<BuilderField>) => void;
   removeField:   (id: string) => void;
   reorderFields: (fromIndex: number, toIndex: number) => void;
@@ -80,6 +82,8 @@ interface BuilderState {
   resetBuilder:  () => void;
 }
 
+export const DEFAULT_MAX_FIELDS = 20;
+
 const defaultForm: BuilderFormState = {
   title:       "Untitled Form",
   visibility:  "unlisted",
@@ -89,6 +93,7 @@ const defaultForm: BuilderFormState = {
     shuffleFields:    false,
     oneResponsePerIp: false,
     requireAuth:      false,
+    maxFields:        DEFAULT_MAX_FIELDS,
   },
 };
 
@@ -109,7 +114,9 @@ export const useBuilderStore = create<BuilderState>()(
       setFields: (fields) =>
         set({ fields, isDirty: true }),
 
-      addField: (field) =>
+      addField: (field) => {
+        const limit = get().form.settings.maxFields ?? DEFAULT_MAX_FIELDS;
+        if (get().fields.length >= limit) return false;
         set((s) => {
           const order = s.fields.length;
           const newField: BuilderField = { ...field, order };
@@ -118,7 +125,9 @@ export const useBuilderStore = create<BuilderState>()(
             activeFieldId: field.id,
             isDirty:       true,
           };
-        }),
+        });
+        return true;
+      },
 
       updateField: (id, patch) =>
         set((s) => ({

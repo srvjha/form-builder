@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, FileText, Compass, Palette, Settings, ChevronLeft, ChevronRight, Zap,
+  LayoutDashboard, FileText, Compass, Palette, Settings, ChevronLeft, ChevronRight, Zap, Plus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUIStore } from "@/stores/ui-store";
@@ -54,6 +54,37 @@ export function Sidebar() {
                 className="font-display text-sm font-extrabold uppercase tracking-widest whitespace-nowrap truncate"
               >
                 {APP_NAME}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </Link>
+      </div>
+
+      {/* Create Form CTA */}
+      <div className="px-2 py-3 border-b-2 border-[var(--border-color)]">
+        <Link
+          href={ROUTES.formNew}
+          className={cn(
+            "group relative flex h-9 w-full items-center justify-center gap-2 overflow-hidden",
+            "border-2 border-[var(--border-color)] bg-[var(--color-accent)]",
+            "font-display text-xs font-extrabold uppercase tracking-wider text-white",
+            "shadow-[2px_2px_0_var(--border-color)]",
+            "transition-all duration-100",
+            "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none",
+            "active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+          )}
+        >
+          <Plus className="h-4 w-4 shrink-0" />
+          <AnimatePresence>
+            {sidebarOpen && (
+              <motion.span
+                initial={{ opacity: 0, x: -4 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -4 }}
+                transition={{ duration: 0.12 }}
+                className="whitespace-nowrap"
+              >
+                New Form
               </motion.span>
             )}
           </AnimatePresence>

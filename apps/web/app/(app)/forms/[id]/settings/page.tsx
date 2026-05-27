@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
-  Globe, Lock, Shuffle, UserCheck, MessageSquare,
-  ExternalLink, CalendarClock, Hash, Save,
+  Globe, Lock, Shuffle, UserCheck,
+  ExternalLink, CalendarClock, Hash, Save, Link as LinkIcon,
 } from "lucide-react";
 import { Button }   from "@/components/ui/button";
 import { Input }    from "@/components/ui/input";
@@ -82,6 +82,7 @@ export default function FormSettingsPage() {
   const [redirectUrl,    setRedirectUrl]    = useState("");
   const [maxResponses,   setMaxResponses]   = useState("");
   const [closesAt,       setClosesAt]       = useState("");
+  const [slug,           setSlug]           = useState("");
   const [visibility,     setVisibility]     = useState<"public" | "unlisted">("unlisted");
   const [shuffleFields,  setShuffleFields]  = useState(false);
   const [requireAuth,    setRequireAuth]    = useState(false);
@@ -99,12 +100,14 @@ export default function FormSettingsPage() {
         ? new Date(form.closesAt).toISOString().slice(0, 16) // yyyy-MM-ddTHH:mm
         : "",
     );
+    setSlug(form.slug ?? "");
     setVisibility(form.visibility ?? "unlisted");
     setShuffleFields(!!form.settings?.shuffleFields);
     setRequireAuth(!!form.settings?.requireAuth);
   }, [form?.id]);
 
   function handleSave() {
+    const slugValue = slug.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
     updateMut.mutate({
       formId: id,
       title:          title.trim() || "Untitled Form",
@@ -113,6 +116,7 @@ export default function FormSettingsPage() {
       redirectUrl:    redirectUrl.trim() || undefined,
       maxResponses:   maxResponses ? Number(maxResponses) : undefined,
       closesAt:       closesAt ? new Date(closesAt).toISOString() : undefined,
+      slug:           slugValue || undefined,
       visibility,
       settings: {
         shuffleFields,
@@ -120,6 +124,7 @@ export default function FormSettingsPage() {
         // preserve the other settings from the server
         showProgressBar:  form?.settings?.showProgressBar  ?? true,
         oneResponsePerIp: form?.settings?.oneResponsePerIp ?? false,
+        maxFields:        (form?.settings as any)?.maxFields ?? 20,
       },
     });
   }
@@ -157,6 +162,16 @@ export default function FormSettingsPage() {
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Tell respondents what this form is about…"
                       rows={3}
+                    />
+                  </Field>
+
+                  <Field label="Custom URL slug" hint={`Public URL: ${typeof window !== "undefined" ? window.location.origin : ""}/f/${slug || "your-slug"}`}>
+                    <Input
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+                      placeholder="my-awesome-form"
+                      leftSlot={<LinkIcon className="h-4 w-4" />}
+                      spellCheck={false}
                     />
                   </Field>
 

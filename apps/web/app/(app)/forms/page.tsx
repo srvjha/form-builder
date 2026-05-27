@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, FileText, Search, MoreHorizontal, Eye, Edit3, BarChart2, Trash2 } from "lucide-react";
+import { Plus, FileText, Search, MoreHorizontal, Eye, Edit3, BarChart2, Trash2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,17 @@ export default function FormsPage() {
       setBrix("error", "Something went wrong.");
       setTimeout(resetBrix, 3000);
     },
+  });
+
+  const cloneMutation = trpc.forms.clone.useMutation({
+    onSuccess: (cloned) => {
+      toast.success("Form duplicated!");
+      setBrix("excited", "Copy incoming!");
+      setTimeout(resetBrix, 2500);
+      refetch();
+      router.push(ROUTES.formEdit(cloned.id));
+    },
+    onError: (err) => toast.error(err.message),
   });
 
   const filtered = forms?.filter((f: any) =>
@@ -168,6 +179,12 @@ export default function FormsPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => router.push(ROUTES.formAnalytics(form.id))}>
                           <BarChart2 className="h-4 w-4" /> Analytics
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onSelect={() => cloneMutation.mutate({ formId: form.id })}
+                          disabled={cloneMutation.isPending}
+                        >
+                          <Copy className="h-4 w-4" /> Duplicate
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem destructive onSelect={() => setDeleteId(form.id)}>

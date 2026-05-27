@@ -82,6 +82,22 @@ export const formsRouter = router({
       return formService.updateForm(formId, ctx.auth.userId, data);
     }),
 
+  clone: protectedProcedure
+    .meta({
+      openapi: {
+        method: "POST",
+        path: getPath("/{formId}/clone"),
+        tags: TAGS,
+        summary: "Duplicate a form with all its fields as a new draft",
+        protect: true,
+      },
+    })
+    .input(z.object({ formId: uuidSchema }))
+    .output(z.any())
+    .mutation(async ({ ctx, input }) => {
+      return formService.cloneForm(input.formId, ctx.auth.userId);
+    }),
+
   delete: protectedProcedure
     .meta({
       openapi: {
