@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Check, Palette, Sparkles, Star } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useMascotStore } from "@/stores/mascot-store";
 
 // ── Theme definitions ──────────────────────────────────────────────────────────
 const THEMES = [
@@ -163,7 +163,7 @@ function ThemePreview({ theme }: { theme: (typeof THEMES)[number] }) {
 
   return (
     <div
-      className="h-44 overflow-hidden p-3"
+      className="h-52 overflow-hidden p-3"
       style={{ backgroundColor: colors.bg }}
     >
       {/* Form card */}
@@ -255,6 +255,14 @@ export default function ThemesPage() {
   const [activeTheme, setActiveTheme] = useState<ThemeId>("brutalist");
   const [category,    setCategory]    = useState("all");
   const [applied,     setApplied]     = useState<ThemeId | null>(null);
+  const { setState: setBrix, reset: resetBrix } = useMascotStore();
+
+  /* Set a themes-specific mascot message on mount, clear on leave */
+  useEffect(() => {
+    setBrix("waving", "Pick a theme. Own your aesthetic.", true);
+    return () => resetBrix();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = THEMES.filter((t) =>
     category === "all" || CATEGORY_MAP[t.id]?.includes(category),
@@ -272,7 +280,7 @@ export default function ThemesPage() {
 
   return (
     <AppShell title="Themes">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         {/* ── Header ─────────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -381,7 +389,7 @@ export default function ThemesPage() {
                 <ThemePreview theme={theme} />
 
                 {/* Info */}
-                <div className="flex flex-1 flex-col border-t-2 border-[#0A0A0A] bg-[var(--bg-panel)] p-4">
+                <div className="flex flex-1 flex-col border-t-2 border-[#0A0A0A] bg-[var(--bg-panel)] p-5">
                   <div className="flex items-center gap-2">
                     <h3 className="font-display text-sm font-extrabold uppercase tracking-wide">
                       {theme.name}
@@ -390,17 +398,17 @@ export default function ThemesPage() {
                       <span className="label-overline text-[var(--color-accent)]">Active</span>
                     )}
                   </div>
-                  <p className="mt-1 flex-1 text-xs text-[var(--text-muted)] leading-relaxed">
+                  <p className="mt-1.5 flex-1 text-sm text-[var(--text-muted)] leading-relaxed">
                     {theme.description}
                   </p>
 
                   {/* Color swatches */}
-                  <div className="mt-3 flex gap-1.5">
+                  <div className="mt-4 flex gap-2">
                     {[theme.colors.bg, theme.colors.accent, theme.colors.text, theme.colors.border].map(
                       (c, i) => (
                         <span
                           key={i}
-                          className="h-4 w-4 border border-black/20 rounded-sm"
+                          className="h-5 w-5 border border-black/20 rounded-sm"
                           style={{ backgroundColor: c }}
                           title={c}
                         />
@@ -415,7 +423,7 @@ export default function ThemesPage() {
                       handleApply(theme.id);
                     }}
                     className={cn(
-                      "mt-4 flex h-8 w-full items-center justify-center gap-1.5",
+                      "mt-4 flex h-9 w-full items-center justify-center gap-1.5",
                       "border-2 border-[#0A0A0A] font-display text-xs font-extrabold uppercase tracking-wider",
                       "transition-all active:translate-x-[2px] active:translate-y-[2px]",
                       isActive
