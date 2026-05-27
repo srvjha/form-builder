@@ -70,8 +70,10 @@ This is not an aesthetic accident. It is a deliberate statement: clarity over de
 ### Builder
 
 - **Drag-and-drop** field reordering via `@dnd-kit`
+- **Kanban-style drag overlay** — dragged card lifts with a rotated, offset-shadow ghost; original slot becomes a dashed accent placeholder
 - **14 field types** (see [Field Types](#field-types))
 - **Per-field settings panel** — label, placeholder, help text, required toggle, validations, options
+- **Field limit** — set a maximum number of fields per form (default 20, configurable at creation time); palette shows a live counter with colour-coded warnings (yellow at ≤3 remaining, red when full) and locks buttons when the cap is hit
 - **Undo / Redo** — 50-step history via Zustand temporal middleware (`zundo`)
 - **Auto-save** — form changes debounced and persisted to the database automatically (1.2 s delay)
 - **Unsaved / Saving indicator** in the top bar
@@ -81,6 +83,8 @@ This is not an aesthetic accident. It is a deliberate statement: clarity over de
 
 - **Draft → Published → Closed → Archived** lifecycle with one-click publish/unpublish
 - **Public / Unlisted** visibility toggle
+- **Custom URL slug** — set a human-readable slug per form (e.g. `/f/my-survey`); sanitised on keystroke, live URL preview in settings
+- **Clone / Duplicate** — one-click copy of any form (all fields, settings, visibility) into a new draft ready for editing
 - **Collect respondent email** — optional email capture before submission
 - **Max responses** cap — form automatically closes when the limit is reached
 - **Close date** — scheduled automatic closing at a future datetime
@@ -109,12 +113,27 @@ This is not an aesthetic accident. It is a deliberate statement: clarity over de
 
 - Public form gallery — browse all forms marked as `public`
 
+### Sharing
+
+- **QR code** — every published form gets a downloadable SVG QR code (serialised directly from the DOM, no canvas API)
+- **Embed snippet** — copy-paste `<iframe>` code for embedding on any external site
+- **Direct link** — one-click copy of the public `/f/slug` URL
+
 ### Themes
 
 - 8 built-in visual themes (Brutalist, Ocean, Midnight, Forest, Solar, Lavender, Monochrome, Coral)
+- **Fully functional CSS var injection** — `ThemeProvider` writes every token as an inline `element.style.setProperty` (highest specificity); dark mode surfaces stay owned by the `.dark` CSS class to prevent conflicts
 - Live mini-preview on each theme card showing exact colours
 - Set as global default — persisted to `localStorage`
+- **Light / Dark / System** mode — colour mode resolved correctly for system preference; toggle icon updates instantly
 - Per-form theme architecture ready in DB (`theme_id` FK on `forms` table)
+
+### UI & Experience
+
+- **Glass topbar** — navigation bar becomes frosted-glass (`backdrop-blur`, 75 % opacity) when the main content area is scrolled down
+- **New Form CTA in sidebar** — accent-coloured "New Form" button above the nav for one-click access
+- **Brutalist toast notifications** — Sonner toasts styled with 2px `#0A0A0A` border and 4px offset shadow; success (green), error (red), warning (yellow), info (blue) variants each use their own accent shadow; title uses Syne `font-display`
+- **FormCraft favicon** — custom SVG icon (lightning bolt on `#FF3B00` square) used as the browser tab icon
 
 ### Auth & Security
 
@@ -154,6 +173,7 @@ This is not an aesthetic accident. It is a deliberate statement: clarity over de
 | Command palette | cmdk | 1.x |
 | Date utilities | date-fns | 4.x |
 | ID generation | nanoid | 5.x |
+| QR codes | qrcode.react | 4.x |
 | Drawer component | vaul | 1.x |
 | Fonts | Syne, Inter, JetBrains Mono (Google Fonts) | — |
 
@@ -342,7 +362,7 @@ form-building/
 | `status` | ENUM | `draft \| published \| closed \| archived` |
 | `visibility` | ENUM | `public \| unlisted` |
 | `theme_id` | UUID FK → themes | Nullable; SET NULL on delete |
-| `settings` | JSONB | `showProgressBar, shuffleFields, oneResponsePerIp, requireAuth` |
+| `settings` | JSONB | `showProgressBar, shuffleFields, oneResponsePerIp, requireAuth, maxFields` |
 | `max_responses` | INTEGER | `NULL` = unlimited |
 | `closes_at` | TIMESTAMP | `NULL` = never closes |
 | `collect_email` | BOOLEAN | Prompt respondent for email |
@@ -462,6 +482,7 @@ Auto-generated from the same tRPC router via `trpc-to-openapi`. Interactive docs
 | `forms.getResponse` | GET | `/forms/{formId}/responses/{responseId}` | Required |
 | `forms.deleteResponse` | DELETE | `/forms/{formId}/responses/{responseId}` | Required |
 | `forms.exportResponses` | GET | `/forms/{formId}/responses/export` | Required |
+| `forms.clone` | POST | `/forms/{formId}/clone` | Required |
 | `forms.analytics` | GET | `/forms/{formId}/analytics` | Required |
 
 #### Public (no auth required)
@@ -496,11 +517,11 @@ Auto-generated from the same tRPC router via `trpc-to-openapi`. Interactive docs
 | `/f/[slug]` | **Public form submission** — respondents fill and submit | No |
 | `/dashboard` | Overview — stats cards + recent forms | Yes |
 | `/forms` | All my forms with status badges and quick actions | Yes |
-| `/forms/new` | Create form wizard — template picker + title/description | Yes |
+| `/forms/new` | Create form wizard — template picker, title/description, field limit | Yes |
 | `/forms/[id]/edit` | **Builder** — drag-and-drop canvas, palette, settings panel | Yes |
 | `/forms/[id]/responses` | Response list, pagination, CSV export, delete | Yes |
 | `/forms/[id]/analytics` | Analytics — completion rate, time-series, per-field | Yes |
-| `/forms/[id]/share` | Share links, embed iframe code | Yes |
+| `/forms/[id]/share` | Share link, QR code download (SVG), embed iframe code | Yes |
 | `/forms/[id]/settings` | Form settings — visibility, close date, limits, behaviour | Yes |
 | `/explore` | Browse public forms from all users | Yes |
 | `/themes` | Theme gallery — preview and set default | Yes |
