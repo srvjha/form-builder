@@ -14,9 +14,9 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { FileText } from "lucide-react";
 
-import { FieldPalette }       from "@/components/builder/field-palette";
-import { FieldCard, FieldDragOverlay } from "@/components/builder/field-card";
-import { FieldSettings }      from "@/components/builder/field-settings";
+import { FieldPalette, makeDefaultField } from "@/components/builder/field-palette";
+import { FieldCard, FieldDragOverlay }   from "@/components/builder/field-card";
+import { FieldSettings }                 from "@/components/builder/field-settings";
 import { EmptyState }     from "@/components/shared/empty-state";
 import { Skeleton }       from "@/components/ui/skeleton";
 import { trpc }           from "@/lib/trpc";
@@ -29,6 +29,7 @@ export default function FormEditPage() {
   const {
     form, fields, activeFieldId, isDirty, previewMode,
     setForm, setFields, setActiveField, reorderFields,
+    addField, updateField, removeField,
     setDirty, setIsSaving,
   } = useBuilderStore();
 
@@ -130,6 +131,97 @@ export default function FormEditPage() {
     return () => clearTimeout(saveTimerRef.current);
   }, [isDirty, save]);
 
+  /* ── Field CRUD — optimistic store + DB persistence ──────────────────── */
+
+  /** Add a field: update store immediately, persist to DB, swap temp ID → server UUID */
+  async function handleAddField(field: Omit<ReturnType<typeof makeDefaultField>, never>) {
+    if (!form.id) return;
+    const success = addField(field); // optimistic: appears in canvas instantly
+    if (!success) return;            // limit hit — toast already shown in palette
+
+    try {
+      const serverField = await addFieldMut.mutateAsync({
+        formId:      form.id,
+        type:        field.type,
+        label:       field.label,
+        required:    field.required,
+        validations: field.validations,
+        ...(field.placeholder !== undefined && { placeholder: field.placeholder }),
+        ...(field.helpText     !== undefined && { helpText:    field.helpText    }),
+        ...(field.options      !== undefined && { options:     field.options     }),
+        ...(field.minValue     !== undefined && { minValue:    field.minValue    }),
+        ...(field.maxValue     !== undefined && { maxValue:    field.maxValue    }),
+        ...(field.minLabel     !== undefined && { minLabel:    field.minLabel    }),
+        ...(field.maxLabel     !== undefined && { maxLabel:    field.maxLabel    }),
+      });
+      // Replace the nanoid temp ID with the real server-assigned UUID so
+      // subsequent deletes / updates use the correct identifier.
+      const current = useBuilderStore.getState().fields;
+      setFields(
+        current.map((f) =>
+          f.id === field.id
+            ? { ...f, id: serverField.id, order: serverField.order }
+            : f,
+        ),
+      );
+      setActiveField(serverField.id);
+      setDirty(false);
+    } catch (e: any) {
+      removeField(field.id); // revert optimistic add
+      toast.error("Failed to add field: " + (e?.message ?? "Unknown error"));
+    }
+  }
+
+  /** Delete a field: remove from store immediately, then delete on server */
+  async function handleRemoveField(fieldId: string) {
+    if (!form.id) return;
+    removeField(fieldId); // optimistic
+    try {
+      await deleteFieldMut.mutateAsync({ formId: form.id, fieldId });
+    } catch (e: any) {
+      utils.forms.get.invalidate({ formId: form.id }); // revert via refetch
+      toast.error("Failed to remove field: " + (e?.message ?? "Unknown error"));
+    }
+  }
+
+  /** Update a field: patch store immediately, debounce the DB write 800 ms */
+  const updateFieldTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  function handleUpdateField(fieldId: string, patch: Parameters<typeof updateField>[1]) {
+    updateField(fieldId, patch); // immediate for responsive UI
+    if (!form.id) return;
+
+    const existing = updateFieldTimers.current.get(fieldId);
+    if (existing) clearTimeout(existing);
+
+    const timer = setTimeout(async () => {
+      updateFieldTimers.current.delete(fieldId);
+      const f = useBuilderStore.getState().fields.find((x) => x.id === fieldId);
+      if (!f || !form.id) return;
+      try {
+        await updateFieldMut.mutateAsync({
+          formId:      form.id,
+          fieldId:     f.id,
+          type:        f.type,
+          label:       f.label,
+          required:    f.required,
+          validations: f.validations,
+          placeholder: f.placeholder,
+          helpText:    f.helpText,
+          options:     f.options,
+          minValue:    f.minValue,
+          maxValue:    f.maxValue,
+          minLabel:    f.minLabel,
+          maxLabel:    f.maxLabel,
+        });
+      } catch (e: any) {
+        toast.error("Autosave failed for field: " + (e?.message ?? "Unknown error"));
+      }
+    }, 800);
+
+    updateFieldTimers.current.set(fieldId, timer);
+  }
+
   /* ── DnD ──────────────────────────────────────────────────── */
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -181,7 +273,7 @@ export default function FormEditPage() {
     <div className="flex h-full overflow-hidden">
       {/* ── Left: Field palette ─────────────────────────────── */}
       <aside className="w-52 shrink-0 border-r-2 border-[#0A0A0A] bg-[var(--bg-panel)] overflow-hidden">
-        <FieldPalette />
+        <FieldPalette onAdd={handleAddField} />
       </aside>
 
       {/* ── Center: Canvas ──────────────────────────────────── */}
@@ -217,6 +309,7 @@ export default function FormEditPage() {
                         field={f}
                         isActive={f.id === activeFieldId}
                         isDragOverlay={false}
+                        onRemove={handleRemoveField}
                       />
                     ))}
                   </AnimatePresence>
@@ -250,7 +343,11 @@ export default function FormEditPage() {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="w-72 shrink-0 border-l-2 border-[#0A0A0A] bg-[var(--bg-panel)] overflow-hidden"
           >
-            <FieldSettings field={activeField} />
+            <FieldSettings
+              field={activeField}
+              onUpdate={handleUpdateField}
+              onRemove={handleRemoveField}
+            />
           </motion.aside>
         )}
       </AnimatePresence>

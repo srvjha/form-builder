@@ -28,7 +28,7 @@ const FIELD_DEFS: { type: FieldType; label: string; icon: React.ElementType; col
   { type: "file_upload",  label: "File Upload",   icon: Upload,       color: "#888"   },
 ];
 
-function makeDefaultField(type: FieldType): Omit<BuilderField, "order"> {
+export function makeDefaultField(type: FieldType): Omit<BuilderField, "order"> {
   const base: Omit<BuilderField, "order"> = {
     id:          nanoid(),
     type,
@@ -47,7 +47,12 @@ function makeDefaultField(type: FieldType): Omit<BuilderField, "order"> {
   return base;
 }
 
-export function FieldPalette() {
+interface FieldPaletteProps {
+  /** When provided, the parent handles both the store update AND the DB mutation. */
+  onAdd?: (field: Omit<BuilderField, "order">) => void;
+}
+
+export function FieldPalette({ onAdd }: FieldPaletteProps) {
   const addField   = useBuilderStore((s) => s.addField);
   const fieldCount = useBuilderStore((s) => s.fields.length);
   const maxFields  = useBuilderStore((s) => s.form.settings.maxFields ?? DEFAULT_MAX_FIELDS);
@@ -58,9 +63,16 @@ export function FieldPalette() {
   const isWarning = !isFull && remaining <= 3;
 
   function handleAdd(type: FieldType) {
-    const added = addField(makeDefaultField(type));
-    if (!added) {
+    if (isFull) {
       toast.error(`Field limit reached (${maxFields}). Remove a field or raise the limit in Settings.`);
+      return;
+    }
+    const field = makeDefaultField(type);
+    if (onAdd) {
+      onAdd(field); // parent handles store + DB mutation
+    } else {
+      // Fallback: store only (e.g. in preview/storybook)
+      addField(field);
     }
   }
 

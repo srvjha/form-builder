@@ -14,6 +14,8 @@ interface Props {
   isActive:       boolean;
   preview?:       boolean;
   isDragOverlay?: boolean;
+  /** When provided, the parent handles both store removal AND the DB mutation. */
+  onRemove?:      (id: string) => void;
 }
 
 /* Cast builder field → public field for the renderer */
@@ -67,7 +69,7 @@ export function FieldDragOverlay({ field }: { field: BuilderField }) {
 }
 
 /* ── Main sortable card ───────────────────────────────────────────────────── */
-export function FieldCard({ field, isActive, preview, isDragOverlay }: Props) {
+export function FieldCard({ field, isActive, preview, isDragOverlay, onRemove }: Props) {
   const { setActiveField, removeField } = useBuilderStore();
 
   const {
@@ -155,7 +157,10 @@ export function FieldCard({ field, isActive, preview, isDragOverlay }: Props) {
 
         {/* Delete */}
         <button
-          onClick={(e) => { e.stopPropagation(); removeField(field.id); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onRemove) { onRemove(field.id); } else { removeField(field.id); }
+          }}
           className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--color-red)]"
           aria-label="Remove field"
         >

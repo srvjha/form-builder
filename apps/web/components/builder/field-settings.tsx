@@ -9,7 +9,13 @@ import { Switch }  from "@/components/ui/switch";
 import { Button }  from "@/components/ui/button";
 import { useBuilderStore, type BuilderField } from "@/stores/builder-store";
 
-interface Props { field: BuilderField }
+interface Props {
+  field: BuilderField;
+  /** When provided, parent handles store update + debounced DB mutation. */
+  onUpdate?: (id: string, patch: Partial<BuilderField>) => void;
+  /** When provided, parent handles store removal + DB mutation. */
+  onRemove?: (id: string) => void;
+}
 
 function LabeledInput({ label, ...props }: React.ComponentProps<typeof Input> & { label: string }) {
   return (
@@ -20,9 +26,11 @@ function LabeledInput({ label, ...props }: React.ComponentProps<typeof Input> & 
   );
 }
 
-export function FieldSettings({ field }: Props) {
+export function FieldSettings({ field, onUpdate, onRemove }: Props) {
   const { updateField, removeField, setActiveField } = useBuilderStore();
-  const up = (patch: Partial<BuilderField>) => updateField(field.id, patch);
+  const up = (patch: Partial<BuilderField>) => {
+    if (onUpdate) { onUpdate(field.id, patch); } else { updateField(field.id, patch); }
+  };
 
   const hasOptions    = field.type === "select"  || field.type === "multi_select";
   const hasMinMax     = field.type === "number"  || field.type === "scale";
@@ -158,7 +166,7 @@ export function FieldSettings({ field }: Props) {
           variant="danger"
           size="sm"
           className="w-full gap-1.5"
-          onClick={() => { removeField(field.id); }}
+          onClick={() => { if (onRemove) { onRemove(field.id); } else { removeField(field.id); } }}
         >
           <Trash2 className="h-3.5 w-3.5" /> Remove field
         </Button>
