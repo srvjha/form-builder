@@ -84,6 +84,10 @@ export interface FormSettings {
   oneResponsePerIp?: boolean;
 
   requireAuth?: boolean;
+
+  maxFields?: number;
+
+  formTheme?: "brutalist" | "clean" | "playful" | "minimal";
 }
 
 export type SelectForm = typeof formsTable.$inferSelect;

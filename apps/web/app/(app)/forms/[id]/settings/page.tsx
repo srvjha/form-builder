@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   Globe, Lock, Shuffle, UserCheck,
   ExternalLink, CalendarClock, Hash, Save, Link as LinkIcon,
+  Check, Palette,
 } from "lucide-react";
 import { Button }   from "@/components/ui/button";
 import { Input }    from "@/components/ui/input";
@@ -16,6 +17,11 @@ import { Switch }   from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/shared/error-state";
 import { trpc }     from "@/lib/trpc";
+import { cn }       from "@/lib/utils";
+import {
+  type FormTheme,
+  ThemePreview,
+} from "@/components/form-renderer/public-form";
 
 /* ── Tiny labelled field wrapper ────────────────────────────── */
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
@@ -86,6 +92,7 @@ export default function FormSettingsPage() {
   const [visibility,     setVisibility]     = useState<"public" | "unlisted">("unlisted");
   const [shuffleFields,  setShuffleFields]  = useState(false);
   const [requireAuth,    setRequireAuth]    = useState(false);
+  const [formTheme,      setFormTheme]      = useState<FormTheme>("brutalist");
 
   /* Seed once data loads */
   useEffect(() => {
@@ -104,6 +111,7 @@ export default function FormSettingsPage() {
     setVisibility(form.visibility ?? "unlisted");
     setShuffleFields(!!form.settings?.shuffleFields);
     setRequireAuth(!!form.settings?.requireAuth);
+    setFormTheme(((form.settings as any)?.formTheme as FormTheme) ?? "brutalist");
   }, [form?.id]);
 
   function handleSave() {
@@ -121,6 +129,7 @@ export default function FormSettingsPage() {
       settings: {
         shuffleFields,
         requireAuth,
+        formTheme,
         // preserve the other settings from the server
         showProgressBar:  form?.settings?.showProgressBar  ?? true,
         oneResponsePerIp: form?.settings?.oneResponsePerIp ?? false,
@@ -292,6 +301,91 @@ export default function FormSettingsPage() {
                 checked={requireAuth}
                 onCheckedChange={setRequireAuth}
               />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Form Design / Theme ──────────────────────────────── */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.2 }}>
+          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
+            <div className="flex items-center gap-3 border-b-2 border-[#0A0A0A] px-6 py-4">
+              <Palette className="h-4 w-4 text-[var(--color-accent)]" />
+              <p className="label-overline">Form design</p>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <p className="text-xs text-[var(--text-muted)]">
+                Choose a visual style for your public-facing form. Changes are visible to respondents.
+              </p>
+
+              {/* 2×2 theme grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {(
+                  [
+                    { id: "brutalist" as FormTheme, name: "Brutalist Pro",    desc: "Bold borders, offset shadows"    },
+                    { id: "clean"     as FormTheme, name: "Clean Card",       desc: "Modern cards, soft shadows"      },
+                    { id: "playful"   as FormTheme, name: "Animated Playful", desc: "Vibrant gradient, spring motion" },
+                    { id: "minimal"   as FormTheme, name: "Notion Minimal",   desc: "Clean white, typographic"        },
+                  ] as { id: FormTheme; name: string; desc: string }[]
+                ).map(({ id, name, desc }) => {
+                  const active = formTheme === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setFormTheme(id)}
+                      className={cn(
+                        "relative flex flex-col overflow-hidden border-2 text-left transition-all",
+                        active
+                          ? "border-[var(--color-accent)] shadow-[3px_3px_0_var(--color-accent)]"
+                          : "border-[#0A0A0A] shadow-[2px_2px_0_#0A0A0A] hover:shadow-[3px_3px_0_#0A0A0A]",
+                      )}
+                    >
+                      {/* Mini preview */}
+                      <div className="h-32 w-full overflow-hidden">
+                        <ThemePreview theme={id} />
+                      </div>
+
+                      {/* Label */}
+                      <div className={cn(
+                        "flex items-center justify-between border-t-2 border-[#0A0A0A] px-3 py-2",
+                        active ? "bg-[var(--color-accent)]" : "bg-[var(--bg-panel)]",
+                      )}>
+                        <div>
+                          <p className={cn(
+                            "font-display text-[11px] font-extrabold uppercase tracking-wide",
+                            active ? "text-white" : "text-[var(--text-primary)]",
+                          )}>
+                            {name}
+                          </p>
+                          <p className={cn(
+                            "font-mono text-[9px]",
+                            active ? "text-white/70" : "text-[var(--text-muted)]",
+                          )}>
+                            {desc}
+                          </p>
+                        </div>
+                        {active && <Check className="h-3.5 w-3.5 text-white shrink-0" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Live preview panel */}
+              <div className="border-2 border-[#0A0A0A] overflow-hidden shadow-[2px_2px_0_#0A0A0A]">
+                <div className="flex items-center justify-between border-b-2 border-[#0A0A0A] px-4 py-2 bg-[var(--bg-inset)]">
+                  <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                    Preview
+                  </p>
+                  <span className="font-mono text-[10px] text-[var(--color-accent)] font-bold uppercase tracking-wide">
+                    {formTheme}
+                  </span>
+                </div>
+                <div className="h-52 overflow-hidden">
+                  <ThemePreview theme={formTheme} />
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
