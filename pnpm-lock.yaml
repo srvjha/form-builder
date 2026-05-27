@@ -379,9 +379,6 @@ importers:
       '@trpc/server':
         specifier: ^11.8.1
         version: 11.17.0(typescript@5.9.3)
-      drizzle-orm:
-        specifier: ^0.45.1
-        version: 0.45.2(@types/pg@8.20.0)(pg@8.21.0)
       zod:
         specifier: ^4.3.5
         version: 4.4.3
