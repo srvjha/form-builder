@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { SignUpButton } from "@clerk/nextjs";
+import { SignUpButton, useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { ArrowRight, Zap, BarChart2, Shield, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -91,6 +91,8 @@ function Reactive({
 
 /* ─── Page ────────────────────────────────────────────────────── */
 export default function LandingPage() {
+  const { isSignedIn } = useAuth();
+
   return (
     <div className="bg-[var(--bg-page)] bg-dot-grid">
 
@@ -120,9 +122,8 @@ export default function LandingPage() {
                 initial="hidden" animate="visible" custom={1} variants={fadeUp}
                 className="font-display text-5xl font-black uppercase leading-tight tracking-tight md:text-6xl lg:text-7xl"
               >
-                THE FORM BUILDER
-                <br />THAT DOESN&apos;T
-                <br /><span className="text-[var(--color-accent)]">APOLOGISE.</span>
+                BUILD FORMS.
+                <br /><span className="text-[var(--color-accent)]">GET ANSWERS.</span>
               </motion.h1>
 
               <motion.p
@@ -137,12 +138,21 @@ export default function LandingPage() {
                 className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
               >
                 <Reactive reaction={REACTIONS.signUp}>
-                  <SignUpButton mode="redirect" fallbackRedirectUrl="/dashboard">
-                    <Button size="lg" className="gap-2 shadow-brut-lg">
-                      Start Building Free
-                      <ArrowRight className="h-4 w-4" />
+                  {isSignedIn ? (
+                    <Button size="lg" className="gap-2 shadow-brut-lg" asChild>
+                      <Link href={ROUTES.dashboard}>
+                        Go to Dashboard
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
                     </Button>
-                  </SignUpButton>
+                  ) : (
+                    <SignUpButton mode="redirect" fallbackRedirectUrl="/dashboard">
+                      <Button size="lg" className="gap-2 shadow-brut-lg">
+                        Start Building Free
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </SignUpButton>
+                  )}
                 </Reactive>
 
                 <Reactive reaction={REACTIONS.explore}>
