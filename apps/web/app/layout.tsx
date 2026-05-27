@@ -25,6 +25,8 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "700"],
 });
 
+const SITE_URL = "https://formcraft.srvjha.in";
+
 export const metadata: Metadata = {
   title: {
     default: "FormCraft — Build forms. Get answers.",
@@ -32,12 +34,27 @@ export const metadata: Metadata = {
   },
   description:
     "Build production-grade forms, collect responses, and track analytics. Raw, honest, fast.",
-  keywords: ["form builder", "surveys", "analytics", "typeform alternative"],
+  keywords: ["form builder", "surveys", "analytics", "typeform alternative", "open source"],
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     type: "website",
+    url: SITE_URL,
     siteName: "FormCraft",
     title: "FormCraft — Build forms. Get answers.",
-    description: "Build production-grade forms. No fluff.",
+    description: "Build production-grade forms. No fluff, no gradients, no lorem ipsum.",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@J_srv001",
+    creator: "@J_srv001",
+    title: "FormCraft — Build forms. Get answers.",
+    description: "Build production-grade forms. No fluff, no gradients, no lorem ipsum.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
 };
 

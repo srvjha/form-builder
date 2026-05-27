@@ -67,14 +67,23 @@ export class FormService extends BaseService {
     const form = await this.findFormOrThrow(formId);
     this.assertOwner(form, userId);
 
+    // Determine the final slug, then strip it from `data` so the spread
+    // below never accidentally overrides the resolved value.
     let slug = form.slug;
-    if (data.title && !data.slug) {
+    if (data.slug) {
+      // Explicit custom slug — run through uniqueness check (excludes this form)
+      slug = await this.generateUniqueSlug(data.slug, formId);
+    } else if (data.title) {
+      // Title changed, no custom slug — auto-generate from new title
       slug = await this.generateUniqueSlug(data.title, formId);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { slug: _dropSlug, ...updateData } = data;
+
     const [updated] = await db
       .update(formsTable)
-      .set({ ...data, slug })
+      .set({ ...updateData, slug })
       .where(eq(formsTable.id, formId))
       .returning();
 

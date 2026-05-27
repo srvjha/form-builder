@@ -32,6 +32,7 @@ export default function DashboardPage() {
         totalForms:     forms.length,
         publishedForms: forms.filter((f: any) => f.status === "published").length,
         totalResponses: forms.reduce((acc: number, f: any) => acc + (f.responseCount ?? 0), 0),
+        draftForms:     forms.filter((f: any) => f.status === "draft").length,
       }
     : null;
 
@@ -58,7 +59,7 @@ export default function DashboardPage() {
             <StatMetric label="Total Forms"     value={stats?.totalForms ?? 0}     delay={0} />
             <StatMetric label="Published"        value={stats?.publishedForms ?? 0}  delay={0.05} />
             <StatMetric label="Total Responses" value={stats?.totalResponses ?? 0} delay={0.1} />
-            <StatMetric label="Avg Completion"  value="—"                            delay={0.15} />
+            <StatMetric label="Drafts"          value={stats?.draftForms ?? 0}      delay={0.15} />
           </>
         )}
       </div>

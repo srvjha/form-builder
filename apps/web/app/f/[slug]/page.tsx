@@ -141,9 +141,11 @@ export default function PublicFormPage() {
 
     const answers = ((form.fields ?? []) as PublicField[]).map((f) => {
       const val = values[f.id] ?? (f.type === "multi_select" ? [] : "");
+      // Preserve arrays for multi_select so the server stores proper JSON arrays,
+      // not comma-joined strings (which would break per-option analytics).
       return {
         fieldId: f.id,
-        value:   Array.isArray(val) ? val.join(", ") : val,
+        value:   val as string | string[],
       };
     });
 

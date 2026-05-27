@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useState, useRef }  from "react";
 import { toast }     from "sonner";
-import { Globe, Lock, Copy, Check, QrCode, Download } from "lucide-react";
+import { Globe, Lock, Copy, Check, QrCode, Download, Code2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Button }    from "@/components/ui/button";
 import { Input }     from "@/components/ui/input";
@@ -15,7 +15,8 @@ import { ROUTES }    from "@/lib/constants";
 
 export default function SharePage() {
   const { id } = useParams<{ id: string }>();
-  const [copied, setCopied] = useState(false);
+  const [copied,       setCopied]       = useState(false);
+  const [copiedEmbed, setCopiedEmbed] = useState(false);
   const qrRef = useRef<SVGSVGElement>(null);
 
   const { data: form, isLoading, refetch } = trpc.forms.get.useQuery({ formId: id }, { enabled: !!id });
@@ -26,10 +27,20 @@ export default function SharePage() {
   const origin  = typeof window !== "undefined" ? window.location.origin : "";
   const formUrl = form ? `${origin}${ROUTES.publicForm(form.slug)}` : "";
 
+  const embedCode = form
+    ? `<iframe\n  src="${formUrl}"\n  width="100%"\n  height="650"\n  frameborder="0"\n  style="border:2px solid #0A0A0A;"\n  title="${form.title}"\n></iframe>`
+    : "";
+
   function copyLink() {
     navigator.clipboard.writeText(formUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function copyEmbed() {
+    navigator.clipboard.writeText(embedCode);
+    setCopiedEmbed(true);
+    setTimeout(() => setCopiedEmbed(false), 2000);
   }
 
   function downloadQr() {
@@ -139,6 +150,36 @@ export default function SharePage() {
                 </div>
               </div>
 
+            </div>
+          </div>
+        )}
+
+        {/* ── Embed code ─────────────────────────────────────── */}
+        {form?.status === "published" && (
+          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
+            <div className="border-b-2 border-[#0A0A0A] px-6 py-4 flex items-center gap-2">
+              <Code2 className="h-4 w-4" />
+              <p className="label-overline">Embed</p>
+            </div>
+            <div className="p-6 space-y-3">
+              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                Paste this snippet anywhere on your website to embed the form directly.
+              </p>
+              <div className="relative">
+                <pre className="overflow-x-auto rounded-none border-2 border-[#0A0A0A] bg-[var(--bg-inset)] p-4 font-mono text-[11px] leading-relaxed text-[var(--text-primary)] shadow-[inset_2px_2px_0_rgba(0,0,0,0.04)]">
+                  {embedCode}
+                </pre>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={copyEmbed}
+                  className="absolute right-3 top-3 gap-1.5"
+                >
+                  {copiedEmbed
+                    ? <><Check className="h-3.5 w-3.5 text-[var(--color-green)]" /> Copied!</>
+                    : <><Copy className="h-3.5 w-3.5" /> Copy</>}
+                </Button>
+              </div>
             </div>
           </div>
         )}

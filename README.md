@@ -134,6 +134,9 @@ This is not an aesthetic accident. It is a deliberate statement: clarity over de
 - **New Form CTA in sidebar** — accent-coloured "New Form" button above the nav for one-click access
 - **Brutalist toast notifications** — Sonner toasts styled with 2px `#0A0A0A` border and 4px offset shadow; success (green), error (red), warning (yellow), info (blue) variants each use their own accent shadow; title uses Syne `font-display`
 - **FormCraft favicon** — custom SVG icon (lightning bolt on `#FF3B00` square) used as the browser tab icon
+- **Custom 404 page** — branded "Page Not Found" with accent stripe and navigation CTAs
+- **Global error boundary** — `error.tsx` at root and `(app)` group levels; catches render/data errors with a "Try Again" recovery action
+- **Twitter / X card metadata** — `summary_large_image` card with site and creator tags for proper link previews on social platforms
 
 ### Auth & Security
 
@@ -819,6 +822,57 @@ Use any managed PostgreSQL provider. Set `DATABASE_URL` to the **Direct connecti
 # Run migrations against production
 DATABASE_URL=<prod-connection-string> pnpm --filter @repo/database db:migrate
 ```
+
+---
+
+## Engineering Best Practices
+
+A non-exhaustive list of production-grade practices followed throughout the codebase:
+
+### Architecture
+- **Turborepo monorepo** — shared packages (`@repo/database`, `@repo/trpc`, `@repo/services`, `@repo/logger`) with strict boundaries; no business logic bleeds into the API layer
+- **Service layer pattern** — all DB mutations go through `packages/services/*`; tRPC procedures are thin wrappers that validate input, call a service method, and return
+- **Shared Zod schemas** — `packages/trpc/server/schemas/form.schemas.ts` is the single source of truth for all input shapes; the frontend uses `@trpc/react-query` for end-to-end type safety with zero codegen step
+- **`BaseService` error helpers** — `this.notFound()`, `this.forbidden()`, `this.badRequest()`, `this.internal()` map to HTTP-correct tRPC `TRPCError` codes; no raw error strings scattered across handlers
+
+### API Design
+- **Dual REST + tRPC surface** — same router powers both; `trpc-to-openapi` auto-generates the REST spec with no duplication
+- **OpenAPI docs with Scalar UI** — interactive API explorer at `/docs` in production
+- **Consistent output shape** — every mutation returns the full updated entity, not just `{ success: true }`, so clients can update caches without a refetch
+- **Authorization checks at service layer** — `assertOwner()` is called before every mutation; the tRPC procedure layer never bypasses it
+- **`trust proxy` set** — `app.set("trust proxy", 1)` ensures `req.ip` resolves correctly behind Vercel/Render reverse proxies (critical for rate limiting and IP deduplication)
+
+### Security
+- **Helmet** — CSP, HSTS, X-Frame-Options, referrer-policy headers on all responses
+- **Three-tier rate limiting** — general (100/15 min), auth (10/15 min), submission (5/10 min per IP) via `express-rate-limit`
+- **Svix webhook verification** — all Clerk webhooks verified via HMAC signature before processing
+- **CORS strict allowlist** — in production, only `WEB_URL` and `BASE_URL` are allowed origins
+- **IP deduplication** — optional `oneResponsePerIp` flag stored in `settings` JSONB
+- **Zod-validated env** — both `apps/server/src/env.ts` and `packages/database/env.ts` fail fast at boot if any required variable is missing
+
+### Frontend
+- **Zustand `temporal` middleware** — 50-step undo/redo in the builder with zero extra code
+- **Optimistic reordering** — DnD `reorderFields` updates the store instantly; the API call happens in the background; on failure, cache invalidation reverts the UI
+- **Auto-save debounce** — 1.2 s debounce on all builder changes; `isDirty` flag prevents unnecessary API calls
+- **`suppressHydrationWarning`** on `<html>` — prevents React hydration errors from `dark` class being set by the theme provider before hydration
+- **Sonner `toastOptions` typed classNames** — all toast variants (success, error, warning, info) have distinct border + shadow colours; title uses `font-display` (Syne) for visual consistency
+- **`error.tsx` boundaries** — `app/error.tsx` and `app/(app)/error.tsx` catch React render errors at route group level; both expose a "Try Again" action via Next.js `reset()` callback
+- **Custom `not-found.tsx`** — branded 404 with navigation CTAs instead of Next.js default
+- **`metadataBase` set** — `new URL("https://formcraft.srvjha.in")` in root layout ensures all relative OG/Twitter image URLs resolve correctly in production
+- **Twitter `summary_large_image` card** — social link previews show the full card on X/Twitter
+
+### Database
+- **Drizzle ORM typed models** — all insert/select types are inferred from the schema; no raw SQL strings outside of aggregate expressions
+- **Cascade deletes** — `form_fields`, `form_responses`, `response_answers` all cascade on parent delete
+- **Slug uniqueness loop** — `generateUniqueSlug` appends `-1`, `-2` etc. until a free slug is found; safe under concurrent creates via the optimistic loop pattern
+- **JSONB for flexible data** — `settings`, `validations`, `options`, `metadata` columns use JSONB so new fields can be added without migrations
+- **`status != 'archived'`** filter on list queries — soft-delete pattern; data is never truly lost
+
+### Code Quality
+- **`eslint --max-warnings 0`** in CI — zero lint warnings allowed
+- **`tsc --noEmit`** type-check on every package — no `any` escapes in service/schema layers
+- **Consistent `import` ordering** — external → internal → relative across all packages
+- **Named exports everywhere** — no default export anti-patterns in shared packages
 
 ---
 
