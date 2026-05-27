@@ -41,7 +41,7 @@ app.use(
     origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-request-id", "x-trpc-source"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-request-id", "x-trpc-source", "ngrok-skip-browser-warning"],
     exposedHeaders: ["x-request-id", "RateLimit-Limit", "RateLimit-Remaining", "RateLimit-Reset"],
   }),
 );
@@ -111,9 +111,12 @@ app.use("/api/authentication", authRateLimit);
 
 app.use("/api/public.submit", submissionRateLimit);
 
+// tRPC must be mounted BEFORE the OpenAPI middleware.
+// Both live under /api, but the OpenAPI adapter doesn't understand
+// the /trpc/* batch format and returns 404 if it runs first.
 app.use(
-  "/api",
-  createOpenApiExpressMiddleware({
+  "/api/trpc",
+  trpcExpress.createExpressMiddleware({
     router: serverRouter,
     createContext,
   }),
@@ -121,7 +124,7 @@ app.use(
 
 app.use(
   "/api",
-  trpcExpress.createExpressMiddleware({
+  createOpenApiExpressMiddleware({
     router: serverRouter,
     createContext,
   }),

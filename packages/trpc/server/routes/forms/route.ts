@@ -271,6 +271,27 @@ export const formsRouter = router({
       return { success: true };
     }),
 
+  exportResponses: protectedProcedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: getPath("/{formId}/responses/export"),
+        tags: ["Responses"],
+        summary: "Export all responses for a form as structured data",
+        protect: true,
+      },
+    })
+    .input(z.object({ formId: uuidSchema }))
+    .output(z.any())
+    .query(async ({ ctx, input }) => {
+      const form = await formService.getFormById(input.formId, ctx.auth.userId);
+      const { items } = await responseService.getFormResponses(input.formId, { pageSize: 9999 });
+      return {
+        fields: (form.fields ?? []).map((f: any) => ({ id: f.id, label: f.label, type: f.fieldType })),
+        responses: items,
+      };
+    }),
+
   analytics: protectedProcedure
     .meta({
       openapi: {

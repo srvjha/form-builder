@@ -3,33 +3,46 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  [
+    "inline-flex items-center gap-1.5 px-2 h-6",
+    "text-[11px] font-bold uppercase tracking-wider",
+    "border-2 rounded-none",
+    "whitespace-nowrap",
+  ],
   {
     variants: {
       variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
-        outline:
-          "text-foreground",
+        default:   "bg-[var(--bg-panel)]    text-[var(--text-primary)]    border-[var(--border-color)]",
+        published: "bg-[var(--color-green)] text-[var(--color-black)]     border-[var(--border-color)]",
+        draft:     "bg-[var(--color-yellow)] text-[var(--color-black)]    border-[var(--border-color)]",
+        closed:    "bg-[var(--color-red)]   text-white                    border-[var(--border-color)]",
+        archived:  "bg-[var(--bg-inset)]    text-[var(--text-muted)]      border-[var(--border-muted)]",
+        accent:    "bg-[var(--color-accent)] text-[var(--color-white)]    border-[var(--border-color)]",
+        outline:   "bg-transparent          text-[var(--text-primary)]    border-[var(--border-color)]",
+        muted:     "bg-[var(--bg-inset)]    text-[var(--text-muted)]      border-[var(--border-muted)]",
       },
     },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
+    defaultVariants: { variant: "default" },
+  },
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+  extends React.HTMLAttributes<HTMLSpanElement>,
+    VariantProps<typeof badgeVariants> {
+  dot?: boolean;
+}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
+function Badge({ className, variant, dot, children, ...props }: BadgeProps) {
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <span className={cn(badgeVariants({ variant }), className)} {...props}>
+      {dot && (
+        <span
+          className="inline-block h-1.5 w-1.5 rounded-full bg-current"
+          aria-hidden
+        />
+      )}
+      {children}
+    </span>
   );
 }
 

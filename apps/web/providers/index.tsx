@@ -1,47 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink } from "@trpc/client";
-import { trpc } from "@/lib/trpc";
-
-function getApiUrl() {
-  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-}
+import { Toaster } from "sonner";
+import { TRPCProvider } from "./trpc-provider";
+import { ThemeProvider } from "./theme-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 60 * 1000,
-            retry: 1,
-          },
-        },
-      }),
-  );
-
-  const [trpcClient] = useState(() =>
-    trpc.createClient({
-      links: [
-        httpBatchLink({
-          url: `${getApiUrl()}/api/trpc`,
-          headers() {
-            return {
-              "ngrok-skip-browser-warning": "true",
-            };
-          },
-        }),
-      ],
-    }),
-  );
-
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
+    <TRPCProvider>
+      <ThemeProvider>
         {children}
-      </QueryClientProvider>
-    </trpc.Provider>
+        <Toaster
+          position="bottom-right"
+          richColors={false}
+          closeButton
+          toastOptions={{
+            duration: 5000,
+            classNames: {
+              toast:       "!rounded-none !font-sans",
+              title:       "!font-bold !uppercase !tracking-wide !text-xs",
+              description: "!text-xs",
+              closeButton: "!rounded-none",
+            },
+          }}
+        />
+      </ThemeProvider>
+    </TRPCProvider>
   );
 }

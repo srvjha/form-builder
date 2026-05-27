@@ -1,25 +1,44 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Inter, Syne, JetBrains_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Providers } from "@/providers";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-syne",
   display: "swap",
+  weight: ["700", "800"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "FormBuilder — Build forms that actually work",
+  title: {
+    default: "FormCraft — The form builder that doesn't apologise.",
+    template: "%s | FormCraft",
+  },
   description:
-    "Create beautiful, high-converting forms in minutes. Collect data, analyse responses, and automate your workflow.",
+    "Build production-grade forms, collect responses, and track analytics. Raw, honest, fast.",
+  keywords: ["form builder", "surveys", "analytics", "typeform alternative"],
+  openGraph: {
+    type: "website",
+    siteName: "FormCraft",
+    title: "FormCraft — The form builder that doesn't apologise.",
+    description: "Build production-grade forms. No fluff.",
+  },
 };
 
 export default function RootLayout({
@@ -27,8 +46,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-        <body className="font-sans antialiased">
+      <html
+        lang="en"
+        suppressHydrationWarning
+        className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable}`}
+      >
+        <body className="font-sans antialiased bg-page text-[var(--text-primary)]">
           <Providers>{children}</Providers>
         </body>
       </html>
