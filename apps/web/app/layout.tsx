@@ -27,7 +27,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "FormCraft — The form builder that doesn't apologise.",
+    default: "FormCraft — Build forms. Get answers.",
     template: "%s | FormCraft",
   },
   description:
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "FormCraft",
-    title: "FormCraft — The form builder that doesn't apologise.",
+    title: "FormCraft — Build forms. Get answers.",
     description: "Build production-grade forms. No fluff.",
   },
 };

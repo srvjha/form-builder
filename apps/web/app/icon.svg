@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Orange background matching var(--color-accent) = #FF3B00 -->
+  <rect width="32" height="32" fill="#FF3B00"/>
+  <!-- White Zap (lightning bolt) — Lucide Zap path at 24×24, offset 4px to centre in 32×32 -->
+  <g transform="translate(4,4)">
+    <polygon points="13,2 3,14 12,14 11,22 21,10 12,10" fill="white"/>
+  </g>
+</svg>
