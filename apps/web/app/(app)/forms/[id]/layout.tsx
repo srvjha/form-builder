@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   Eye, Settings2, Undo2, Redo2, Zap, Globe, Lock,
-  BarChart2, FileText, Share2, Wrench,
+  BarChart2, FileText, Share2, Wrench, Palette,
 } from "lucide-react";
 import { Button }     from "@/components/ui/button";
 import { Badge }      from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import { useStore } from "zustand";
 
 const TABS = [
   { label: "Build",     icon: Wrench,    seg: "edit"      },
+  { label: "Design",    icon: Palette,   seg: "design"    },
   { label: "Responses", icon: FileText,  seg: "responses" },
   { label: "Analytics", icon: BarChart2, seg: "analytics" },
   { label: "Share",     icon: Share2,    seg: "share"     },
