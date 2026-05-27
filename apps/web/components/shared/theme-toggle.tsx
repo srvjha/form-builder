@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function ThemeToggle({ className }: { className?: string }) {
-  const { colorMode, setColorMode } = useThemeStore();
-  const isDark = colorMode === "dark";
+  const { colorMode, resolved, setColorMode } = useThemeStore();
+
+  // Use the *resolved* mode for the icon so "system dark" shows Sun (ready to switch to light)
+  const isDark = resolved === "dark";
 
   return (
     <Button

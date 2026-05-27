@@ -10,8 +10,10 @@ import { Input }          from "@/components/ui/input";
 import { Switch }         from "@/components/ui/switch";
 import { Label }          from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useThemeStore }  from "@/stores/theme-store";
+import { useThemeStore, type FormTheme }  from "@/stores/theme-store";
 import { cn }             from "@/lib/utils";
+import Link from "next/link";
+import { ROUTES } from "@/lib/constants";
 
 const COLOR_MODES = [
   { id: "light",  label: "Light" },
@@ -21,7 +23,18 @@ const COLOR_MODES = [
 
 export default function SettingsPage() {
   const { user } = useUser();
-  const { colorMode, setColorMode } = useThemeStore();
+  const { colorMode, setColorMode, theme } = useThemeStore();
+
+  const THEME_LABELS: Record<FormTheme, { name: string; desc: string }> = {
+    brutalist:  { name: "Brutalist",   desc: "Raw concrete aesthetic. Zero rounded corners. Offset shadows." },
+    ocean:      { name: "Ocean",       desc: "Cool blues and crisp whites. Trustworthy & professional." },
+    midnight:   { name: "Midnight",    desc: "Deep dark surfaces with electric indigo accents." },
+    forest:     { name: "Forest",      desc: "Earthy greens and natural tones. Calm & grounded." },
+    solar:      { name: "Solar",       desc: "Warm amber and golden tones. Energetic & optimistic." },
+    lavender:   { name: "Lavender",    desc: "Soft purples and violets. Creative & expressive." },
+    monochrome: { name: "Monochrome",  desc: "Pure black and white. Timeless & editorial." },
+    coral:      { name: "Coral",       desc: "Warm coral and rose tones. Vibrant & friendly." },
+  };
 
   return (
     <AppShell title="Settings">
@@ -94,12 +107,22 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="mt-6 border-t-2 border-[var(--border-muted)] pt-5">
-                  <p className="label-overline mb-3">Theme</p>
-                  <div className="border-2 border-[var(--border-muted)] bg-[var(--bg-inset)] p-4">
-                    <p className="font-display text-sm font-extrabold uppercase tracking-tight">Brutalist</p>
-                    <p className="mt-1 text-xs text-[var(--text-muted)]">
-                      Raw concrete aesthetic. Zero rounded corners. Offset shadows. The only theme you need.
-                    </p>
+                  <p className="label-overline mb-3">Form theme</p>
+                  <div className="flex items-start justify-between gap-4 border-2 border-[var(--border-muted)] bg-[var(--bg-inset)] p-4">
+                    <div>
+                      <p className="font-display text-sm font-extrabold uppercase tracking-tight">
+                        {THEME_LABELS[theme]?.name ?? theme}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--text-muted)]">
+                        {THEME_LABELS[theme]?.desc}
+                      </p>
+                    </div>
+                    <Link
+                      href={ROUTES.themes}
+                      className="shrink-0 border-2 border-[var(--border-color)] bg-[var(--bg-panel)] px-3 py-1.5 font-display text-[10px] font-extrabold uppercase tracking-wider transition-all hover:bg-[var(--color-accent)] hover:text-white hover:border-[var(--color-accent)]"
+                    >
+                      Change
+                    </Link>
                   </div>
                 </div>
               </div>

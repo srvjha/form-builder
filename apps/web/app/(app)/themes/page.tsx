@@ -6,6 +6,7 @@ import { Check, Palette, Sparkles, Star } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { cn } from "@/lib/utils";
 import { useMascotStore } from "@/stores/mascot-store";
+import { useThemeStore } from "@/stores/theme-store";
 
 // ── Theme definitions ──────────────────────────────────────────────────────────
 const THEMES = [
@@ -252,10 +253,16 @@ const CATEGORY_MAP: Record<ThemeId, string[]> = {
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 export default function ThemesPage() {
-  const [activeTheme, setActiveTheme] = useState<ThemeId>("brutalist");
+  const { theme: storedTheme, setTheme } = useThemeStore();
+  const [activeTheme, setActiveTheme] = useState<ThemeId>(storedTheme as ThemeId);
   const [category,    setCategory]    = useState("all");
   const [applied,     setApplied]     = useState<ThemeId | null>(null);
   const { setState: setBrix, reset: resetBrix } = useMascotStore();
+
+  /* Keep local selection in sync if store changes externally */
+  useEffect(() => {
+    setActiveTheme(storedTheme as ThemeId);
+  }, [storedTheme]);
 
   /* Set a themes-specific mascot message on mount, clear on leave */
   useEffect(() => {
@@ -271,10 +278,7 @@ export default function ThemesPage() {
   function handleApply(id: ThemeId) {
     setApplied(id);
     setActiveTheme(id);
-    // Persist to localStorage so other parts of the app can read it
-    if (typeof window !== "undefined") {
-      localStorage.setItem("formcraft:defaultTheme", id);
-    }
+    setTheme(id);          // ← persisted via Zustand + ThemeProvider injects CSS vars
     setTimeout(() => setApplied(null), 2000);
   }
 
