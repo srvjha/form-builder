@@ -40,7 +40,7 @@ export function Sidebar() {
     >
       {/* Logo */}
       <div className="flex h-14 shrink-0 items-center border-b-2 border-[var(--border-color)] px-3">
-        <Link href={ROUTES.dashboard} className="flex items-center gap-3 min-w-0">
+        <Link href={ROUTES.home} className="flex items-center gap-3 min-w-0">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[var(--color-accent)] border-2 border-[var(--border-color)]">
             <Zap className="h-4 w-4 text-white" />
           </div>

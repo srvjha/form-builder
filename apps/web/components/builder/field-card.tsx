@@ -10,12 +10,11 @@ import { useBuilderStore, type BuilderField } from "@/stores/builder-store";
 import type { PublicField } from "@/components/form-renderer/field-renderer";
 
 interface Props {
-  field:          BuilderField;
-  isActive:       boolean;
-  preview?:       boolean;
-  isDragOverlay?: boolean;
+  field:     BuilderField;
+  isActive:  boolean;
+  preview?:  boolean;
   /** When provided, the parent handles both store removal AND the DB mutation. */
-  onRemove?:      (id: string) => void;
+  onRemove?: (id: string) => void;
 }
 
 /* Cast builder field → public field for the renderer */
@@ -36,40 +35,7 @@ function toPublicField(field: BuilderField): PublicField {
   };
 }
 
-/* ── Drag overlay — the "lifted" card that follows the cursor ─────────────── */
-export function FieldDragOverlay({ field }: { field: BuilderField }) {
-  return (
-    <div
-      className={cn(
-        "relative border-2 border-[var(--color-accent)] bg-[var(--bg-panel)]",
-        "shadow-[6px_6px_0_var(--color-accent)]",
-        "cursor-grabbing select-none",
-      )}
-      style={{
-        transform: "rotate(1.5deg) scale(1.025)",
-        transformOrigin: "top left",
-      }}
-    >
-      {/* Accent strip */}
-      <div className="absolute left-0 inset-y-0 w-1 bg-[var(--color-accent)]" />
-
-      <div className="flex items-start gap-3 p-4 pl-5">
-        {/* Drag handle — always visible on overlay */}
-        <span className="mt-0.5 text-[var(--color-accent)]">
-          <GripVertical className="h-4 w-4" />
-        </span>
-
-        {/* Field preview */}
-        <div className="flex-1 min-w-0 pointer-events-none opacity-90">
-          <FieldRenderer field={toPublicField(field)} value="" onChange={() => {}} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Main sortable card ───────────────────────────────────────────────────── */
-export function FieldCard({ field, isActive, preview, isDragOverlay, onRemove }: Props) {
+export function FieldCard({ field, isActive, preview, onRemove }: Props) {
   const { setActiveField, removeField } = useBuilderStore();
 
   const {
@@ -80,11 +46,12 @@ export function FieldCard({ field, isActive, preview, isDragOverlay, onRemove }:
   const style: React.CSSProperties = {
     transform:  CSS.Transform.toString(transform),
     transition: transition ?? "transform 200ms ease",
+    opacity:    isDragging ? 0.4 : 1,
   };
 
   const publicField = toPublicField(field);
 
-  /* ── Preview mode (no drag) ─────────────────────────────────────────── */
+  /* ── Preview mode (no drag) ──────────────────────────────── */
   if (preview) {
     return (
       <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] p-5 shadow-[2px_2px_0_#0A0A0A]">
@@ -93,38 +60,14 @@ export function FieldCard({ field, isActive, preview, isDragOverlay, onRemove }:
     );
   }
 
-  /* ── Ghost placeholder shown at original position while dragging ────── */
-  if (isDragging) {
-    return (
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={cn(
-          "border-2 border-dashed border-[var(--color-accent)] bg-[var(--color-accent)]/5",
-          "transition-all duration-150",
-        )}
-        // Keep the same height as a real card so the list doesn't collapse
-        aria-hidden
-      >
-        {/* Invisible spacer matching roughly one card's height */}
-        <div className="flex items-start gap-3 p-4 opacity-0 pointer-events-none select-none">
-          <span className="mt-0.5"><GripVertical className="h-4 w-4" /></span>
-          <div className="flex-1 min-w-0">
-            <FieldRenderer field={publicField} value="" onChange={() => {}} />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  /* ── Normal card ────────────────────────────────────────────────────── */
+  /* ── Sortable card ───────────────────────────────────────── */
   return (
     <motion.div
       ref={setNodeRef}
       style={style}
       layout
       initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: isDragging ? 0.4 : 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.15 }}
       onClick={() => setActiveField(field.id)}
