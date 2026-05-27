@@ -81,13 +81,9 @@ export const reorderFieldSchema = z.object({
   newOrder: z.number().int().nonnegative(),
 });
 
-export const answerValueSchema = z.union([
-  z.string(),
-  z.number(),
-  z.boolean(),
-  z.array(z.string()),
-  z.null(),
-]);
+export const answerValueSchema = z
+  .union([z.string(), z.number(), z.boolean(), z.array(z.string())])
+  .nullable();
 
 export const submitResponseSchema = z.object({
   slug: z.string().min(1),
