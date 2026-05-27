@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUIStore } from "@/stores/ui-store";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
@@ -22,6 +22,16 @@ interface AppShellProps {
 export function AppShell({ children, title, actions }: AppShellProps) {
   const { commandOpen, setCommandOpen } = useUIStore();
   const router = useRouter();
+  const mainRef = useRef<HTMLElement>(null);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const onScroll = () => setScrolled(el.scrollTop > 10);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
 
   /* ⌘K shortcut */
   useEffect(() => {
@@ -45,8 +55,8 @@ export function AppShell({ children, title, actions }: AppShellProps) {
       <Sidebar />
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar title={title} actions={actions} />
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+        <Topbar title={title} actions={actions} scrolled={scrolled} />
+        <main ref={mainRef} className="flex-1 overflow-y-auto p-6 lg:p-8">
           {children}
         </main>
       </div>

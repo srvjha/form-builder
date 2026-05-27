@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import {
-  DndContext, DragEndEvent, PointerSensor,
-  useSensor, useSensors, closestCenter,
+  DndContext, DragEndEvent, DragStartEvent, DragOverlay,
+  PointerSensor, useSensor, useSensors, closestCenter,
 } from "@dnd-kit/core";
 import {
   SortableContext, verticalListSortingStrategy,
@@ -14,9 +14,9 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { FileText } from "lucide-react";
 
-import { FieldPalette }   from "@/components/builder/field-palette";
-import { FieldCard }      from "@/components/builder/field-card";
-import { FieldSettings }  from "@/components/builder/field-settings";
+import { FieldPalette }       from "@/components/builder/field-palette";
+import { FieldCard, FieldDragOverlay } from "@/components/builder/field-card";
+import { FieldSettings }      from "@/components/builder/field-settings";
 import { EmptyState }     from "@/components/shared/empty-state";
 import { Skeleton }       from "@/components/ui/skeleton";
 import { trpc }           from "@/lib/trpc";
@@ -133,6 +133,7 @@ export default function FormEditPage() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   async function handleDragEnd(e: DragEndEvent) {
+    setDraggingId(null);
     const { active, over } = e;
     if (!over || active.id === over.id || !form.id) return;
     const fromIdx = fields.findIndex((f) => f.id === active.id);
@@ -144,6 +145,14 @@ export default function FormEditPage() {
     } catch {
       // revert handled by cache invalidation
     }
+  }
+
+  /* ── Drag overlay state ──────────────────────────────────────── */
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const draggingField = fields.find((f) => f.id === draggingId) ?? null;
+
+  function handleDragStart(e: DragStartEvent) {
+    setDraggingId(String(e.active.id));
   }
 
   const activeField = fields.find((f) => f.id === activeFieldId) ?? null;
@@ -196,6 +205,7 @@ export default function FormEditPage() {
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 modifiers={[restrictToVerticalAxis]}
+                onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
               >
                 <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
@@ -205,10 +215,23 @@ export default function FormEditPage() {
                         key={f.id}
                         field={f}
                         isActive={f.id === activeFieldId}
+                        isDragOverlay={false}
                       />
                     ))}
                   </AnimatePresence>
                 </SortableContext>
+
+                {/* Kanban-style drag overlay — lifted card that follows cursor */}
+                <DragOverlay
+                  dropAnimation={{
+                    duration: 180,
+                    easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+                  }}
+                >
+                  {draggingField ? (
+                    <FieldDragOverlay field={draggingField} />
+                  ) : null}
+                </DragOverlay>
               </DndContext>
             )}
           </div>

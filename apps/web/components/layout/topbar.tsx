@@ -8,18 +8,32 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface TopbarProps {
-  title?: string;
+  title?:   string;
   actions?: React.ReactNode;
+  scrolled?: boolean;
 }
 
-export function Topbar({ title, actions }: TopbarProps) {
+export function Topbar({ title, actions, scrolled }: TopbarProps) {
   const { toggleSidebar, toggleCommand } = useUIStore();
 
   return (
     <header
       className={cn(
         "flex h-14 shrink-0 items-center gap-3 px-4",
-        "border-b-2 border-[var(--border-color)] bg-[var(--bg-panel)]",
+        "border-b-2 transition-all duration-300",
+        scrolled
+          ? [
+              // Glass state
+              "border-[var(--border-color)]/40",
+              "bg-[var(--bg-panel)]/75",
+              "backdrop-blur-md",
+              "shadow-[0_4px_24px_rgba(0,0,0,0.08)]",
+            ]
+          : [
+              // Default state
+              "border-[var(--border-color)]",
+              "bg-[var(--bg-panel)]",
+            ],
       )}
     >
       {/* Mobile menu toggle */}
