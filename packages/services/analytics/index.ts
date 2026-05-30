@@ -14,11 +14,13 @@ export interface FormAnalyticsSummary {
   uniqueViews: number;
   totalStarts: number;
   totalSubmissions: number;
+  totalAbandons: number;
   completionRate: number;
   avgCompletionTimeMs: number | null;
   topCountries: Array<{ country: string; count: number }>;
   topReferrers: Array<{ referrer: string; count: number }>;
   dailySubmissions: Array<{ date: string; count: number }>;
+  dailyEvents: Array<{ date: string; views: number; starts: number; submissions: number; abandons: number }>;
 }
 
 export class AnalyticsService extends BaseService {
@@ -116,9 +118,38 @@ export class AnalyticsService extends BaseService {
       .groupBy(sql`DATE(${formAnalyticsTable.occurredAt})`)
       .orderBy(sql`DATE(${formAnalyticsTable.occurredAt})`);
 
+    const dailyEventRows = await db
+      .select({
+        date:  sql<string>`DATE(${formAnalyticsTable.occurredAt})`,
+        event: formAnalyticsTable.event,
+        count: count(),
+      })
+      .from(formAnalyticsTable)
+      .where(timeFilter)
+      .groupBy(sql`DATE(${formAnalyticsTable.occurredAt})`, formAnalyticsTable.event)
+      .orderBy(sql`DATE(${formAnalyticsTable.occurredAt})`);
+
+    // Pivot the rows into one entry per date
+    const dailyMap = new Map<string, { views: number; starts: number; submissions: number; abandons: number }>();
+    for (const row of dailyEventRows) {
+      if (!dailyMap.has(row.date)) {
+        dailyMap.set(row.date, { views: 0, starts: 0, submissions: 0, abandons: 0 });
+      }
+      const entry = dailyMap.get(row.date)!;
+      const n = Number(row.count);
+      if (row.event === "view")    entry.views       = n;
+      if (row.event === "start")   entry.starts      = n;
+      if (row.event === "submit")  entry.submissions = n;
+      if (row.event === "abandon") entry.abandons    = n;
+    }
+    const dailyEvents = Array.from(dailyMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, counts]) => ({ date, ...counts }));
+
     const totalViews = byEvent["view"] ?? 0;
     const totalStarts = byEvent["start"] ?? 0;
     const totalSubmissions = byEvent["submit"] ?? 0;
+    const totalAbandons = byEvent["abandon"] ?? 0;
     const completionRate =
       totalViews > 0 ? Math.round((totalSubmissions / totalViews) * 100) : 0;
 
@@ -128,6 +159,7 @@ export class AnalyticsService extends BaseService {
       uniqueViews: Number(uniqueViews ?? 0),
       totalStarts,
       totalSubmissions,
+      totalAbandons,
       completionRate,
       avgCompletionTimeMs: avgMs ? Math.round(Number(avgMs)) : null,
       topCountries: topCountries
@@ -140,6 +172,7 @@ export class AnalyticsService extends BaseService {
         date: r.date,
         count: Number(r.count),
       })),
+      dailyEvents,
     };
   }
 }

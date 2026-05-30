@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { and, eq, desc, count, sql, gte, lte } from "@repo/database";
 import db from "@repo/database";
 import {
@@ -14,6 +15,67 @@ import {
   type SelectFormField,
 } from "@repo/database/models/form";
 import { BaseService } from "../base";
+
+/* ── Dynamic Zod schema builder ───────────────────────────────
+   Compiles a per-field Zod schema from the field's config so
+   that server-side response validation is declarative rather
+   than a series of imperative if/else checks.
+─────────────────────────────────────────────────────────────── */
+function buildFieldValueSchema(field: SelectFormField): z.ZodTypeAny {
+  const v = field.validations ?? {};
+  let schema: z.ZodTypeAny;
+
+  switch (field.type) {
+    case "short_text":
+    case "long_text": {
+      let s = z.string({ error: `"${field.label}" must be text` });
+      if (v.minLength) s = s.min(v.minLength, `"${field.label}" must be at least ${v.minLength} characters`);
+      if (v.maxLength) s = s.max(v.maxLength, `"${field.label}" must be at most ${v.maxLength} characters`);
+      if (v.pattern)   s = s.regex(new RegExp(v.pattern), v.patternMessage ?? `"${field.label}" has an invalid format`);
+      schema = s;
+      break;
+    }
+    case "email":
+      schema = z.string().email(`"${field.label}" must be a valid email address`);
+      break;
+    case "url":
+      schema = z.string().url(`"${field.label}" must be a valid URL`);
+      break;
+    case "phone":
+    case "date":
+    case "time":
+      schema = z.string({ error: `"${field.label}" must be text` });
+      break;
+    case "number":
+    case "rating":
+    case "scale": {
+      let n = z.number({ error: `"${field.label}" must be a number` });
+      if (v.min !== undefined) n = n.min(v.min, `"${field.label}" must be at least ${v.min}`);
+      if (v.max !== undefined) n = n.max(v.max, `"${field.label}" must be at most ${v.max}`);
+      schema = n;
+      break;
+    }
+    case "checkbox":
+      schema = z.boolean({ error: `"${field.label}" must be true or false` });
+      break;
+    case "select":
+      schema = z.string({ error: `"${field.label}" must be a selection` });
+      break;
+    case "multi_select":
+      schema = z.array(z.string(), { error: `"${field.label}" must be an array of selections` });
+      break;
+    case "file_upload":
+      schema = z.string({ error: `"${field.label}" must be a file name` });
+      break;
+    default:
+      schema = z.union([z.string(), z.number(), z.boolean(), z.array(z.string())]);
+  }
+
+  if (!field.required) {
+    return z.union([schema, z.null(), z.literal(""), z.undefined()]).optional();
+  }
+  return schema;
+}
 
 export type SubmitFormInput = {
   formId: string;
@@ -171,45 +233,21 @@ export class ResponseService extends BaseService {
 
     for (const field of fields) {
       const value = answerMap.get(field.id);
-      const isEmpty = value === null || value === undefined || value === "" ||
-        (Array.isArray(value) && value.length === 0);
 
+      // Required check before schema parse so the error message is field-specific
+      const isEmpty =
+        value === null || value === undefined || value === "" ||
+        (Array.isArray(value) && value.length === 0);
       if (field.required && isEmpty) {
         this.badRequest(`Field "${field.label}" is required`);
       }
 
-      if (!isEmpty && value !== null && value !== undefined) {
-        const v = field.validations;
+      // Skip schema validation for empty optional fields
+      if (isEmpty) continue;
 
-        if (typeof value === "string") {
-          if (v.minLength && value.length < v.minLength) {
-            this.badRequest(
-              `"${field.label}" must be at least ${v.minLength} characters`,
-            );
-          }
-          if (v.maxLength && value.length > v.maxLength) {
-            this.badRequest(
-              `"${field.label}" must be at most ${v.maxLength} characters`,
-            );
-          }
-          if (v.pattern) {
-            const regex = new RegExp(v.pattern);
-            if (!regex.test(value)) {
-              this.badRequest(
-                v.patternMessage ?? `"${field.label}" has an invalid format`,
-              );
-            }
-          }
-        }
-
-        if (typeof value === "number") {
-          if (v.min !== undefined && value < v.min) {
-            this.badRequest(`"${field.label}" must be at least ${v.min}`);
-          }
-          if (v.max !== undefined && value > v.max) {
-            this.badRequest(`"${field.label}" must be at most ${v.max}`);
-          }
-        }
+      const result = buildFieldValueSchema(field).safeParse(value);
+      if (!result.success) {
+        this.badRequest(result.error.issues[0]?.message ?? `Invalid value for "${field.label}"`);
       }
     }
   }
