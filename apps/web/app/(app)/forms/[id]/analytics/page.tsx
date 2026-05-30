@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Eye, MousePointerClick, Send, Clock, TrendingUp, TrendingDown,
@@ -141,10 +142,13 @@ export default function AnalyticsPage() {
   const searchParams = useSearchParams();
   const rangeDays = Number(searchParams.get("days") ?? 30);
 
-  const now  = new Date();
-  const from = rangeDays > 0
-    ? new Date(now.getTime() - rangeDays * 86_400_000).toISOString()
-    : undefined;
+  const from = useMemo(() => {
+    if (!rangeDays) return undefined;
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - rangeDays);
+    return d.toISOString();
+  }, [rangeDays]);
 
   const { data, isLoading, error, refetch } = trpc.forms.analytics.useQuery(
     { formId: id, from },
