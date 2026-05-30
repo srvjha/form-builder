@@ -186,8 +186,22 @@ function CleanCardForm({
   const fields = (form.fields ?? []) as PublicField[];
   const showProgress = form.settings?.showProgressBar && fields.length > 0;
 
+  /* Force light-mode CSS vars so FieldRenderer inputs aren't dark */
+  const lightVars = {
+    "--bg-inset":     "#EFF6FF",
+    "--bg-panel":     "#FFFFFF",
+    "--text-primary": "#0F172A",
+    "--text-muted":   "#64748B",
+    "--border-color": "#CBD5E1",
+    "--border-muted": "#E2E8F0",
+    "--color-accent": "#3B82F6",
+    "--color-red":    "#EF4444",
+    "--shadow-xs":    "0 1px 2px rgba(0,0,0,0.05)",
+    "--shadow-sm":    "0 1px 3px rgba(0,0,0,0.1)",
+  } as React.CSSProperties;
+
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-slate-100" style={lightVars}>
       {/* Progress strip */}
       {showProgress && (
         <div className="fixed top-0 inset-x-0 z-50 h-1 bg-slate-200">
@@ -353,10 +367,24 @@ function PlayfulForm({
 }: PublicFormProps) {
   const fields = (form.fields ?? []) as PublicField[];
 
+  /* Force light vars inside pastel cards so FieldRenderer inputs look correct */
+  const lightVars = {
+    "--bg-inset":     "#FFFFFF",
+    "--bg-panel":     "#FFFFFF",
+    "--text-primary": "#1F2937",
+    "--text-muted":   "#6B7280",
+    "--border-color": "#A78BFA",
+    "--border-muted": "#DDD6FE",
+    "--color-accent": "#7C3AED",
+    "--color-red":    "#EF4444",
+    "--shadow-xs":    "0 1px 2px rgba(0,0,0,0.05)",
+    "--shadow-sm":    "0 2px 4px rgba(0,0,0,0.08)",
+  } as React.CSSProperties;
+
   return (
     <div
       className="min-h-screen"
-      style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f64f59 100%)" }}
+      style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f64f59 100%)", ...lightVars }}
     >
       {/* Subtle progress dots */}
       {form.settings?.showProgressBar && fields.length > 0 && (
@@ -507,8 +535,22 @@ function MinimalForm({
   const fields = (form.fields ?? []) as PublicField[];
   const showProgress = form.settings?.showProgressBar && fields.length > 0;
 
+  /* Force light vars so FieldRenderer inputs stay visible on white bg */
+  const lightVars = {
+    "--bg-inset":     "#F9FAFB",
+    "--bg-panel":     "#FFFFFF",
+    "--text-primary": "#111827",
+    "--text-muted":   "#6B7280",
+    "--border-color": "#D1D5DB",
+    "--border-muted": "#E5E7EB",
+    "--color-accent": "#111827",
+    "--color-red":    "#EF4444",
+    "--shadow-xs":    "none",
+    "--shadow-sm":    "none",
+  } as React.CSSProperties;
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white" style={lightVars}>
       {showProgress && (
         <div className="fixed top-0 inset-x-0 z-50 h-[2px]">
           <div
