@@ -36,6 +36,12 @@ export const metadata: Metadata = {
     "Build production-grade forms, collect responses, and track analytics. Raw, honest, fast.",
   keywords: ["form builder", "surveys", "analytics", "typeform alternative", "open source"],
   metadataBase: new URL(SITE_URL),
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+  },
   openGraph: {
     type: "website",
     url: SITE_URL,

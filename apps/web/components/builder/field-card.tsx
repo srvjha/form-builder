@@ -70,7 +70,7 @@ export function FieldCard({ field, isActive, preview, onRemove }: Props) {
       animate={{ opacity: isDragging ? 0.4 : 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
       transition={{ duration: 0.15 }}
-      onClick={() => setActiveField(field.id)}
+      onClick={(e) => { e.stopPropagation(); setActiveField(field.id); }}
       className={cn(
         "group relative border-2 border-[#0A0A0A] bg-[var(--bg-panel)] cursor-pointer transition-all",
         isActive
