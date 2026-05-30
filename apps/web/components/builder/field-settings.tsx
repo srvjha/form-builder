@@ -107,7 +107,10 @@ export function FieldSettings({ field, onUpdate, onRemove }: Props) {
             <Button
               size="sm"
               variant="secondary"
-              onClick={() => up({ options: [...(field.options ?? []), { value: nanoid(), label: "" }] })}
+              onClick={() => {
+                const opts = field.options ?? [];
+                up({ options: [...opts, { value: nanoid(), label: `Option ${opts.length + 1}` }] });
+              }}
               className="gap-1.5 mt-1"
             >
               <Plus className="h-3.5 w-3.5" /> Add option

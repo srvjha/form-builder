@@ -198,6 +198,12 @@ export default function FormEditPage() {
       updateFieldTimers.current.delete(fieldId);
       const f = useBuilderStore.getState().fields.find((x) => x.id === fieldId);
       if (!f || !form.id) return;
+      // Don't save while the user is mid-edit on required fields
+      if (!f.label.trim()) return;
+      const cleanOptions = f.options?.map((o, i) => ({
+        ...o,
+        label: o.label.trim() || `Option ${i + 1}`,
+      }));
       try {
         await updateFieldMut.mutateAsync({
           formId:      form.id,
@@ -208,7 +214,7 @@ export default function FormEditPage() {
           validations: f.validations,
           placeholder: f.placeholder,
           helpText:    f.helpText,
-          options:     f.options,
+          options:     cleanOptions,
           minValue:    f.minValue,
           maxValue:    f.maxValue,
           minLabel:    f.minLabel,
