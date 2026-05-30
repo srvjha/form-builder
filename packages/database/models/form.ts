@@ -87,7 +87,7 @@ export interface FormSettings {
 
   maxFields?: number;
 
-  formTheme?: "brutalist" | "clean" | "playful" | "minimal";
+  formTheme?: "brutalist" | "clean" | "playful" | "minimal" | "terminal" | "government" | "newspaper" | "scribble";
 }
 
 export type SelectForm = typeof formsTable.$inferSelect;

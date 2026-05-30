@@ -50,6 +50,34 @@ const THEMES: {
     tags:    ["Clean", "Focus", "Distraction-free"],
     accent:  "#111827",
   },
+  {
+    id:      "terminal",
+    name:    "Terminal",
+    tagline: "Dark CLI aesthetic, green-on-black, monospace",
+    tags:    ["Hacker", "Tech", "Dark"],
+    accent:  "#7EE787",
+  },
+  {
+    id:      "government",
+    name:    "Gov't Portal",
+    tagline: "Tricolor header, navy blue, official table layout",
+    tags:    ["Formal", "Official", "Structured"],
+    accent:  "#FF9933",
+  },
+  {
+    id:      "newspaper",
+    name:    "Newspaper",
+    tagline: "Serif typesetting, newsprint bg, editorial feel",
+    tags:    ["Editorial", "Classic", "Readable"],
+    accent:  "#1A1A1A",
+  },
+  {
+    id:      "scribble",
+    name:    "Scribble",
+    tagline: "Hand-drawn borders, warm paper, doodle feel",
+    tags:    ["Playful", "Handmade", "Unique"],
+    accent:  "#E84040",
+  },
 ];
 
 /* ── Page ───────────────────────────────────────────────────── */

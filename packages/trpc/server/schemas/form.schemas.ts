@@ -43,7 +43,7 @@ export const formSettingsSchema = z
     oneResponsePerIp: z.boolean().optional(),
     requireAuth: z.boolean().optional(),
     maxFields: z.number().int().min(1).max(100).optional(),
-    formTheme: z.enum(["brutalist", "clean", "playful", "minimal"]).optional(),
+    formTheme: z.enum(["brutalist", "clean", "playful", "minimal", "terminal", "government", "newspaper", "scribble"]).optional(),
   })
   .default({});
 
