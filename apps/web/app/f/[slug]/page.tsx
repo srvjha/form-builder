@@ -354,11 +354,17 @@ export default function PublicFormPage() {
     if (!validate() || !form) return;
 
     const answers = ((form.fields ?? []) as PublicField[]).map((f) => {
-      const val = values[f.id] ?? (f.type === "multi_select" ? [] : "");
-      return {
-        fieldId: f.id,
-        value:   val as string | string[],
-      };
+      const raw = values[f.id] ?? (f.type === "multi_select" ? [] : "");
+      let value: string | string[] | number | boolean = raw as string | string[];
+      if (
+        (f.type === "number" || f.type === "rating" || f.type === "scale") &&
+        typeof raw === "string" && raw !== ""
+      ) {
+        value = Number(raw);
+      } else if (f.type === "checkbox" && typeof raw === "string") {
+        value = raw === "true";
+      }
+      return { fieldId: f.id, value };
     });
 
     try {
