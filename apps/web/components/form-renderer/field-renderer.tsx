@@ -111,7 +111,7 @@ function SelectInput({ field, value, onChange }: Pick<FieldRendererProps, "field
               "hover:translate-x-[1px] hover:translate-y-[1px]",
               active
                 ? "bg-[var(--color-accent)] text-white shadow-[2px_2px_0_#0A0A0A]"
-                : "bg-[var(--bg-panel)] shadow-[2px_2px_0_#0A0A0A]",
+                : "bg-[var(--bg-inset)] shadow-[2px_2px_0_#0A0A0A]",
             )}
           >
             <span className={cn("h-4 w-4 border-2 border-current flex-shrink-0", active && "bg-white/30")} />
@@ -144,7 +144,7 @@ function MultiSelectInput({ field, value, onChange }: Pick<FieldRendererProps, "
               "hover:translate-x-[1px] hover:translate-y-[1px]",
               active
                 ? "bg-[var(--color-accent)] text-white shadow-[2px_2px_0_#0A0A0A]"
-                : "bg-[var(--bg-panel)] shadow-[2px_2px_0_#0A0A0A]",
+                : "bg-[var(--bg-inset)] shadow-[2px_2px_0_#0A0A0A]",
             )}
           >
             <span className={cn(

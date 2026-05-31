@@ -369,7 +369,7 @@ function PlayfulForm({
 
   /* Force light vars inside pastel cards so FieldRenderer inputs look correct */
   const lightVars = {
-    "--bg-inset":     "#FFFFFF",
+    "--bg-inset":     "#EDE9FE",
     "--bg-panel":     "#FFFFFF",
     "--text-primary": "#1F2937",
     "--text-muted":   "#6B7280",
@@ -474,12 +474,55 @@ function PlayfulForm({
                   <span className="ml-auto text-xs font-bold text-rose-400">✦ required</span>
                 )}
               </div>
-              <FieldRenderer
-                field={field}
-                value={values[field.id] ?? (field.type === "multi_select" ? [] : "")}
-                onChange={(v) => onFieldChange(field.id, v)}
-                error={errors[field.id]}
-              />
+              {(field.type === "select" || field.type === "multi_select") && field.options?.length ? (
+                <div className="flex flex-col gap-2">
+                  {field.options.map((opt) => {
+                    const val = values[field.id];
+                    const active = field.type === "multi_select"
+                      ? (Array.isArray(val) ? val : []).includes(opt.value)
+                      : val === opt.value;
+                    function toggle() {
+                      if (field.type === "multi_select") {
+                        const cur = Array.isArray(val) ? val : [];
+                        onFieldChange(field.id, active ? cur.filter((v) => v !== opt.value) : [...cur, opt.value]);
+                      } else {
+                        onFieldChange(field.id, active ? "" : opt.value);
+                      }
+                    }
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={toggle}
+                        className={cn(
+                          "flex items-center gap-3 w-full text-left text-sm px-4 py-3 rounded-xl border-2 transition-all",
+                          active
+                            ? "bg-violet-100 border-violet-400 text-violet-900 font-bold"
+                            : "bg-white/70 border-violet-200 text-gray-700 hover:border-violet-300 hover:bg-violet-50",
+                        )}
+                      >
+                        <span className={cn(
+                          "flex h-5 w-5 rounded-full border-2 items-center justify-center flex-shrink-0 text-[10px] font-black",
+                          active ? "border-violet-500 bg-violet-500 text-white" : "border-violet-300 bg-white",
+                        )}>
+                          {active && "✓"}
+                        </span>
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <FieldRenderer
+                  field={field}
+                  value={values[field.id] ?? ""}
+                  onChange={(v) => onFieldChange(field.id, v)}
+                  error={errors[field.id]}
+                />
+              )}
+              {(field.type === "select" || field.type === "multi_select") && errors[field.id] && (
+                <p className="mt-2 text-xs text-red-500">{errors[field.id]}</p>
+              )}
             </motion.div>
           ))}
 
@@ -537,7 +580,7 @@ function MinimalForm({
 
   /* Force light vars so FieldRenderer inputs stay visible on white bg */
   const lightVars = {
-    "--bg-inset":     "#F9FAFB",
+    "--bg-inset":     "#F3F4F6",
     "--bg-panel":     "#FFFFFF",
     "--text-primary": "#111827",
     "--text-muted":   "#6B7280",
@@ -617,12 +660,55 @@ function MinimalForm({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.04 * i, duration: 0.3 }}
               >
-                <FieldRenderer
-                  field={field}
-                  value={values[field.id] ?? (field.type === "multi_select" ? [] : "")}
-                  onChange={(v) => onFieldChange(field.id, v)}
-                  error={errors[field.id]}
-                />
+                {(field.type === "select" || field.type === "multi_select") && field.options?.length ? (
+                  <div className="flex flex-col">
+                    {field.options.map((opt) => {
+                      const val = values[field.id];
+                      const active = field.type === "multi_select"
+                        ? (Array.isArray(val) ? val : []).includes(opt.value)
+                        : val === opt.value;
+                      function toggle() {
+                        if (field.type === "multi_select") {
+                          const cur = Array.isArray(val) ? val : [];
+                          onFieldChange(field.id, active ? cur.filter((v) => v !== opt.value) : [...cur, opt.value]);
+                        } else {
+                          onFieldChange(field.id, active ? "" : opt.value);
+                        }
+                      }
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={toggle}
+                          className={cn(
+                            "flex items-center gap-3 w-full text-left text-sm py-3 border-b transition-colors",
+                            active
+                              ? "border-gray-900 text-gray-900 font-semibold"
+                              : "border-gray-200 text-gray-500 hover:text-gray-800 hover:border-gray-400",
+                          )}
+                        >
+                          <span className={cn(
+                            "h-4 w-4 border-2 flex-shrink-0 flex items-center justify-center text-[9px] font-black",
+                            active ? "border-gray-900 bg-gray-900 text-white" : "border-gray-300 bg-transparent",
+                          )}>
+                            {active && "✓"}
+                          </span>
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <FieldRenderer
+                    field={field}
+                    value={values[field.id] ?? ""}
+                    onChange={(v) => onFieldChange(field.id, v)}
+                    error={errors[field.id]}
+                  />
+                )}
+                {(field.type === "select" || field.type === "multi_select") && errors[field.id] && (
+                  <p className="mt-2 text-xs text-red-500">{errors[field.id]}</p>
+                )}
                 <div className="mt-8 h-px bg-gray-100" />
               </motion.div>
             ))}
@@ -1095,12 +1181,56 @@ function NewspaperForm({
                 <p className="text-xs italic text-[#777] mb-3 pl-9">{field.helpText}</p>
               )}
               <div className="pl-9">
-                <FieldRenderer
-                  field={field}
-                  value={values[field.id] ?? (field.type === "multi_select" ? [] : "")}
-                  onChange={(v) => onFieldChange(field.id, v)}
-                  error={errors[field.id]}
-                />
+                {(field.type === "select" || field.type === "multi_select") && field.options?.length ? (
+                  <div className="flex flex-col">
+                    {field.options.map((opt) => {
+                      const val = values[field.id];
+                      const active = field.type === "multi_select"
+                        ? (Array.isArray(val) ? val : []).includes(opt.value)
+                        : val === opt.value;
+                      function toggle() {
+                        if (field.type === "multi_select") {
+                          const cur = Array.isArray(val) ? val : [];
+                          onFieldChange(field.id, active ? cur.filter((v) => v !== opt.value) : [...cur, opt.value]);
+                        } else {
+                          onFieldChange(field.id, active ? "" : opt.value);
+                        }
+                      }
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={toggle}
+                          className={cn(
+                            "flex items-center gap-3 w-full text-left text-sm py-2.5 border-b transition-colors",
+                            active
+                              ? "border-[#1A1A1A] text-[#1A1A1A] font-bold bg-[#F5F5F0]"
+                              : "border-[#CCCCCC] text-[#555] hover:text-[#1A1A1A] hover:border-[#888]",
+                          )}
+                          style={{ fontFamily: "inherit" }}
+                        >
+                          <span className={cn(
+                            "h-4 w-4 border-2 flex-shrink-0 flex items-center justify-center text-[9px] font-black",
+                            active ? "border-[#1A1A1A] bg-[#1A1A1A] text-white" : "border-[#AAAAAA]",
+                          )}>
+                            {active && "✓"}
+                          </span>
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <FieldRenderer
+                    field={field}
+                    value={values[field.id] ?? ""}
+                    onChange={(v) => onFieldChange(field.id, v)}
+                    error={errors[field.id]}
+                  />
+                )}
+                {(field.type === "select" || field.type === "multi_select") && errors[field.id] && (
+                  <p className="mt-1 text-xs italic text-[#8B0000]">{errors[field.id]}</p>
+                )}
               </div>
             </motion.div>
           ))}
@@ -1282,12 +1412,64 @@ function ScribbleForm({
                 </p>
               )}
               <div className="pl-7">
-                <FieldRenderer
-                  field={field}
-                  value={values[field.id] ?? (field.type === "multi_select" ? [] : "")}
-                  onChange={(v) => onFieldChange(field.id, v)}
-                  error={undefined}
-                />
+                {(field.type === "select" || field.type === "multi_select") && field.options?.length ? (
+                  <div className="flex flex-col gap-2">
+                    {field.options.map((opt) => {
+                      const val = values[field.id];
+                      const active = field.type === "multi_select"
+                        ? (Array.isArray(val) ? val : []).includes(opt.value)
+                        : val === opt.value;
+                      function toggle() {
+                        if (field.type === "multi_select") {
+                          const cur = Array.isArray(val) ? val : [];
+                          onFieldChange(field.id, active ? cur.filter((v) => v !== opt.value) : [...cur, opt.value]);
+                        } else {
+                          onFieldChange(field.id, active ? "" : opt.value);
+                        }
+                      }
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={toggle}
+                          className="flex items-center gap-3 text-left text-sm transition-all"
+                          style={{
+                            fontFamily: "inherit",
+                            background: active ? "#FFE44D" : "#FFF9F0",
+                            border: `2px solid ${active ? "#E84040" : "#4A3728"}`,
+                            borderRadius: "3px 8px 5px 6px / 6px 3px 8px 4px",
+                            boxShadow: active ? "3px 3px 0px #E84040" : "2px 2px 0px #4A3728",
+                            padding: "8px 14px",
+                            color: "#2D2416",
+                            fontWeight: active ? 700 : 500,
+                          }}
+                        >
+                          <span style={{
+                            display: "inline-flex",
+                            width: 16,
+                            height: 16,
+                            border: `2px solid ${active ? "#E84040" : "#4A3728"}`,
+                            borderRadius: "2px 5px 3px 4px",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            background: active ? "#E84040" : "transparent",
+                          }}>
+                            {active && <span style={{ color: "white", fontSize: 10, fontWeight: 900, lineHeight: 1 }}>✓</span>}
+                          </span>
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <FieldRenderer
+                    field={field}
+                    value={values[field.id] ?? ""}
+                    onChange={(v) => onFieldChange(field.id, v)}
+                    error={undefined}
+                  />
+                )}
                 {errors[field.id] && (
                   <p className="mt-1.5 text-xs text-[#E84040]">← {errors[field.id]}</p>
                 )}
