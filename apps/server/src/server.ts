@@ -4,6 +4,7 @@ import { clerkMiddleware, getAuth } from "@clerk/express";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { generateOpenApiDocument, createOpenApiExpressMiddleware } from "trpc-to-openapi";
+import geoip from "geoip-lite";
 
 import { serverRouter, createBaseContext } from "@repo/trpc/server";
 import { handleClerkWebhook } from "./webhooks/clerk.js";
@@ -96,14 +97,20 @@ app.use("/docs", async (req, res, next) => {
   })(req as any, res, next);
 });
 
-const createContext = ({ req }: CreateExpressContextOptions) =>
-  createBaseContext({
+const createContext = ({ req }: CreateExpressContextOptions) => {
+  const ip = (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim()
+    ?? req.ip
+    ?? "unknown";
+  const geo = ip && ip !== "unknown" && ip !== "::1" && ip !== "127.0.0.1"
+    ? geoip.lookup(ip)
+    : null;
+  return createBaseContext({
     userId: getAuth(req).userId ?? null,
     requestId: req.requestId,
-    ipAddress: (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim()
-      ?? req.ip
-      ?? "unknown",
+    ipAddress: ip,
+    country: geo?.country ?? undefined,
   });
+};
 
 app.use("/api", generalRateLimit);
 

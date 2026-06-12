@@ -90,6 +90,7 @@ export const publicRouter = router({
           formId: form.id,
           event: "submit",
           ipAddress: ip,
+          country: ctx.country,
           referrer: input.metadata?.referer,
         })
         .catch(() => void 0);
@@ -147,6 +148,7 @@ export const publicRouter = router({
         formId: input.formId,
         event: input.event,
         ipAddress: ctx.ipAddress,
+        country: ctx.country,
         durationMs: input.durationMs,
         referrer: input.referrer,
       });

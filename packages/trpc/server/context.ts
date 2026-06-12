@@ -2,6 +2,7 @@ export type BaseContextInput = {
   userId: string | null;
   requestId?: string;
   ipAddress?: string;
+  country?: string;
 };
 
 export function createBaseContext(input: BaseContextInput) {
@@ -13,6 +14,7 @@ export function createBaseContext(input: BaseContextInput) {
     },
     requestId: input.requestId ?? "unknown",
     ipAddress: input.ipAddress,
+    country: input.country,
   };
 }
 

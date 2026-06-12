@@ -55,7 +55,7 @@ export default function ResponsesPage() {
     }
   }
 
-  const responses  = data?.responses ?? [];
+  const responses  = data?.items ?? [];
   const total      = data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 

@@ -22,7 +22,7 @@ export default function ExplorePage() {
     { keepPreviousData: true } as any,
   );
 
-  const forms = data?.forms ?? [];
+  const forms = data?.items ?? [];
 
   return (
     <AppShell title="Explore">

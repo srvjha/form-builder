@@ -15,6 +15,7 @@
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/geoip-lite": "^1.4.4",
     "@types/helmet": "^4.0.0",
     "@types/morgan": "^1.9.10",
     "@types/node": "^22.15.3",
@@ -23,8 +24,6 @@
     "tsx": "^4.21.0"
   },
   "dependencies": {
-    "tsup": "^8.5.1",
-    "typescript": "^5.9.3",
     "@clerk/express": "^2.1.21",
     "@repo/logger": "workspace:*",
     "@repo/services": "workspace:*",
@@ -35,12 +34,15 @@
     "cors": "^2.8.5",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
+    "geoip-lite": "^2.0.2",
     "helmet": "^8.2.0",
     "morgan": "^1.10.1",
     "rate-limit-redis": "^5.0.0",
     "resend": "^6.12.4",
     "svix": "^1.94.0",
     "trpc-to-openapi": "^3.1.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
     "uuid": "^14.0.0",
     "zod": "^4.3.5"
   }

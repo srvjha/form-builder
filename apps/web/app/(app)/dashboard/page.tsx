@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, FileText, ArrowRight } from "lucide-react";
+import { Plus, FileText, ArrowRight, Palette, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -142,6 +142,35 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+      {/* Brix board sign — points toward Themes in sidebar */}
+      <motion.div
+        initial={{ opacity: 0, x: 30 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.6, duration: 0.3, ease: "easeOut" }}
+        className="fixed bottom-[88px] right-[84px] z-40"
+        style={{ transform: "rotate(-4deg)" }}
+      >
+        <Link href={ROUTES.themes} className="group block">
+          {/* Board */}
+          <div className="border-[3px] border-[#0A0A0A] bg-[var(--bg-panel)] px-4 py-3 shadow-[4px_4px_0_#0A0A0A] transition-all group-hover:shadow-[5px_5px_0_var(--color-accent)] group-hover:border-[var(--color-accent)]">
+            <p className="font-mono text-[9px] text-[var(--text-muted)] uppercase tracking-widest mb-1.5">
+              customise your form
+            </p>
+            <div className="flex items-center gap-2">
+              <Palette className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
+              <p className="font-display text-[11px] font-extrabold uppercase tracking-wide text-[var(--text-primary)] leading-tight whitespace-nowrap">
+                Set your preferred<br />theme
+              </p>
+            </div>
+            <div className="mt-2 flex items-center gap-1 text-[var(--color-accent)]">
+              <ArrowLeft className="h-3 w-3" />
+              <span className="font-mono text-[9px] font-bold uppercase tracking-wider">over there</span>
+            </div>
+          </div>
+          {/* Stick */}
+          <div className="h-5 w-[3px] bg-[#0A0A0A] mx-auto" />
+        </Link>
+      </motion.div>
     </AppShell>
   );
 }
