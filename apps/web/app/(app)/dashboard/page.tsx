@@ -154,7 +154,7 @@ export default function DashboardPage() {
           {/* Board */}
           <div className="border-[3px] border-[#0A0A0A] bg-[var(--bg-panel)] px-4 py-3 shadow-[4px_4px_0_#0A0A0A] transition-all group-hover:shadow-[5px_5px_0_var(--color-accent)] group-hover:border-[var(--color-accent)]">
             <p className="font-mono text-[9px] text-[var(--text-muted)] uppercase tracking-widest mb-1.5">
-              customise your form
+              customise your platform
             </p>
             <div className="flex items-center gap-2">
               <Palette className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
