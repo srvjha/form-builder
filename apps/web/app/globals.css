@@ -269,6 +269,10 @@
 .cl-socialButtonsBlockButton,
 .cl-badge { border-radius: 0 !important; }
 
+/* "Secured by Clerk" branding — uses internal hashed classes, target via parent */
+.cl-footerPages,
+.cl-footerPages * { color: rgba(255, 255, 255, 0.6) !important; }
+
 /* ─────────────────────────────────────────────────────────
    CMDK OVERRIDES
 ───────────────────────────────────────────────────────── */
