@@ -45,9 +45,9 @@ export function GuestLoginButton() {
   return (
     <div className="mt-3 flex flex-col gap-2">
       <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-[#ccc]" />
-        <span className="font-mono text-[10px] uppercase tracking-widest text-[#999]">or</span>
-        <div className="h-px flex-1 bg-[#ccc]" />
+        <div className="h-px flex-1 bg-[var(--border-muted)]" />
+        <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-muted)]">or</span>
+        <div className="h-px flex-1 bg-[var(--border-muted)]" />
       </div>
 
       <button
@@ -68,7 +68,7 @@ export function GuestLoginButton() {
       </button>
 
       {error && (
-        <p className="mt-2 font-mono text-xs text-red-600">{error}</p>
+        <p className="mt-2 font-mono text-xs text-[var(--color-red,#D50000)]">{error}</p>
       )}
     </div>
   );
