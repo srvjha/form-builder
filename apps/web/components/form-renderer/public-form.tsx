@@ -281,12 +281,66 @@ function CleanCardForm({
                   : "border-gray-200 hover:shadow-md",
               )}
             >
-              <FieldRenderer
-                field={field}
-                value={values[field.id] ?? (field.type === "multi_select" ? [] : "")}
-                onChange={(v) => onFieldChange(field.id, v)}
-                error={errors[field.id]}
-              />
+              {(field.type === "select" || field.type === "multi_select") && field.options?.length ? (
+                <div className="space-y-3">
+                  <p className="text-sm font-semibold text-gray-800">
+                    {field.label}
+                    {field.required && <span className="ml-1 text-red-400">*</span>}
+                  </p>
+                  {field.helpText && (
+                    <p className="-mt-2 text-xs text-gray-500">{field.helpText}</p>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    {field.options.map((opt) => {
+                      const val = values[field.id];
+                      const multi = field.type === "multi_select";
+                      const active = multi
+                        ? (Array.isArray(val) ? val : []).includes(opt.value)
+                        : val === opt.value;
+                      function toggle() {
+                        if (multi) {
+                          const cur = Array.isArray(val) ? val : [];
+                          onFieldChange(field.id, active ? cur.filter((v) => v !== opt.value) : [...cur, opt.value]);
+                        } else {
+                          onFieldChange(field.id, active ? "" : opt.value);
+                        }
+                      }
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={toggle}
+                          className={cn(
+                            "flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-all",
+                            active
+                              ? "border-blue-500 bg-blue-50 text-blue-900 font-medium ring-1 ring-blue-500"
+                              : "border-gray-300 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50/40",
+                          )}
+                        >
+                          <span className={cn(
+                            "flex h-5 w-5 flex-shrink-0 items-center justify-center border-2 text-[10px] font-bold",
+                            multi ? "rounded" : "rounded-full",
+                            active ? "border-blue-500 bg-blue-500 text-white" : "border-gray-300 bg-white",
+                          )}>
+                            {active && (multi ? "✓" : <span className="block h-2 w-2 rounded-full bg-white" />)}
+                          </span>
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {errors[field.id] && (
+                    <p className="text-xs text-red-500">{errors[field.id]}</p>
+                  )}
+                </div>
+              ) : (
+                <FieldRenderer
+                  field={field}
+                  value={values[field.id] ?? (field.type === "multi_select" ? [] : "")}
+                  onChange={(v) => onFieldChange(field.id, v)}
+                  error={errors[field.id]}
+                />
+              )}
             </motion.div>
           ))}
 
