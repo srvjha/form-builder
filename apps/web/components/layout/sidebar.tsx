@@ -11,6 +11,7 @@ import { useUIStore } from "@/stores/ui-store";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { ROUTES, APP_NAME } from "@/lib/constants";
+import { Logo, LogoMark } from "@/components/shared/logo";
 
 const NAV = [
   { label: "Dashboard",  href: ROUTES.dashboard,  Icon: LayoutDashboard },
@@ -119,9 +120,9 @@ function SidebarContent({ pathname, collapsed }: { pathname: string; collapsed: 
         <Link
           href={ROUTES.home}
           aria-label={APP_NAME}
-          className="font-display whitespace-nowrap text-[28px] leading-none text-[var(--text-primary)]"
+          className="whitespace-nowrap rounded-md"
         >
-          {collapsed ? APP_NAME.charAt(0) : APP_NAME}
+          {collapsed ? <LogoMark /> : <Logo textClassName="text-[24px]" />}
         </Link>
       </div>
 

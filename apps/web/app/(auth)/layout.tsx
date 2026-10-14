@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { APP_NAME, ROUTES } from "@/lib/constants";
+import { Logo } from "@/components/shared/logo";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -7,9 +8,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-12 sm:px-6">
         <Link
           href={ROUTES.home}
-          className="mb-8 rounded-md font-display text-[40px] leading-none tracking-[-0.02em] text-[var(--text-primary)]"
+          aria-label={APP_NAME}
+          className="mb-8 rounded-md"
         >
-          {APP_NAME}
+          <Logo markClassName="h-10 w-10" textClassName="text-[36px]" />
         </Link>
         <div className="w-full max-w-[400px]">{children}</div>
       </main>

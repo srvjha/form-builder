@@ -126,10 +126,10 @@ function FieldInSentence() {
       initial={reduce ? false : { clipPath: "inset(100% -10% -10% -10%)" }}
       animate={{ clipPath: "inset(-40% -10% -10% -10%)" }}
       transition={{ duration: 1.1, ease: EASE, delay: 0.35 }}
-      className="relative mx-[0.14em] inline-flex h-[0.86em] w-[2.8em] translate-y-[0.06em] rounded-[0.16em] align-baseline [--slot-fill:var(--bg-panel)] dark:[--slot-fill:var(--bg-inset)] bg-[var(--slot-fill)] ring-[0.012em] ring-[var(--color-accent)] shadow-[0_0_0_0.03em_color-mix(in_srgb,var(--color-accent)_16%,transparent)] max-sm:mx-auto max-sm:my-[0.2em] max-sm:flex max-sm:h-[1.1em] max-sm:w-full max-sm:ring-[0.03em]"
+      className="relative mx-[0.14em] inline-flex h-[0.86em] w-[2.8em] translate-y-[0.06em] rounded-[0.16em] align-baseline [--slot-fill:var(--bg-panel)] dark:[--slot-fill:var(--bg-inset)] bg-[var(--slot-fill)] ring-[0.012em] ring-[var(--color-accent)] shadow-[0_0_0_0.03em_color-mix(in_srgb,var(--color-accent)_16%,transparent)] max-sm:mx-auto max-sm:my-[0.2em] max-sm:flex max-sm:h-[1.1em] max-sm:w-full max-sm:ring-[0.03em]" /* taste-skill-ignore: the field's own focus ring, part of a drawn interface fragment */
     >
       {/* Label notched into the top border; its background is split so it cuts the ring cleanly */}
-      <span className="absolute left-[2.4em] top-0 z-10 -translate-y-1/2 overflow-hidden rounded-[0.04em] bg-[linear-gradient(to_bottom,var(--bg-page)_50%,var(--slot-fill)_50%)] px-[0.4em] font-sans text-[0.115em] leading-[1.5] tracking-normal text-[var(--color-accent)] max-sm:left-[1.2em] max-sm:px-[0.3em] max-sm:text-[0.28em]">
+      <span className="absolute left-[2.4em] top-0 z-10 -translate-y-1/2 overflow-hidden rounded-[0.04em] bg-[linear-gradient(to_bottom,var(--bg-page)_50%,var(--slot-fill)_50%)] px-[0.4em] font-sans text-[0.115em] leading-[1.5] tracking-normal text-[var(--color-accent)] max-sm:left-[1.2em] max-sm:px-[0.3em] max-sm:text-[0.28em]" /* taste-skill-ignore: hard two-tone stop so the label notches the ring */>
         <AnimatePresence initial={false} mode="popLayout">
           <motion.span
             key={kind}
@@ -211,20 +211,204 @@ function Hero({ primaryCta }: { primaryCta: React.ReactNode }) {
   );
 }
 
-/* ─── Showcase: the headline is an input ──────────────────────── */
-const EXAMPLES: { title: string; fields: string[] }[] = [
-  { title: "Event RSVP", fields: ["Will you attend?", "How many guests?", "Any dietary needs?"] },
-  { title: "Job application", fields: ["Full name", "Link to your portfolio", "Upload your CV"] },
-  { title: "Bug report", fields: ["What went wrong?", "Steps to reproduce", "How urgent is it?"] },
+/* ─── Showcase: the headline is an input, and the form below it works ── */
+type PreviewField = {
+  id: string;
+  label: string;
+  type: "text" | "email" | "number" | "textarea" | "select" | "rating";
+  required?: boolean;
+  options?: string[];
+};
+
+const DEFAULT_FIELDS: PreviewField[] = [
+  { id: "rating", label: "How did we do?", type: "rating", required: true },
+  { id: "improve", label: "What should we improve?", type: "textarea" },
+  { id: "email", label: "Your email", type: "email", required: true },
 ];
+
+const EXAMPLES: { title: string; fields: PreviewField[] }[] = [
+  {
+    title: "Event RSVP",
+    fields: [
+      { id: "attend", label: "Will you attend?", type: "select", required: true, options: ["Yes", "No", "Maybe"] },
+      { id: "guests", label: "How many guests?", type: "number", required: true },
+      { id: "diet", label: "Any dietary needs?", type: "text" },
+    ],
+  },
+  {
+    title: "Job application",
+    fields: [
+      { id: "name", label: "Full name", type: "text", required: true },
+      { id: "email", label: "Email", type: "email", required: true },
+      { id: "years", label: "Years of experience", type: "number", required: true },
+    ],
+  },
+  {
+    title: "Bug report",
+    fields: [
+      { id: "what", label: "What went wrong?", type: "textarea", required: true },
+      { id: "urgency", label: "How urgent is it?", type: "select", required: true, options: ["Low", "Medium", "High"] },
+      { id: "email", label: "Your email", type: "email" },
+    ],
+  },
+];
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validate(fields: PreviewField[], values: Record<string, string>) {
+  const errors: Record<string, string> = {};
+  for (const f of fields) {
+    const v = (values[f.id] ?? "").trim();
+    if (f.required && !v) errors[f.id] = f.type === "rating" ? "Pick a rating." : "This question is required.";
+    else if (v && f.type === "email" && !EMAIL_RE.test(v)) errors[f.id] = "Enter an email like name@example.com.";
+    else if (v && f.type === "number" && Number(v) < 0) errors[f.id] = "Enter 0 or more.";
+  }
+  return errors;
+}
+
+function displayValue(f: PreviewField, v: string) {
+  if (!v) return "No answer";
+  if (f.type === "rating") return `${v} of 5`;
+  return v;
+}
+
+const inputCls =
+  "mt-2 block w-full rounded-md bg-[var(--bg-inset)] px-3 py-2.5 text-[16px] text-[var(--text-primary)] ring-1 ring-[var(--border-color)] outline-none transition-shadow placeholder:text-[var(--text-muted)] focus:ring-2 focus:ring-[var(--color-accent)]";
+
+function PreviewInput({
+  field,
+  value,
+  error,
+  onChange,
+}: {
+  field: PreviewField;
+  value: string;
+  error?: string;
+  onChange: (v: string) => void;
+}) {
+  const id = useId();
+  const errId = `${id}-err`;
+  const common = {
+    id,
+    "aria-invalid": !!error,
+    "aria-describedby": error ? errId : undefined,
+  };
+
+  let control: React.ReactNode;
+  if (field.type === "rating") {
+    control = (
+      <div role="radiogroup" aria-labelledby={`${id}-label`} className="mt-2 flex gap-1">
+        {[1, 2, 3, 4, 5].map((n) => {
+          const on = Number(value) >= n;
+          return (
+            <button
+              key={n}
+              type="button"
+              role="radio"
+              aria-checked={Number(value) === n}
+              aria-label={`${n} of 5`}
+              onClick={() => onChange(String(n))}
+              className="rounded-md p-1 transition-transform active:scale-90"
+            >
+              <Star className={`h-7 w-7 ${on ? "fill-[var(--color-accent)] text-[var(--color-accent)]" : "text-[var(--border-color)]"}`} />
+            </button>
+          );
+        })}
+      </div>
+    );
+  } else if (field.type === "select") {
+    control = (
+      <div role="radiogroup" aria-labelledby={`${id}-label`} className="mt-2 flex flex-wrap gap-2">
+        {field.options!.map((o) => (
+          <button
+            key={o}
+            type="button"
+            role="radio"
+            aria-checked={value === o}
+            onClick={() => onChange(o)}
+            className={`min-h-[40px] rounded-full px-4 text-[16px] transition-colors ${
+              value === o
+                ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]"
+                : "bg-[var(--bg-inset)] text-[var(--text-primary)] ring-1 ring-[var(--border-color)] hover:bg-[var(--border-color)]"
+            }`}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+    );
+  } else if (field.type === "textarea") {
+    control = <textarea {...common} rows={2} value={value} onChange={(e) => onChange(e.target.value)} className={`${inputCls} resize-none`} />;
+  } else {
+    control = (
+      <input
+        {...common}
+        type={field.type}
+        inputMode={field.type === "number" ? "numeric" : undefined}
+        min={field.type === "number" ? 0 : undefined}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={field.type === "email" ? "name@example.com" : undefined}
+        className={inputCls}
+      />
+    );
+  }
+
+  return (
+    <div>
+      <label id={`${id}-label`} htmlFor={field.type === "rating" || field.type === "select" ? undefined : id} className="block text-[16px] text-[var(--text-primary)]">
+        {field.label}
+        {field.required && <span className="text-[var(--color-accent)]"> *</span>}
+      </label>
+      {control}
+      {error && (
+        <p id={errId} className="mt-1.5 text-[13px] text-[var(--color-red)]">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
 
 function TypeTheTitle() {
   const inputId = useId();
   const [title, setTitle] = useState("Customer feedback");
   const example = EXAMPLES.find((e) => e.title === title);
-  const fields = example?.fields ?? ["How did we do?", "What should we improve?", "Your email"];
+  const fields = example?.fields ?? DEFAULT_FIELDS;
+  const formKey = example?.title ?? "custom";
   const slug = generateSlug(title) || "untitled-form";
+
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  /* A different form starts empty */
+  const [lastKey, setLastKey] = useState(formKey);
+  if (lastKey !== formKey) {
+    setLastKey(formKey);
+    setValues({});
+    setErrors({});
+    setSubmitted(false);
+  }
+
+  function setValue(id: string, v: string) {
+    setValues((prev) => ({ ...prev, [id]: v }));
+    if (errors[id]) setErrors((prev) => ({ ...prev, [id]: "" }));
+  }
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const found = validate(fields, values);
+    setErrors(found);
+    if (Object.values(found).every((v) => !v)) setSubmitted(true);
+  }
+
+  function reset() {
+    setValues({});
+    setErrors({});
+    setSubmitted(false);
+  }
 
   return (
     <section aria-labelledby={`${inputId}-label`} className="mx-auto max-w-[1280px] px-4 py-32 sm:px-8 md:py-44">
@@ -235,7 +419,7 @@ function TypeTheTitle() {
           htmlFor={inputId}
           className="block text-[16px] text-[var(--text-primary)]"
         >
-          Name your form and it gets a link straight away:
+          Name your form, then try filling it in:
         </motion.label>
 
         <motion.div variants={rise} data-ui className="mt-4 flex items-baseline">
@@ -255,7 +439,7 @@ function TypeTheTitle() {
           data-ui
           className="mt-12 overflow-hidden rounded-xl bg-[var(--bg-panel)] ring-1 ring-[var(--border-color)]"
         >
-          {/* The product's answer, at true interface size: the public link, then the form people will see */}
+          {/* The public link this form would get */}
           <div className="flex items-center gap-2 bg-[var(--bg-inset)] p-2 pl-4">
             <span className="truncate text-[16px] text-[var(--text-primary)]">
               {SITE_HOST}/f/<span className="text-[var(--color-accent)]">{slug}</span>
@@ -277,30 +461,72 @@ function TypeTheTitle() {
           <div className="grid gap-8 p-6 sm:p-10 md:grid-cols-[1fr_1.4fr]">
             <div>
               <p className="font-display text-[36px] leading-tight text-[var(--text-primary)]">{title || "Untitled form"}</p>
-              <p className="mt-3 text-[16px] text-[var(--text-muted)]">{fields.length} questions, about a minute to answer</p>
+              <p className="mt-3 text-[16px] text-[var(--text-muted)]">
+                {submitted ? "This is the respondent's view after they submit." : "This preview works. Fill it in and submit."}
+              </p>
             </div>
-            <ul className="space-y-4">
-              <AnimatePresence initial={false} mode="popLayout">
-                {fields.map((f) => (
-                  <motion.li
-                    key={`${example?.title ?? "custom"}-${f}`}
-                    layout
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
+
+            <AnimatePresence mode="wait" initial={false}>
+              {submitted ? (
+                <motion.div
+                  key="done"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3, ease: EASE }}
+                  aria-live="polite"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+                      <Check className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="text-[16px] font-medium text-[var(--text-primary)]">Response submitted</p>
+                      <p className="text-[13px] text-[var(--text-muted)]">You can now close this window.</p>
+                    </div>
+                  </div>
+
+                  <p className="mt-8 text-[13px] text-[var(--text-muted)]">How it shows up in your responses:</p>
+                  <dl className="mt-3 space-y-2">
+                    {fields.map((f) => (
+                      <div key={f.id} className="flex items-baseline justify-between gap-4 rounded-md bg-[var(--bg-inset)] px-3 py-2.5">
+                        <dt className="truncate text-[13px] text-[var(--text-muted)]">{f.label}</dt>
+                        <dd className="text-right text-[16px] font-medium text-[var(--text-primary)]">{displayValue(f, (values[f.id] ?? "").trim())}</dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="mt-6 inline-flex min-h-[44px] items-center rounded-full bg-[var(--bg-inset)] px-6 text-[16px] font-medium text-[var(--text-primary)] transition-[transform,background-color] hover:bg-[var(--border-color)] active:scale-[0.97]"
                   >
-                    <span className="block text-[16px] text-[var(--text-primary)]">{f}</span>
-                    <span className="mt-2 block h-11 rounded-md bg-[var(--bg-inset)] ring-1 ring-[var(--border-color)]" />
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-              <li>
-                <span className="inline-flex min-h-[44px] items-center rounded-full bg-[var(--color-action)] px-6 text-[16px] font-medium text-white">
-                  Submit response
-                </span>
-              </li>
-            </ul>
+                    Fill it in again
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.form
+                  key={`form-${formKey}`}
+                  noValidate
+                  onSubmit={onSubmit}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3, ease: EASE }}
+                  className="space-y-5"
+                >
+                  {fields.map((f) => (
+                    <PreviewInput key={f.id} field={f} value={values[f.id] ?? ""} error={errors[f.id] || undefined} onChange={(v) => setValue(f.id, v)} />
+                  ))}
+                  <button
+                    type="submit"
+                    className="inline-flex min-h-[44px] items-center rounded-full bg-[var(--color-action)] px-6 text-[16px] font-medium text-white transition-[transform,background-color] hover:bg-[var(--color-action-hover)] active:scale-[0.97]"
+                  >
+                    Submit response
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
 

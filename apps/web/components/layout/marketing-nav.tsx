@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { ROUTES, APP_NAME } from "@/lib/constants";
+import { Logo } from "@/components/shared/logo";
 
 const NAV_LINKS = [
   { label: "Features",     href: "/#features" },
@@ -21,8 +22,8 @@ export function MarketingNav() {
   return (
     <header className="absolute inset-x-0 top-0 z-40">
       <div className="mx-auto flex h-20 max-w-[1280px] items-center justify-between gap-4 px-4 sm:px-8">
-        <Link href={ROUTES.home} className="font-display text-[28px] leading-none tracking-[-0.02em] text-[var(--text-primary)]">
-          {APP_NAME}
+        <Link href={ROUTES.home} aria-label={APP_NAME} className="rounded-md">
+          <Logo />
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-8 md:flex">
