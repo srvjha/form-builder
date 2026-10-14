@@ -74,7 +74,7 @@ export default function ResponsesPage() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div className="h-full overflow-y-auto p-4 sm:p-6">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
@@ -124,21 +124,21 @@ export default function ResponsesPage() {
         {/* Responses */}
         {!isLoading && responses.length > 0 && (
           <>
-            <div className="border-2 border-[#0A0A0A]">
+            <div className="overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-sm">
               {/* Table header */}
-              <div className="grid grid-cols-[1fr_160px_120px_80px] gap-4 border-b-2 border-[#0A0A0A] bg-[#0A0A0A] px-4 py-2.5">
-                <span className="font-display text-xs font-extrabold uppercase tracking-wider text-white">Respondent</span>
-                <span className="font-display text-xs font-extrabold uppercase tracking-wider text-white">Submitted</span>
-                <span className="font-display text-xs font-extrabold uppercase tracking-wider text-white">Duration</span>
-                <span className="font-display text-xs font-extrabold uppercase tracking-wider text-white">Actions</span>
+              <div className="hidden grid-cols-[1fr_160px_120px_80px] gap-4 border-b border-[var(--border-color)] bg-[var(--bg-inset)] px-4 py-2.5 sm:grid">
+                <span className="font-display text-xs font-semibold text-[var(--text-secondary)]">Respondent</span>
+                <span className="font-display text-xs font-semibold text-[var(--text-secondary)]">Submitted</span>
+                <span className="font-display text-xs font-semibold text-[var(--text-secondary)]">Duration</span>
+                <span className="font-display text-xs font-semibold text-[var(--text-secondary)]">Actions</span>
               </div>
 
               {responses.map((res: any, i: number) => {
                 const isExpanded = expandedId === res.id;
                 return (
-                  <div key={res.id} id={`response-${res.id}`} className={i < responses.length - 1 ? "border-b-2 border-[#0A0A0A]" : ""}>
+                  <div key={res.id} id={`response-${res.id}`} className={i < responses.length - 1 ? "border-b border-[var(--border-color)]" : ""}>
                     <div
-                      className="grid grid-cols-[1fr_160px_120px_80px] cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-[var(--bg-inset)]"
+                      className="grid grid-cols-[1fr_auto] cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-[var(--bg-inset)] sm:grid-cols-[1fr_160px_120px_80px]"
                       onClick={() => setExpandedId(isExpanded ? null : res.id)}
                     >
                       <div className="flex items-center gap-2 min-w-0">
@@ -149,15 +149,15 @@ export default function ResponsesPage() {
                           {res.respondentEmail ?? <span className="text-[var(--text-muted)]">Anonymous</span>}
                         </span>
                       </div>
-                      <span className="font-mono text-xs text-[var(--text-muted)]">
+                      <span className="hidden font-mono text-xs text-[var(--text-muted)] sm:block">
                         {format(new Date(res.submittedAt), "MMM d, yyyy HH:mm")}
                       </span>
-                      <span className="font-mono text-xs text-[var(--text-muted)]">
+                      <span className="hidden font-mono text-xs text-[var(--text-muted)] sm:block">
                         {res.completionTimeMs ? `${Math.round(res.completionTimeMs / 1000)}s` : "—"}
                       </span>
                       <button
                         onClick={(e) => { e.stopPropagation(); setDeleteId(res.id); }}
-                        className="flex h-7 w-7 items-center justify-center border-2 border-[#0A0A0A] hover:bg-[var(--color-red)] hover:text-white transition-colors"
+                        className="flex h-7 w-7 items-center justify-center rounded-md border border-[var(--border-color)] text-[var(--text-muted)] hover:border-[var(--color-red)]/40 hover:bg-[var(--color-red)]/10 hover:text-[var(--color-red)] transition-colors"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -170,14 +170,14 @@ export default function ResponsesPage() {
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="overflow-hidden border-t-2 border-dashed border-[var(--border-muted)]"
+                          className="overflow-hidden border-t border-[var(--border-muted)]"
                         >
-                          <div className="grid gap-4 p-6 sm:grid-cols-2">
+                          <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6">
                             {(res.answers ?? []).map((ans: any) => {
                               const field = fieldsById.get(ans.fieldId) as any;
                               const text  = formatAnswerValue(field, ans.value);
                               return (
-                                <div key={ans.id} className="border-2 border-[var(--border-muted)] bg-[var(--bg-inset)] p-4">
+                                <div key={ans.id} className="rounded-lg border border-[var(--border-muted)] bg-[var(--bg-inset)] p-4">
                                   <p className="label-overline mb-1.5 text-[var(--text-muted)]">{field?.label ?? "Deleted field"}</p>
                                   <p className="text-sm font-semibold text-[var(--text-primary)] break-words">
                                     {text || <span className="italic text-[var(--text-muted)]">No answer</span>}
@@ -204,14 +204,14 @@ export default function ResponsesPage() {
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="flex h-8 w-8 items-center justify-center border-2 border-[#0A0A0A] bg-[var(--bg-panel)] disabled:opacity-30 hover:bg-[var(--bg-inset)] transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-color)] bg-[var(--bg-panel)] disabled:opacity-30 hover:bg-[var(--bg-inset)] transition-colors"
                   >
                     <ChevronLeft className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="flex h-8 w-8 items-center justify-center border-2 border-[#0A0A0A] bg-[var(--bg-panel)] disabled:opacity-30 hover:bg-[var(--bg-inset)] transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-color)] bg-[var(--bg-panel)] disabled:opacity-30 hover:bg-[var(--bg-inset)] transition-colors"
                   >
                     <ChevronRight className="h-3.5 w-3.5" />
                   </button>

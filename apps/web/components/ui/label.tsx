@@ -11,7 +11,7 @@ const Label = React.forwardRef<
   <LabelPrimitive.Root
     ref={ref}
     className={cn(
-      "text-xs font-bold uppercase tracking-wider text-[var(--text-primary)]",
+      "text-xs font-bold tracking-wide text-[var(--text-primary)]",
       "cursor-default select-none",
       "peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
       className,

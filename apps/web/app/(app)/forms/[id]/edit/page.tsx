@@ -254,7 +254,7 @@ export default function FormEditPage() {
         <div className="mx-auto max-w-2xl space-y-6">
           <div>
             <p className="label-overline mb-2 text-[var(--color-accent)]">Preview</p>
-            <h1 className="font-display text-4xl font-black uppercase tracking-tight">{form.title || "Untitled Form"}</h1>
+            <h1 className="font-display text-4xl font-bold tracking-tight">{form.title || "Untitled Form"}</h1>
             {form.description && <p className="mt-2 text-[var(--text-muted)]">{form.description}</p>}
           </div>
           {fields.map((f) => (
@@ -269,13 +269,13 @@ export default function FormEditPage() {
   return (
     <div className="flex h-full overflow-hidden">
       {/* ── Left: Field palette ─────────────────────────────── */}
-      <aside className="w-52 shrink-0 border-r-2 border-[#0A0A0A] bg-[var(--bg-panel)] overflow-hidden">
+      <aside className="w-44 shrink-0 border-r border-[var(--border-color)] bg-[var(--bg-panel)] overflow-hidden md:w-52">
         <FieldPalette onAdd={handleAddField} />
       </aside>
 
       {/* ── Center: Canvas ──────────────────────────────────── */}
       <main
-        className="flex-1 overflow-y-auto bg-[var(--bg-page)] p-6"
+        className="flex-1 min-w-0 overflow-y-auto bg-[var(--bg-page)] p-4 md:p-6"
         onClick={() => setActiveField(null)}
       >
         {isLoading ? (
@@ -324,7 +324,7 @@ export default function FormEditPage() {
             animate={{ x: 0,   opacity: 1 }}
             exit={{   x: 280,  opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="w-72 shrink-0 border-l-2 border-[#0A0A0A] bg-[var(--bg-panel)] overflow-hidden"
+            className="fixed inset-y-0 right-0 z-[var(--z-overlay)] w-full max-w-xs border-l border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-xl overflow-hidden md:static md:z-auto md:w-72 md:max-w-none md:shadow-none"
           >
             <FieldSettings
               field={activeField}

@@ -12,20 +12,20 @@ import { useBuilderStore, DEFAULT_MAX_FIELDS } from "@/stores/builder-store";
 import { cn } from "@/lib/utils";
 
 const FIELD_DEFS: { type: FieldType; label: string; icon: React.ElementType; color: string }[] = [
-  { type: "short_text",   label: "Short Text",    icon: Type,         color: "#FF3B00" },
-  { type: "long_text",    label: "Long Text",     icon: AlignLeft,    color: "#FF3B00" },
-  { type: "email",        label: "Email",         icon: Mail,         color: "#0066CC" },
-  { type: "number",       label: "Number",        icon: Hash,         color: "#0066CC" },
-  { type: "phone",        label: "Phone",         icon: Phone,        color: "#0066CC" },
-  { type: "url",          label: "URL",           icon: Link2,        color: "#0066CC" },
-  { type: "date",         label: "Date",          icon: Calendar,     color: "#7B2FBE" },
-  { type: "time",         label: "Time",          icon: Clock,        color: "#7B2FBE" },
-  { type: "select",       label: "Single Select", icon: ChevronDown,  color: "#00C853" },
-  { type: "multi_select", label: "Multi Select",  icon: CheckSquare,  color: "#00C853" },
-  { type: "checkbox",     label: "Checkbox",      icon: Check,        color: "#00C853" },
-  { type: "rating",       label: "Rating",        icon: Star,         color: "#FFD600" },
-  { type: "scale",        label: "Scale / NPS",   icon: Sliders,      color: "#FFD600" },
-  { type: "file_upload",  label: "File Upload",   icon: Upload,       color: "#888"   },
+  { type: "short_text",   label: "Short Text",    icon: Type,         color: "#0D9488" },
+  { type: "long_text",    label: "Long Text",     icon: AlignLeft,    color: "#0D9488" },
+  { type: "email",        label: "Email",         icon: Mail,         color: "#0EA5E9" },
+  { type: "number",       label: "Number",        icon: Hash,         color: "#0EA5E9" },
+  { type: "phone",        label: "Phone",         icon: Phone,        color: "#0EA5E9" },
+  { type: "url",          label: "URL",           icon: Link2,        color: "#0EA5E9" },
+  { type: "date",         label: "Date",          icon: Calendar,     color: "#64748B" },
+  { type: "time",         label: "Time",          icon: Clock,        color: "#64748B" },
+  { type: "select",       label: "Single Select", icon: ChevronDown,  color: "#10B981" },
+  { type: "multi_select", label: "Multi Select",  icon: CheckSquare,  color: "#10B981" },
+  { type: "checkbox",     label: "Checkbox",      icon: Check,        color: "#10B981" },
+  { type: "rating",       label: "Rating",        icon: Star,         color: "#0369A1" },
+  { type: "scale",        label: "Scale / NPS",   icon: Sliders,      color: "#0369A1" },
+  { type: "file_upload",  label: "File Upload",   icon: Upload,       color: "#94A3B8" },
 ];
 
 export function makeDefaultField(type: FieldType): Omit<BuilderField, "order"> {
@@ -79,7 +79,7 @@ export function FieldPalette({ onAdd }: FieldPaletteProps) {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Header with live counter */}
-      <div className="border-b-2 border-[#0A0A0A] px-4 py-3">
+      <div className="border-b border-[var(--border-color)] px-4 py-3">
         <div className="flex items-center justify-between">
           <p className="label-overline">Add field</p>
           <span
@@ -88,7 +88,7 @@ export function FieldPalette({ onAdd }: FieldPaletteProps) {
               isFull
                 ? "border-[var(--color-red)] bg-[var(--color-red)]/10 text-[var(--color-red)]"
                 : isWarning
-                  ? "border-[var(--color-yellow)] bg-[var(--color-yellow)]/10 text-[#78350F]"
+                  ? "border-[var(--color-yellow)]/40 bg-[var(--color-yellow)]/10 text-[var(--color-yellow)]"
                   : "border-[var(--border-muted)] bg-[var(--bg-inset)] text-[var(--text-muted)]",
             )}
           >
@@ -108,7 +108,7 @@ export function FieldPalette({ onAdd }: FieldPaletteProps) {
 
         {/* Warning when almost full */}
         {isWarning && (
-          <p className="mt-1.5 font-mono text-[10px] text-[#92400E]">
+          <p className="mt-1.5 text-[10px] text-[var(--text-muted)]">
             {remaining} field{remaining !== 1 ? "s" : ""} remaining.
           </p>
         )}
@@ -122,22 +122,22 @@ export function FieldPalette({ onAdd }: FieldPaletteProps) {
               onClick={() => handleAdd(type)}
               disabled={isFull}
               className={cn(
-                "flex items-center gap-3 border-2 border-[#0A0A0A] bg-[var(--bg-panel)] px-3 py-2.5 text-left transition-all",
+                "flex items-center gap-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] px-3 py-2.5 text-left shadow-soft-xs transition-all duration-150",
                 isFull
                   ? "cursor-not-allowed opacity-40"
-                  : "shadow-[2px_2px_0_#0A0A0A] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_#0A0A0A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+                  : "hover:border-[var(--border-muted)] hover:bg-[var(--bg-inset)] hover:shadow-soft-sm active:scale-[0.99]",
               )}
             >
               <div
                 className={cn(
-                  "flex h-7 w-7 shrink-0 items-center justify-center border-2 border-[#0A0A0A]",
+                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
                   isFull && "grayscale",
                 )}
                 style={{ background: isFull ? undefined : color }}
               >
                 <Icon className="h-3.5 w-3.5 text-white" />
               </div>
-              <span className="font-display text-xs font-extrabold uppercase tracking-wide">{label}</span>
+              <span className="font-display text-xs font-semibold tracking-wide">{label}</span>
             </button>
           ))}
         </div>

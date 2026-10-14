@@ -18,7 +18,7 @@ const Progress = React.forwardRef<
     {(label || showPercent) && (
       <div className="flex items-center justify-between">
         {label && (
-          <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">
+          <span className="text-xs font-bold tracking-wide text-[var(--text-muted)]">
             {label}
           </span>
         )}
@@ -32,8 +32,8 @@ const Progress = React.forwardRef<
     <ProgressPrimitive.Root
       ref={ref}
       className={cn(
-        "relative h-3 w-full overflow-hidden rounded-none",
-        "border-2 border-[var(--border-color)] bg-[var(--bg-inset)]",
+        "relative h-3 w-full overflow-hidden rounded-md",
+        "border border-[var(--border-color)] bg-[var(--bg-inset)]",
         className,
       )}
       {...props}

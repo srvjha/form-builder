@@ -17,13 +17,13 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           maxLength={maxLength}
           value={value}
           className={cn(
-            "w-full min-h-[120px] border-2 bg-[var(--bg-inset)] px-3 py-2",
+            "w-full min-h-[120px] rounded-md border bg-[var(--bg-panel)] px-3 py-2",
             "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-            "resize-y transition-all duration-100",
-            "focus:border-[var(--color-accent)] focus:shadow-[3px_3px_0px_var(--color-accent)] focus:outline-none",
+            "resize-y transition-[border-color,box-shadow] duration-150",
+            "focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/30 focus:outline-none",
             "disabled:cursor-not-allowed disabled:opacity-50",
             error
-              ? "border-[var(--color-red)] shadow-[3px_3px_0px_var(--color-red)]"
+              ? "border-[var(--color-red)] focus:ring-[var(--color-red)]/30"
               : "border-[var(--border-color)]",
             showCount && "pb-7",
             className,

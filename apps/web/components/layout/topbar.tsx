@@ -13,27 +13,14 @@ interface TopbarProps {
   scrolled?: boolean;
 }
 
-export function Topbar({ title, actions, scrolled }: TopbarProps) {
+export function Topbar({ title, actions }: TopbarProps) {
   const { toggleSidebar, toggleCommand } = useUIStore();
 
   return (
     <header
       className={cn(
-        "flex h-14 shrink-0 items-center gap-3 px-4",
-        "border-b-2 transition-all duration-300",
-        scrolled
-          ? [
-              // Glass state
-              "border-[var(--border-color)]/40",
-              "bg-[var(--bg-panel)]/75",
-              "backdrop-blur-md",
-              "shadow-[0_4px_24px_rgba(0,0,0,0.08)]",
-            ]
-          : [
-              // Default state
-              "border-[var(--border-color)]",
-              "bg-[var(--bg-panel)]",
-            ],
+        "sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b border-[var(--border-color)]",
+        "bg-[var(--bg-panel)]/80 px-4 backdrop-blur-md sm:gap-3",
       )}
     >
       {/* Mobile menu toggle */}
@@ -49,7 +36,7 @@ export function Topbar({ title, actions, scrolled }: TopbarProps) {
 
       {/* Page title */}
       {title && (
-        <h1 className="font-display text-sm font-extrabold uppercase tracking-widest truncate">
+        <h1 className="font-display min-w-0 truncate text-sm font-semibold tracking-tight text-[var(--text-primary)]">
           {title}
         </h1>
       )}
@@ -57,19 +44,19 @@ export function Topbar({ title, actions, scrolled }: TopbarProps) {
       <div className="flex-1" />
 
       {/* Action slot */}
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex min-w-0 items-center gap-2">{actions}</div>}
 
       {/* Command palette trigger */}
       <Button
         variant="outline"
         size="sm"
         onClick={toggleCommand}
-        className="hidden gap-2 border-[var(--border-muted)] text-[var(--text-muted)] sm:flex"
+        className="hidden gap-2 rounded-md border-[var(--border-color)] bg-[var(--bg-panel)] text-[var(--text-muted)] shadow-soft-xs sm:flex"
         aria-label="Open command palette"
       >
         <CommandIcon className="h-3.5 w-3.5" />
         <span>Search</span>
-        <kbd className="ml-1 bg-[var(--bg-inset)] border border-[var(--border-muted)] px-1.5 py-0.5 font-mono text-[10px]">
+        <kbd className="ml-1 rounded border border-[var(--border-muted)] bg-[var(--bg-inset)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)]">
           ⌘K
         </kbd>
       </Button>
@@ -79,7 +66,7 @@ export function Topbar({ title, actions, scrolled }: TopbarProps) {
       <UserButton
         appearance={{
           elements: {
-            avatarBox: "h-8 w-8 rounded-none border-2 border-[var(--border-color)]",
+            avatarBox: "h-8 w-8 rounded-full",
           },
         }}
       />

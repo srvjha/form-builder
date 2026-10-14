@@ -54,7 +54,7 @@ export function FieldCard({ field, isActive, preview, onRemove }: Props) {
   /* ── Preview mode (no drag) ──────────────────────────────── */
   if (preview) {
     return (
-      <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] p-5 shadow-[2px_2px_0_#0A0A0A]">
+      <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-5 shadow-soft-sm">
         <FieldRenderer field={publicField} value="" onChange={() => {}} />
       </div>
     );
@@ -72,14 +72,14 @@ export function FieldCard({ field, isActive, preview, onRemove }: Props) {
       transition={{ duration: 0.15 }}
       onClick={(e) => { e.stopPropagation(); setActiveField(field.id); }}
       className={cn(
-        "group relative border-2 border-[#0A0A0A] bg-[var(--bg-panel)] cursor-pointer transition-all",
+        "group relative overflow-hidden rounded-xl border bg-[var(--bg-panel)] cursor-pointer transition-[box-shadow,border-color] duration-200",
         isActive
-          ? "shadow-[4px_4px_0_var(--color-accent)] border-[var(--color-accent)]"
-          : "shadow-[2px_2px_0_#0A0A0A] hover:shadow-[3px_3px_0_#0A0A0A]",
+          ? "border-[var(--color-accent)] shadow-soft-md ring-1 ring-[var(--color-accent)]/20"
+          : "border-[var(--border-color)] shadow-soft-sm hover:border-[var(--border-muted)] hover:shadow-soft-md",
       )}
     >
       {/* Accent strip when active */}
-      {isActive && <div className="absolute left-0 inset-y-0 w-1 bg-[var(--color-accent)]" />}
+      {isActive && <div className="absolute left-0 inset-y-0 w-1 rounded-r-full bg-[var(--color-accent)]" />}
 
       <div className={cn("flex items-start gap-3 p-4", isActive && "pl-5")}>
         {/* Drag handle */}
@@ -104,7 +104,7 @@ export function FieldCard({ field, isActive, preview, onRemove }: Props) {
             e.stopPropagation();
             if (onRemove) { onRemove(field.id); } else { removeField(field.id); }
           }}
-          className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--color-red)]"
+          className="mt-0.5 rounded-md p-0.5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[var(--color-red)]"
           aria-label="Remove field"
         >
           <Trash2 className="h-4 w-4" />

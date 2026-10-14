@@ -23,7 +23,7 @@ const DrawerOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-[var(--z-modal)] bg-[var(--bg-overlay)]", className)}
+    className={cn("fixed inset-0 z-[var(--z-modal)] bg-[var(--bg-overlay)] backdrop-blur-sm", className)}
     {...props}
   />
 ));
@@ -42,7 +42,7 @@ const DrawerContent = React.forwardRef<
         "w-full sm:max-w-[480px]",
         "bg-[var(--bg-panel)]",
         "border-l-[3px] border-[var(--border-color)]",
-        "shadow-[-8px_0px_0px_var(--border-color)]",
+        "",
         "focus:outline-none",
         className,
       )}
@@ -58,7 +58,7 @@ const DrawerHeader = ({ className, children, onClose, ...props }: React.HTMLAttr
   <div
     className={cn(
       "flex items-center justify-between px-6 py-4",
-      "border-b-2 border-[var(--border-color)]",
+      "border-b border-[var(--border-color)]",
       "shrink-0",
       className,
     )}
@@ -70,7 +70,7 @@ const DrawerHeader = ({ className, children, onClose, ...props }: React.HTMLAttr
         onClick={onClose}
         className={cn(
           "inline-flex items-center justify-center h-8 w-8 ml-4",
-          "border-2 border-[var(--border-color)] rounded-none",
+          "border border-[var(--border-color)] rounded-md",
           "hover:bg-[var(--bg-inset)] transition-colors",
           "focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]",
         )}
@@ -85,7 +85,7 @@ DrawerHeader.displayName = "DrawerHeader";
 
 const DrawerTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
   <h2
-    className={cn("text-base font-extrabold uppercase tracking-wide", className)}
+    className={cn("text-base font-semibold tracking-wide", className)}
     {...props}
   />
 );
@@ -98,7 +98,7 @@ const DrawerFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
   <div
     className={cn(
       "flex items-center justify-end gap-3 px-6 py-4 shrink-0",
-      "border-t-2 border-[var(--border-color)]",
+      "border-t border-[var(--border-color)]",
       className,
     )}
     {...props}

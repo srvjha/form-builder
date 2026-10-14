@@ -28,7 +28,7 @@ export default function SharePage() {
   const formUrl = form ? `${origin}${ROUTES.publicForm(form.slug)}` : "";
 
   const embedCode = form
-    ? `<iframe\n  src="${formUrl}"\n  width="100%"\n  height="650"\n  frameborder="0"\n  style="border:2px solid #0A0A0A;"\n  title="${form.title}"\n></iframe>`
+    ? `<iframe\n  src="${formUrl}"\n  width="100%"\n  height="650"\n  frameborder="0"\n  style="border:1px solid #DDE2EC;border-radius:12px;"\n  title="${form.title}"\n></iframe>`
     : "";
 
   function copyLink() {
@@ -60,21 +60,21 @@ export default function SharePage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div className="h-full overflow-y-auto p-4 sm:p-6">
       <div className="mx-auto max-w-2xl space-y-6">
 
         {/* ── Status ─────────────────────────────────────────── */}
-        <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-          <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
+        <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-sm">
+          <div className="border-b border-[var(--border-color)] px-6 py-4">
             <p className="label-overline">Status</p>
           </div>
-          <div className="p-6 flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-6">
             <div className="flex items-center gap-3">
               {form?.status === "published"
                 ? <Globe className="h-5 w-5 text-[var(--color-green)]" />
                 : <Lock  className="h-5 w-5 text-[var(--text-muted)]" />}
               <div>
-                <p className="font-display text-sm font-extrabold uppercase tracking-tight">
+                <p className="font-display text-sm font-semibold tracking-tight">
                   {form?.status === "published" ? "Live — accepting responses" : "Draft — not accepting responses"}
                 </p>
                 <p className="text-xs text-[var(--text-muted)] mt-0.5">
@@ -98,15 +98,15 @@ export default function SharePage() {
 
         {/* ── Share link + QR ────────────────────────────────── */}
         {form?.status === "published" && (
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
+          <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-sm">
+            <div className="border-b border-[var(--border-color)] px-6 py-4">
               <p className="label-overline">Share</p>
             </div>
             <div className="p-6 space-y-6">
 
               {/* Link row */}
               <div className="space-y-2">
-                <p className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-muted)]">Link</p>
+                <p className="text-xs font-semibold tracking-wide text-[var(--text-muted)]">Link</p>
                 <div className="flex gap-2">
                   <Input value={formUrl} readOnly className="flex-1 font-mono text-xs" />
                   <Button size="sm" variant="secondary" onClick={copyLink} className="gap-1.5 shrink-0">
@@ -118,16 +118,16 @@ export default function SharePage() {
 
               {/* QR code */}
               <div className="space-y-3">
-                <p className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-muted)]">QR Code</p>
+                <p className="text-xs font-semibold tracking-wide text-[var(--text-muted)]">QR Code</p>
                 <div className="flex items-start gap-6">
                   {/* QR box */}
-                  <div className="border-2 border-[#0A0A0A] bg-white p-3 shadow-brut-sm shrink-0">
+                  <div className="rounded-xl border border-[var(--border-color)] bg-white p-3 shadow-soft-xs shrink-0">
                     <QRCodeSVG
                       ref={qrRef}
                       value={formUrl}
                       size={140}
                       bgColor="#FFFFFF"
-                      fgColor="#0A0A0A"
+                      fgColor="#0F172A"
                       level="M"
                     />
                   </div>
@@ -156,8 +156,8 @@ export default function SharePage() {
 
         {/* ── Embed code ─────────────────────────────────────── */}
         {form?.status === "published" && (
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4 flex items-center gap-2">
+          <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-sm">
+            <div className="border-b border-[var(--border-color)] px-6 py-4 flex items-center gap-2">
               <Code2 className="h-4 w-4" />
               <p className="label-overline">Embed</p>
             </div>
@@ -166,7 +166,7 @@ export default function SharePage() {
                 Paste this snippet anywhere on your website to embed the form directly.
               </p>
               <div className="relative">
-                <pre className="overflow-x-auto rounded-none border-2 border-[#0A0A0A] bg-[var(--bg-inset)] p-4 font-mono text-[11px] leading-relaxed text-[var(--text-primary)] shadow-[inset_2px_2px_0_rgba(0,0,0,0.04)]">
+                <pre className="overflow-x-auto rounded-md border border-[var(--border-color)] bg-[var(--bg-inset)] p-4 font-mono text-[11px] leading-relaxed text-[var(--text-primary)]">
                   {embedCode}
                 </pre>
                 <Button
@@ -186,11 +186,11 @@ export default function SharePage() {
 
         {/* ── Response settings ──────────────────────────────── */}
         {form && (
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
+          <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-sm">
+            <div className="border-b border-[var(--border-color)] px-6 py-4">
               <p className="label-overline">Response settings</p>
             </div>
-            <div className="divide-y-2 divide-[var(--border-muted)] px-6">
+            <div className="divide-y divide-[var(--border-muted)] px-6">
               {[
                 {
                   key: "oneResponsePerIp",

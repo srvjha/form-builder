@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard, FileText, Compass, Palette, Settings, ChevronLeft, ChevronRight, Zap, Plus,
+  LayoutDashboard, FileText, Compass, Settings, ChevronLeft, ChevronRight, Zap, Plus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUIStore } from "@/stores/ui-store";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { ROUTES, APP_NAME } from "@/lib/constants";
 
@@ -19,7 +18,6 @@ const NAV = [
 ];
 
 const NAV_BOTTOM = [
-  { label: "Themes",   href: ROUTES.themes,   Icon: Palette },
   { label: "Settings", href: ROUTES.settings, Icon: Settings },
 ];
 
@@ -30,18 +28,18 @@ export function Sidebar() {
   return (
     <motion.aside
       initial={false}
-      animate={{ width: sidebarOpen ? 240 : 56 }}
+      animate={{ width: sidebarOpen ? 240 : 64 }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
         "relative flex h-full shrink-0 flex-col",
-        "border-r-2 border-[var(--border-color)] bg-[var(--bg-panel)]",
+        "border-r border-[var(--border-color)] bg-[var(--bg-panel)]",
         "overflow-hidden",
       )}
     >
       {/* Logo */}
-      <div className="flex h-14 shrink-0 items-center border-b-2 border-[var(--border-color)] px-3">
-        <Link href={ROUTES.home} className="flex items-center gap-3 min-w-0">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[var(--color-accent)] border-2 border-[var(--border-color)]">
+      <div className="flex h-14 shrink-0 items-center px-3">
+        <Link href={ROUTES.home} className="flex min-w-0 items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-gradient shadow-soft-accent">
             <Zap className="h-4 w-4 text-white" />
           </div>
           <AnimatePresence>
@@ -51,7 +49,7 @@ export function Sidebar() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -4 }}
                 transition={{ duration: 0.15 }}
-                className="font-display text-sm font-extrabold uppercase tracking-widest whitespace-nowrap truncate"
+                className="font-display truncate whitespace-nowrap text-sm font-bold tracking-tight text-[var(--text-primary)]"
               >
                 {APP_NAME}
               </motion.span>
@@ -60,18 +58,16 @@ export function Sidebar() {
         </Link>
       </div>
 
-      {/* Create Form CTA */}
-      <div className="px-2 py-3 border-b-2 border-[var(--border-color)]">
+      {/* Create form CTA */}
+      <div className="px-3 pb-3">
         <Link
           href={ROUTES.formNew}
+          aria-label="New form"
           className={cn(
-            "group relative flex h-9 w-full items-center justify-center gap-2 overflow-hidden",
-            "border-2 border-[var(--border-color)] bg-[var(--color-accent)]",
-            "font-display text-xs font-extrabold uppercase tracking-wider text-white",
-            "shadow-[2px_2px_0_var(--border-color)]",
-            "transition-all duration-100",
-            "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none",
-            "active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+            "flex h-9 w-full items-center justify-center gap-2 overflow-hidden rounded-md",
+            "bg-[var(--color-accent)] text-sm font-medium text-white",
+            "transition-all duration-150 hover:bg-[var(--color-accent-hover)] hover:shadow-soft-accent",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-panel)]",
           )}
         >
           <Plus className="h-4 w-4 shrink-0" />
@@ -84,7 +80,7 @@ export function Sidebar() {
                 transition={{ duration: 0.12 }}
                 className="whitespace-nowrap"
               >
-                New Form
+                New form
               </motion.span>
             )}
           </AnimatePresence>
@@ -92,8 +88,8 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <ScrollArea className="flex-1 py-3">
-        <nav className="flex flex-col gap-0.5 px-2">
+      <ScrollArea className="flex-1 py-1">
+        <nav className="flex flex-col gap-1 px-2">
           {NAV.map(({ label, href, Icon }) => (
             <NavItem
               key={href}
@@ -107,10 +103,8 @@ export function Sidebar() {
         </nav>
       </ScrollArea>
 
-      <Separator />
-
       {/* Bottom nav */}
-      <nav className="flex flex-col gap-0.5 px-2 py-3">
+      <nav className="flex flex-col gap-1 px-2 py-2">
         {NAV_BOTTOM.map(({ label, href, Icon }) => (
           <NavItem
             key={href}
@@ -127,10 +121,10 @@ export function Sidebar() {
       <button
         onClick={toggleSidebar}
         className={cn(
-          "flex h-10 w-full shrink-0 items-center border-t-2 border-[var(--border-color)]",
-          "px-3 text-[var(--text-muted)] hover:bg-[var(--bg-inset)]",
-          "transition-colors duration-100",
-          "focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[var(--color-accent)]",
+          "flex h-10 w-full shrink-0 items-center border-t border-[var(--border-muted)] px-4",
+          "text-sm text-[var(--text-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--text-primary)]",
+          "transition-colors duration-150",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--color-accent)]",
         )}
         aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
       >
@@ -146,7 +140,7 @@ export function Sidebar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.1 }}
-              className="ml-2 text-xs font-bold uppercase tracking-wider"
+              className="ml-2 whitespace-nowrap"
             >
               Collapse
             </motion.span>
@@ -173,12 +167,12 @@ function NavItem({
   return (
     <Link
       href={href}
+      aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex h-9 items-center gap-3 px-2",
-        "text-xs font-bold uppercase tracking-wider",
-        "transition-colors duration-100 rounded-none",
+        "flex h-9 items-center gap-3 rounded-md px-2.5",
+        "text-sm font-medium transition-colors duration-150",
         active
-          ? "bg-[var(--bg-inset)] text-[var(--color-accent)] border-l-[3px] border-l-[var(--color-accent)]"
+          ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
           : "text-[var(--text-muted)] hover:bg-[var(--bg-inset)] hover:text-[var(--text-primary)]",
       )}
     >

@@ -17,15 +17,15 @@ const SelectTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-11 w-full items-center justify-between gap-2 px-3",
-      "border-2 bg-[var(--bg-inset)]",
+      "rounded-md border bg-[var(--bg-panel)]",
       "text-sm text-[var(--text-primary)] font-medium",
-      "transition-all duration-100",
-      "focus:outline-none focus:border-[var(--color-accent)] focus:shadow-[3px_3px_0px_var(--color-accent)]",
+      "transition-[border-color,box-shadow] duration-150",
+      "focus:outline-none focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/30",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "data-[placeholder]:text-[var(--text-muted)]",
-      "rounded-none",
+      "rounded-md",
       error
-        ? "border-[var(--color-red)] shadow-[3px_3px_0px_var(--color-red)]"
+        ? "border-[var(--color-red)] focus:ring-[var(--color-red)]/30"
         : "border-[var(--border-color)]",
       className,
     )}
@@ -76,8 +76,8 @@ const SelectContent = React.forwardRef<
       ref={ref}
       className={cn(
         "relative z-[var(--z-overlay)] min-w-[8rem] overflow-hidden",
-        "bg-[var(--bg-panel)] border-2 border-[var(--border-color)]",
-        "shadow-brut-md rounded-none",
+        "bg-[var(--bg-panel)] border border-[var(--border-color)]",
+        "shadow-soft-lg rounded-md",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
@@ -103,7 +103,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]", className)}
+    className={cn("px-2 py-1.5 text-[11px] font-bold tracking-wide text-[var(--text-muted)]", className)}
     {...props}
   />
 ));
@@ -117,7 +117,7 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex w-full cursor-default select-none items-center",
-      "h-9 px-8 text-sm font-medium rounded-none",
+      "h-9 px-8 text-sm font-medium rounded-md",
       "text-[var(--text-primary)]",
       "outline-none",
       "focus:bg-[var(--bg-inset)] focus:border-l-[3px] focus:border-l-[var(--color-accent)]",

@@ -7,47 +7,41 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  // Base: uppercase, bold, tracking, no radius, transition
   [
     "inline-flex items-center justify-center gap-2 whitespace-nowrap",
-    "text-xs font-bold uppercase tracking-wider",
-    "border-2 cursor-pointer select-none",
-    "transition-all duration-100 ease-out",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-1",
+    "text-xs font-semibold tracking-tight",
+    "rounded-md border cursor-pointer select-none",
+    "transition-all duration-150 ease-out",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/30 focus-visible:border-[var(--color-accent)]",
     "disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
-    "active:translate-x-[4px] active:translate-y-[4px] active:shadow-none",
-    "rounded-none",
+    "active:scale-[0.98]",
   ],
   {
     variants: {
       variant: {
         primary: [
-          "bg-[var(--color-accent)] text-[var(--color-white)] border-[var(--border-color)]",
-          "shadow-brut-md",
-          "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brut-xs",
+          "bg-[var(--color-accent)] text-[var(--color-white)] border-transparent",
+          "shadow-soft-xs hover:brightness-110 hover:shadow-soft-accent",
         ],
         secondary: [
           "bg-[var(--bg-panel)] text-[var(--text-primary)] border-[var(--border-color)]",
-          "shadow-brut-md",
-          "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brut-xs",
+          "shadow-soft-xs hover:bg-[var(--bg-inset)]",
         ],
         ghost: [
-          "bg-transparent text-[var(--text-primary)] border-transparent shadow-none",
-          "hover:bg-[var(--bg-inset)] hover:border-[var(--border-muted)]",
+          "bg-transparent text-[var(--text-secondary)] border-transparent shadow-none",
+          "hover:bg-[var(--bg-inset)] hover:text-[var(--text-primary)]",
         ],
         danger: [
-          "bg-[var(--color-red)] text-white border-[var(--border-color)]",
-          "shadow-brut-md",
-          "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brut-xs",
+          "bg-[var(--color-red)] text-[var(--color-white)] border-transparent",
+          "shadow-soft-xs hover:brightness-110",
         ],
         outline: [
           "bg-transparent text-[var(--text-primary)] border-[var(--border-color)] shadow-none",
           "hover:bg-[var(--bg-inset)]",
         ],
         yellow: [
-          "bg-[var(--color-yellow)] text-[var(--color-black)] border-[var(--border-color)]",
-          "shadow-brut-md",
-          "hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-brut-xs",
+          "bg-[var(--color-yellow)] text-[var(--color-black)] border-transparent",
+          "shadow-soft-xs hover:brightness-105",
         ],
       },
       size: {
@@ -101,7 +95,7 @@ function LoadingSpinner() {
     <motion.span
       animate={{ rotate: 360 }}
       transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-      className="inline-block h-3 w-3 rounded-full border-2 border-current border-t-transparent"
+      className="inline-block h-3 w-3 rounded-full border border-current border-t-transparent"
       aria-hidden
     />
   );

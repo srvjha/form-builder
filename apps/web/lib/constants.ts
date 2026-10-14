@@ -13,12 +13,10 @@ export const ROUTES = {
   formAnalytics: (id: string) => `/forms/${id}/analytics`,
   publicForm:  (slug: string) => `/f/${slug}`,
   explore:     "/explore",
-  themes:      "/themes",
   settings:    "/settings",
   settingsAppearance:    "/settings/appearance",
   settingsNotifications: "/settings/notifications",
   pricing:     "/pricing",
-  characters:  "/characters",
   about:       "/about",
 } as const;
 
@@ -47,10 +45,10 @@ export const FORM_STATUS_LABELS = {
 } as const;
 
 export const FORM_STATUS_COLORS = {
-  draft:     { bg: "bg-brut-yellow", text: "text-brut-black", border: "border-brut-yellow" },
-  published: { bg: "bg-brut-green",  text: "text-brut-black", border: "border-brut-green" },
-  closed:    { bg: "bg-brut-red",    text: "text-white",      border: "border-brut-red" },
-  archived:  { bg: "bg-muted",       text: "text-muted-foreground", border: "border-input" },
+  draft:     { bg: "bg-slate-100",   text: "text-slate-700",   border: "border-slate-200" },
+  published: { bg: "bg-emerald-100", text: "text-emerald-800", border: "border-emerald-200" },
+  closed:    { bg: "bg-sky-100",     text: "text-sky-800",     border: "border-sky-200" },
+  archived:  { bg: "bg-slate-100",   text: "text-slate-600",   border: "border-slate-200" },
 } as const;
 
 export const NAV_ITEMS = [
@@ -60,7 +58,6 @@ export const NAV_ITEMS = [
 ] as const;
 
 export const NAV_BOTTOM_ITEMS = [
-  { label: "Themes",   href: ROUTES.themes,   icon: "Palette" },
   { label: "Settings", href: ROUTES.settings, icon: "Settings" },
 ] as const;
 

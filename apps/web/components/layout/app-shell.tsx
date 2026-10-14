@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useUIStore } from "@/stores/ui-store";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
-import { FloatingMascot } from "@/components/mascot";
 import {
   CommandDialog, CommandInput, CommandList, CommandEmpty,
   CommandGroup, CommandItem, CommandShortcut, CommandSeparator,
@@ -56,13 +55,10 @@ export function AppShell({ children, title, actions }: AppShellProps) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar title={title} actions={actions} scrolled={scrolled} />
-        <main ref={mainRef} className="flex-1 overflow-y-auto p-6 lg:p-8">
+        <main ref={mainRef} className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>
-
-      {/* Floating mascot */}
-      <FloatingMascot />
 
       {/* Command Palette */}
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>

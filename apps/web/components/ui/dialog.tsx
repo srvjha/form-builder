@@ -18,7 +18,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-[var(--z-modal)] bg-[var(--bg-overlay)]",
+      "fixed inset-0 z-[var(--z-modal)] bg-[var(--bg-overlay)] backdrop-blur-sm",
       "data-[state=open]:animate-in data-[state=closed]:animate-out",
       "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
@@ -38,8 +38,8 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed left-[50%] top-[50%] z-[var(--z-modal)] translate-x-[-50%] translate-y-[-50%]",
-        "bg-[var(--bg-panel)] border-3 border-[var(--border-color)]",
-        "shadow-brut-xl rounded-none",
+        "bg-[var(--bg-panel)] border border-[var(--border-color)]",
+        "shadow-soft-xl rounded-xl",
         "w-full focus:outline-none",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
@@ -57,11 +57,11 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Close className={cn(
         "absolute right-4 top-4",
         "inline-flex items-center justify-center h-8 w-8",
-        "border-2 border-[var(--border-color)] bg-transparent",
+        "border border-[var(--border-color)] bg-transparent",
         "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
         "hover:bg-[var(--bg-inset)]",
-        "transition-colors duration-100 rounded-none",
-        "focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]",
+        "transition-colors duration-150 rounded-md",
+        "focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30",
       )}>
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
@@ -74,7 +74,7 @@ DialogContent.displayName = DialogPrimitive.Content.displayName;
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col px-6 py-5 border-b-2 border-[var(--border-color)]",
+      "flex flex-col px-6 py-5 border-b border-[var(--border-color)]",
       className,
     )}
     {...props}
@@ -85,7 +85,7 @@ DialogHeader.displayName = "DialogHeader";
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex items-center justify-end gap-3 px-6 py-4 border-t-2 border-[var(--border-color)]",
+      "flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--border-color)]",
       className,
     )}
     {...props}
@@ -99,7 +99,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-base font-extrabold uppercase tracking-wide", className)}
+    className={cn("text-base font-semibold tracking-wide", className)}
     {...props}
   />
 ));

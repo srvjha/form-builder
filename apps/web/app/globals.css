@@ -3,107 +3,138 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────────────────
-   BRUTALIST DESIGN TOKENS
+   DESIGN TOKENS — "Soft Indigo"
+   Light + dark only. Every component reads these variables;
+   never hard-code colours in components.
 ───────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    /* Core palette */
-    --color-black:        #0A0A0A;
-    --color-white:        #F5F0E8;
-    --color-accent:       #FF3B00;
-    --color-accent-hover: #CC2F00;
-    --color-yellow:       #FFD600;
-    --color-green:        #00C853;
-    --color-red:          #D50000;
+    /* Brand */
+    --color-accent:        #0D9488;
+    --color-accent-hover:  #0F766E;
+    --color-accent-soft:   #F0FDFA;
+    --color-accent-text:   #FFFFFF;
+    --gradient-brand:      linear-gradient(135deg, #0D9488 0%, #0EA5E9 100%);
+    --color-green:         #10B981;
+    --color-yellow:        #0EA5E9;
+    --color-red:           #DC2626;
 
     /* Surfaces */
-    --bg-page:    #F5F0E8;
+    --bg-page:    #F6F7FB;
     --bg-panel:   #FFFFFF;
-    --bg-inset:   #EDE8DF;
-    --bg-overlay: rgba(10, 10, 10, 0.75);
+    --bg-inset:   #F1F3F8;
+    --bg-overlay: rgba(15, 23, 42, 0.45);
 
     /* Text */
-    --text-primary:   #0A0A0A;
-    --text-secondary: #3D3D3D;
-    --text-muted:     #6B6B6B;
-    --text-inverse:   #F5F0E8;
-    --text-accent:    #FF3B00;
+    --text-primary:   #0F172A;
+    --text-secondary: #334155;
+    --text-muted:     #64748B;
+    --text-inverse:   #FFFFFF;
+    --text-accent:    var(--color-accent);
 
     /* Borders */
-    --border-color:  #0A0A0A;
-    --border-muted:  #C8C4BB;
+    --border-color:  #DDE2EC;
+    --border-muted:  #EBEEF5;
+    --border-accent: var(--color-accent);
 
-    /* Offset shadows — zero blur, brutalist */
-    --shadow-xs:     2px 2px 0px #0A0A0A;
-    --shadow-sm:     3px 3px 0px #0A0A0A;
-    --shadow-md:     4px 4px 0px #0A0A0A;
-    --shadow-lg:     6px 6px 0px #0A0A0A;
-    --shadow-xl:     8px 8px 0px #0A0A0A;
-    --shadow-accent: 4px 4px 0px #FF3B00;
-    --shadow-yellow: 4px 4px 0px #FFD600;
+    /* Soft elevation */
+    --shadow-xs:     0 1px 2px rgba(15, 23, 42, 0.05);
+    --shadow-sm:     0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-md:     0 6px 16px -4px rgba(15, 23, 42, 0.10), 0 2px 4px rgba(15, 23, 42, 0.04);
+    --shadow-lg:     0 18px 40px -12px rgba(15, 23, 42, 0.20);
+    --shadow-xl:     0 28px 60px -16px rgba(15, 23, 42, 0.30);
+    --shadow-accent: 0 10px 24px -8px rgba(13, 148, 136, 0.45);
 
-    /* Tailwind CSS var bridge */
-    --background:          34 36% 93%;
-    --foreground:          0 0% 4%;
+    /* Shape */
+    --radius:        0.75rem;   /* 12px — cards, panels */
+    --radius-control: 0.5rem;   /* 8px  — inputs, buttons */
+
+    /* Typography */
+    --font-display: var(--font-inter), system-ui, sans-serif;
+    --font-body:    var(--font-inter), system-ui, sans-serif;
+    --font-mono:    var(--font-jetbrains-mono), monospace;
+
+    /* Tailwind / shadcn bridge (HSL channels) */
+    --background:          220 23% 97%;
+    --foreground:          222 47% 11%;
     --card:                0 0% 100%;
-    --card-foreground:     0 0% 4%;
+    --card-foreground:     222 47% 11%;
     --popover:             0 0% 100%;
-    --popover-foreground:  0 0% 4%;
-    --primary:             14 100% 50%;
-    --primary-foreground:  34 36% 93%;
-    --secondary:           34 20% 88%;
-    --secondary-foreground:0 0% 4%;
-    --muted:               34 20% 88%;
-    --muted-foreground:    0 0% 42%;
-    --accent:              46 100% 50%;
-    --accent-foreground:   0 0% 4%;
-    --destructive:         0 100% 42%;
-    --destructive-foreground: 34 36% 93%;
-    --border:              0 0% 4%;
-    --input:               34 20% 88%;
-    --ring:                14 100% 50%;
-    --radius:              0rem;
+    --popover-foreground:  222 47% 11%;
+    --primary:             174 84% 32%;
+    --primary-foreground:  0 0% 100%;
+    --secondary:           220 20% 96%;
+    --secondary-foreground:222 47% 11%;
+    --muted:               220 20% 96%;
+    --muted-foreground:    215 16% 47%;
+    --accent:              166 76% 97%;
+    --accent-foreground:   175 84% 24%;
+    --destructive:         0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border:              220 20% 90%;
+    --input:               220 20% 90%;
+    --ring:                174 84% 32%;
+    --radius-base:         0.75rem;
+  }
+
+  :root:not([data-theme="light"]) {
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+    }
   }
 
   .dark {
-    --bg-page:    #0A0A0A;
-    --bg-panel:   #141414;
-    --bg-inset:   #1E1E1E;
-    --bg-overlay: rgba(0, 0, 0, 0.85);
+    --color-accent:        #2DD4BF;
+    --color-accent-hover:  #5EEAD4;
+    --color-accent-soft:   rgba(45, 212, 191, 0.14);
+    --color-accent-text:   #042F2E;
+    --color-green:         #34D399;
+    --color-yellow:        #FBBF24;
+    --color-red:           #F87171;
 
-    --text-primary:   #F5F0E8;
-    --text-secondary: #C8C4BB;
-    --text-muted:     #888480;
-    --text-inverse:   #0A0A0A;
+    --bg-page:    #0B0D14;
+    --bg-panel:   #12151F;
+    --bg-inset:   #181C28;
+    --bg-overlay: rgba(2, 6, 23, 0.7);
 
-    --border-color: #F5F0E8;
-    --border-muted: #333333;
+    --text-primary:   #E6E9F2;
+    --text-secondary: #B6BDCE;
+    --text-muted:     #8B93A7;
+    --text-inverse:   #0B0D14;
 
-    --shadow-xs:  2px 2px 0px #F5F0E8;
-    --shadow-sm:  3px 3px 0px #F5F0E8;
-    --shadow-md:  4px 4px 0px #F5F0E8;
-    --shadow-lg:  6px 6px 0px #F5F0E8;
-    --shadow-xl:  8px 8px 0px #F5F0E8;
+    --border-color: #2A3040;
+    --border-muted: #1E2330;
 
-    --background:          0 0% 4%;
-    --foreground:          34 36% 93%;
-    --card:                0 0% 8%;
-    --card-foreground:     34 36% 93%;
-    --popover:             0 0% 8%;
-    --popover-foreground:  34 36% 93%;
-    --primary:             14 100% 50%;
-    --primary-foreground:  34 36% 93%;
-    --secondary:           0 0% 12%;
-    --secondary-foreground:34 36% 93%;
-    --muted:               0 0% 12%;
-    --muted-foreground:    0 0% 53%;
-    --accent:              46 100% 50%;
-    --accent-foreground:   0 0% 4%;
-    --destructive:         0 100% 42%;
-    --destructive-foreground: 34 36% 93%;
-    --border:              34 36% 93%;
-    --input:               0 0% 12%;
-    --ring:                14 100% 50%;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 8px 20px -6px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 20px 44px -12px rgba(0, 0, 0, 0.7);
+    --shadow-xl: 0 30px 64px -16px rgba(0, 0, 0, 0.8);
+    --shadow-accent: 0 10px 28px -8px rgba(45, 212, 191, 0.35);
+
+    --background:          230 26% 6%;
+    --foreground:          220 30% 93%;
+    --card:                229 27% 9%;
+    --card-foreground:     220 30% 93%;
+    --popover:             229 27% 9%;
+    --popover-foreground:  220 30% 93%;
+    --primary:             173 70% 58%;
+    --primary-foreground:  230 26% 6%;
+    --secondary:           227 24% 13%;
+    --secondary-foreground:220 30% 93%;
+    --muted:               227 24% 13%;
+    --muted-foreground:    222 16% 60%;
+    --accent:              175 40% 14%;
+    --accent-foreground:   172 70% 66%;
+    --destructive:         0 84% 66%;
+    --destructive-foreground: 0 0% 100%;
+    --border:              225 24% 18%;
+    --input:               225 24% 18%;
+    --ring:                173 70% 58%;
   }
 }
 
@@ -113,6 +144,7 @@
 @layer base {
   * {
     box-sizing: border-box;
+    border-color: var(--border-color);
   }
 
   html {
@@ -122,17 +154,17 @@
   body {
     background-color: var(--bg-page);
     color: var(--text-primary);
-    font-family: var(--font-inter), system-ui, sans-serif;
+    font-family: var(--font-body);
     font-size: 15px;
-    line-height: 1.5;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-syne), var(--font-inter), sans-serif;
-    font-weight: 800;
-    line-height: 1.1;
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.15;
     letter-spacing: -0.02em;
   }
 
@@ -141,9 +173,9 @@
     outline-offset: 2px;
   }
 
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg-inset); }
-  ::-webkit-scrollbar-thumb { background: var(--border-muted); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 999px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 }
 
@@ -151,69 +183,62 @@
    UTILITY CLASSES
 ───────────────────────────────────────────────────────── */
 @layer utilities {
-  .shadow-brut-xs     { box-shadow: var(--shadow-xs); }
-  .shadow-brut-sm     { box-shadow: var(--shadow-sm); }
-  .shadow-brut-md     { box-shadow: var(--shadow-md); }
-  .shadow-brut-lg     { box-shadow: var(--shadow-lg); }
-  .shadow-brut-xl     { box-shadow: var(--shadow-xl); }
-  .shadow-brut-accent { box-shadow: var(--shadow-accent); }
-  .shadow-brut-yellow { box-shadow: var(--shadow-yellow); }
+  .shadow-soft-xs     { box-shadow: var(--shadow-xs); }
+  .shadow-soft-sm     { box-shadow: var(--shadow-sm); }
+  .shadow-soft-md     { box-shadow: var(--shadow-md); }
+  .shadow-soft-lg     { box-shadow: var(--shadow-lg); }
+  .shadow-soft-xl     { box-shadow: var(--shadow-xl); }
+  .shadow-soft-accent { box-shadow: var(--shadow-accent); }
 
-  /* Press interaction */
-  .interactive-press {
-    transition: transform 100ms ease-out, box-shadow 100ms ease-out;
+  .bg-brand-gradient {
+    background-image: var(--gradient-brand);
+  }
+  .text-brand-gradient {
+    background-image: var(--gradient-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Lift on hover instead of the old offset "press" effect */
+  .interactive-lift {
+    transition: transform 150ms ease-out, box-shadow 150ms ease-out, border-color 150ms ease-out;
+  }
+  .interactive-lift:hover {
+    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
   }
-  .interactive-press:hover {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0px var(--border-color);
-  }
-  .interactive-press:active {
-    transform: translate(4px, 4px);
-    box-shadow: 0px 0px 0px var(--border-color);
-  }
 
-  .font-display { font-family: var(--font-syne), sans-serif; }
-  .font-mono-ui { font-family: var(--font-jetbrains-mono), monospace; }
+  .font-display { font-family: var(--font-display); }
+  .font-mono-ui { font-family: var(--font-mono); }
 
   .bg-dot-grid {
     background-image: radial-gradient(var(--border-muted) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-size: 22px 22px;
   }
 
   .label-overline {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     color: var(--text-muted);
   }
 
   .bg-inset { background-color: var(--bg-inset); }
   .bg-panel  { background-color: var(--bg-panel); }
   .bg-page   { background-color: var(--bg-page); }
-
-  .border-brut   { border: 2px solid var(--border-color); }
-  .border-brut-3 { border: 3px solid var(--border-color); }
-  .border-brut-4 { border: 4px solid var(--border-color); }
-
-  .accent-strip-left   { border-left: 4px solid var(--color-accent) !important; }
-  .yellow-strip-left   { border-left: 4px solid var(--color-yellow) !important; }
-  .green-strip-left    { border-left: 4px solid var(--color-green) !important; }
-  .red-strip-left      { border-left: 4px solid var(--color-red) !important; }
 }
 
 /* ─────────────────────────────────────────────────────────
    ANIMATIONS
 ───────────────────────────────────────────────────────── */
 @keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.45; }
-  50%       { opacity: 0.8; }
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 0.9; }
 }
 .animate-skeleton {
-  animation: skeleton-pulse 1.2s ease-in-out infinite;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
   background-color: var(--bg-inset);
-  border: 2px solid var(--border-muted);
 }
 
 @keyframes slide-in-right {
@@ -225,7 +250,7 @@
   to   { transform: translateX(110%); opacity: 0; }
 }
 @keyframes fade-in-scale {
-  from { transform: scale(0.96); opacity: 0; }
+  from { transform: scale(0.97); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
 }
 
@@ -233,50 +258,29 @@
    SONNER OVERRIDES
 ───────────────────────────────────────────────────────── */
 [data-sonner-toaster] [data-sonner-toast] {
-  border-radius: 0 !important;
-  border: 2px solid var(--border-color) !important;
-  box-shadow: var(--shadow-md) !important;
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-lg) !important;
   background: var(--bg-panel) !important;
   color: var(--text-primary) !important;
   font-size: 13px !important;
   font-weight: 500 !important;
 }
-[data-sonner-toaster] [data-sonner-toast][data-type="success"] {
-  border-left: 4px solid var(--color-green) !important;
-}
-[data-sonner-toaster] [data-sonner-toast][data-type="error"] {
-  border-left: 4px solid var(--color-red) !important;
-}
-[data-sonner-toaster] [data-sonner-toast][data-type="warning"] {
-  border-left: 4px solid var(--color-yellow) !important;
-}
-[data-sonner-toaster] [data-sonner-toast][data-type="info"] {
-  border-left: 4px solid var(--color-accent) !important;
-}
 
 /* ─────────────────────────────────────────────────────────
-   CLERK OVERRIDES
-   Clerk scopes its own CSS variables on the component root.
-   The only reliable way to override them is via the
-   appearance.variables API (set in the page components).
-   The CSS below is a secondary safety net for structural
-   properties (border-radius, shadows) that Clerk applies
-   as class-based styles rather than its variable system.
+   CLERK OVERRIDES — structural safety net; colours come
+   from the appearance.variables set in clerk-appearance.ts
 ───────────────────────────────────────────────────────── */
-.cl-card { border-radius: 0 !important; }
+.cl-card { border-radius: var(--radius) !important; }
 .cl-formFieldInput,
 .cl-formButtonPrimary,
 .cl-socialButtonsBlockButton,
-.cl-badge { border-radius: 0 !important; }
-
-/* "Secured by Clerk" branding — uses internal hashed classes, target via parent */
-.cl-footerPages,
-.cl-footerPages * { color: rgba(255, 255, 255, 0.6) !important; }
+.cl-badge { border-radius: var(--radius-control) !important; }
 
 /* ─────────────────────────────────────────────────────────
    CMDK OVERRIDES
 ───────────────────────────────────────────────────────── */
 [cmdk-item][aria-selected="true"] {
-  border-left: 3px solid var(--color-accent) !important;
   background: var(--bg-inset) !important;
+  color: var(--text-primary);
 }

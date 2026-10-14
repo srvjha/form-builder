@@ -33,25 +33,24 @@ export function StatMetric({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay }}
       className={cn(
-        "border-2 border-[var(--border-color)] bg-[var(--bg-panel)] p-6",
-        "shadow-brut-md",
+        "rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-5 shadow-soft-sm",
         className,
       )}
     >
-      <p className="label-overline mb-3">{label}</p>
-      <p className="font-display text-4xl font-black tabular-nums tracking-tight text-[var(--text-primary)]">
+      <p className="text-sm font-medium text-[var(--text-muted)]">{label}</p>
+      <p className="font-display mt-2 text-3xl font-bold tabular-nums tracking-tight text-[var(--text-primary)]">
         {prefix}
         {typeof value === "number" ? formatNumber(value) : value}
         {suffix}
       </p>
       {trendDir && (
-        <div className="mt-3 flex items-center gap-1.5">
+        <div className="mt-2 flex items-center gap-1.5">
           {trendDir === "up" && <TrendingUp className="h-3.5 w-3.5 text-[var(--color-green)]" />}
           {trendDir === "down" && <TrendingDown className="h-3.5 w-3.5 text-[var(--color-red)]" />}
           {trendDir === "flat" && <Minus className="h-3.5 w-3.5 text-[var(--text-muted)]" />}
           <span
             className={cn(
-              "text-xs font-bold",
+              "text-xs font-medium",
               trendDir === "up"   && "text-[var(--color-green)]",
               trendDir === "down" && "text-[var(--color-red)]",
               trendDir === "flat" && "text-[var(--text-muted)]",

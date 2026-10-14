@@ -18,16 +18,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/shared/error-state";
 import { trpc }     from "@/lib/trpc";
 import { cn }       from "@/lib/utils";
-import {
-  type FormTheme,
-  ThemePreview,
-} from "@/components/form-renderer/public-form";
 
 /* ── Tiny labelled field wrapper ────────────────────────────── */
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs font-extrabold uppercase tracking-wider">{label}</Label>
+      <Label className="text-xs font-semibold tracking-wide">{label}</Label>
       {hint && <p className="text-xs text-[var(--text-muted)] -mt-1">{hint}</p>}
       {children}
     </div>
@@ -51,7 +47,7 @@ function ToggleRow({
   return (
     <div className="flex items-center justify-between gap-4 py-4">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border-2 border-[#0A0A0A] bg-[var(--bg-inset)]">
+        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border border-[var(--border-color)] bg-[var(--bg-inset)]">
           <Icon className="h-3.5 w-3.5" />
         </div>
         <div>
@@ -92,7 +88,6 @@ export default function FormSettingsPage() {
   const [visibility,     setVisibility]     = useState<"public" | "unlisted">("unlisted");
   const [shuffleFields,  setShuffleFields]  = useState(false);
   const [requireAuth,    setRequireAuth]    = useState(false);
-  const [formTheme,      setFormTheme]      = useState<FormTheme>("brutalist");
 
   /* Seed once data loads */
   useEffect(() => {
@@ -111,7 +106,6 @@ export default function FormSettingsPage() {
     setVisibility(form.visibility ?? "unlisted");
     setShuffleFields(!!form.settings?.shuffleFields);
     setRequireAuth(!!form.settings?.requireAuth);
-    setFormTheme(((form.settings as any)?.formTheme as FormTheme) ?? "brutalist");
   }, [form?.id]);
 
   function handleSave() {
@@ -129,7 +123,6 @@ export default function FormSettingsPage() {
       settings: {
         shuffleFields,
         requireAuth,
-        formTheme,
         // preserve the other settings from the server
         showProgressBar:  form?.settings?.showProgressBar  ?? true,
         oneResponsePerIp: form?.settings?.oneResponsePerIp ?? false,
@@ -146,8 +139,8 @@ export default function FormSettingsPage() {
 
         {/* ── Basics ───────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
+          <div className="border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-md">
+            <div className="border-b border-[var(--border-color)] px-6 py-4">
               <p className="label-overline">Form details</p>
             </div>
             <div className="space-y-5 p-6">
@@ -186,15 +179,15 @@ export default function FormSettingsPage() {
 
                   {/* Visibility */}
                   <Field label="Visibility" hint="Public forms appear on the /explore page.">
-                    <div className="grid grid-cols-2 gap-0 border-2 border-[#0A0A0A]">
+                    <div className="grid grid-cols-2 gap-0 border border-[var(--border-color)]">
                       {(["unlisted", "public"] as const).map((v) => (
                         <button
                           key={v}
                           type="button"
                           onClick={() => setVisibility(v)}
-                          className={`flex items-center justify-center gap-2 py-3 font-display text-xs font-extrabold uppercase tracking-wider border-r-2 border-[#0A0A0A] last:border-r-0 transition-colors ${
+                          className={`flex items-center justify-center gap-2 py-3 font-display text-xs font-semibold tracking-wide border-r border-[var(--border-color)] last:border-r-0 transition-colors ${
                             visibility === v
-                              ? "bg-[#0A0A0A] text-white"
+                              ? "bg-[var(--text-primary)] text-white"
                               : "bg-[var(--bg-panel)] hover:bg-[var(--bg-inset)]"
                           }`}
                         >
@@ -212,8 +205,8 @@ export default function FormSettingsPage() {
 
         {/* ── Submission behaviour ─────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
+          <div className="border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-md">
+            <div className="border-b border-[var(--border-color)] px-6 py-4">
               <p className="label-overline">After submission</p>
             </div>
             <div className="space-y-5 p-6">
@@ -246,8 +239,8 @@ export default function FormSettingsPage() {
 
         {/* ── Limits ───────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.1 }}>
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
+          <div className="border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-md">
+            <div className="border-b border-[var(--border-color)] px-6 py-4">
               <p className="label-overline">Limits</p>
             </div>
             <div className="grid gap-5 p-6 sm:grid-cols-2">
@@ -282,11 +275,11 @@ export default function FormSettingsPage() {
 
         {/* ── Behaviour toggles ────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.15 }}>
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
+          <div className="border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-md">
+            <div className="border-b border-[var(--border-color)] px-6 py-4">
               <p className="label-overline">Behaviour</p>
             </div>
-            <div className="divide-y-2 divide-[var(--border-muted)] px-6">
+            <div className="divide-y divide-[var(--border-muted)] px-6">
               <ToggleRow
                 icon={Shuffle}
                 label="Shuffle fields"
@@ -305,98 +298,13 @@ export default function FormSettingsPage() {
           </div>
         </motion.div>
 
-        {/* ── Form Design / Theme ──────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.2 }}>
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="flex items-center gap-3 border-b-2 border-[#0A0A0A] px-6 py-4">
-              <Palette className="h-4 w-4 text-[var(--color-accent)]" />
-              <p className="label-overline">Form design</p>
-            </div>
-
-            <div className="p-6 space-y-6">
-              <p className="text-xs text-[var(--text-muted)]">
-                Choose a visual style for your public-facing form. Changes are visible to respondents.
-              </p>
-
-              {/* 2×2 theme grid */}
-              <div className="grid grid-cols-2 gap-3">
-                {(
-                  [
-                    { id: "brutalist" as FormTheme, name: "Brutalist Pro",    desc: "Bold borders, offset shadows"    },
-                    { id: "clean"     as FormTheme, name: "Clean Card",       desc: "Modern cards, soft shadows"      },
-                    { id: "playful"   as FormTheme, name: "Animated Playful", desc: "Vibrant gradient, spring motion" },
-                    { id: "minimal"   as FormTheme, name: "Notion Minimal",   desc: "Clean white, typographic"        },
-                  ] as { id: FormTheme; name: string; desc: string }[]
-                ).map(({ id, name, desc }) => {
-                  const active = formTheme === id;
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setFormTheme(id)}
-                      className={cn(
-                        "relative flex flex-col overflow-hidden border-2 text-left transition-all",
-                        active
-                          ? "border-[var(--color-accent)] shadow-[3px_3px_0_var(--color-accent)]"
-                          : "border-[#0A0A0A] shadow-[2px_2px_0_#0A0A0A] hover:shadow-[3px_3px_0_#0A0A0A]",
-                      )}
-                    >
-                      {/* Mini preview */}
-                      <div className="h-32 w-full overflow-hidden">
-                        <ThemePreview theme={id} />
-                      </div>
-
-                      {/* Label */}
-                      <div className={cn(
-                        "flex items-center justify-between border-t-2 border-[#0A0A0A] px-3 py-2",
-                        active ? "bg-[var(--color-accent)]" : "bg-[var(--bg-panel)]",
-                      )}>
-                        <div>
-                          <p className={cn(
-                            "font-display text-[11px] font-extrabold uppercase tracking-wide",
-                            active ? "text-white" : "text-[var(--text-primary)]",
-                          )}>
-                            {name}
-                          </p>
-                          <p className={cn(
-                            "font-mono text-[9px]",
-                            active ? "text-white/70" : "text-[var(--text-muted)]",
-                          )}>
-                            {desc}
-                          </p>
-                        </div>
-                        {active && <Check className="h-3.5 w-3.5 text-white shrink-0" />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Live preview panel */}
-              <div className="border-2 border-[#0A0A0A] overflow-hidden shadow-[2px_2px_0_#0A0A0A]">
-                <div className="flex items-center justify-between border-b-2 border-[#0A0A0A] px-4 py-2 bg-[var(--bg-inset)]">
-                  <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
-                    Preview
-                  </p>
-                  <span className="font-mono text-[10px] text-[var(--color-accent)] font-bold uppercase tracking-wide">
-                    {formTheme}
-                  </span>
-                </div>
-                <div className="h-52 overflow-hidden">
-                  <ThemePreview theme={formTheme} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
         {/* ── Save button ──────────────────────────────────────── */}
         <div className="flex justify-end pb-4">
           <Button
             size="lg"
             loading={updateMut.isPending}
             onClick={handleSave}
-            className="gap-2 shadow-brut-md"
+            className="gap-2 shadow-soft-md"
           >
             <Save className="h-4 w-4" />
             Save settings

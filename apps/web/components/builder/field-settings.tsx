@@ -39,7 +39,7 @@ export function FieldSettings({ field, onUpdate, onRemove }: Props) {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b-2 border-[#0A0A0A] px-4 py-3">
+      <div className="flex items-center justify-between border-b border-[var(--border-color)] px-4 py-3">
         <p className="label-overline">Field settings</p>
         <button onClick={() => setActiveField(null)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
           <X className="h-4 w-4" />
@@ -72,7 +72,7 @@ export function FieldSettings({ field, onUpdate, onRemove }: Props) {
         />
 
         {/* Required */}
-        <div className="flex items-center justify-between border-2 border-[#0A0A0A] px-4 py-3">
+        <div className="flex items-center justify-between rounded-lg border border-[var(--border-color)] bg-[var(--bg-panel)] px-4 py-3">
           <Label className="cursor-pointer">Required</Label>
           <Switch
             checked={field.required}
@@ -98,7 +98,7 @@ export function FieldSettings({ field, onUpdate, onRemove }: Props) {
                 />
                 <button
                   onClick={() => up({ options: (field.options ?? []).filter((_, j) => j !== i) })}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center border-2 border-[#0A0A0A] hover:bg-[var(--color-red)] hover:text-white transition-colors"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[var(--border-color)] text-[var(--text-muted)] hover:border-[var(--color-red)]/40 hover:bg-[var(--color-red)]/10 hover:text-[var(--color-red)] transition-colors"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -164,7 +164,7 @@ export function FieldSettings({ field, onUpdate, onRemove }: Props) {
       </div>
 
       {/* Delete field */}
-      <div className="border-t-2 border-[#0A0A0A] p-4">
+      <div className="border-t border-[var(--border-color)] p-4">
         <Button
           variant="danger"
           size="sm"

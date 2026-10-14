@@ -21,13 +21,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type={type}
             ref={ref}
             className={cn(
-              "h-11 w-full border-2 bg-[var(--bg-inset)] px-3 py-2",
+              "h-11 w-full border bg-[var(--bg-inset)] px-3 py-2",
               "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-              "transition-all duration-100",
-              "focus:border-[var(--color-accent)] focus:shadow-[3px_3px_0px_var(--color-accent)] focus:outline-none",
+              "transition-[border-color,box-shadow] duration-150",
+              "focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/30 focus:outline-none",
               "disabled:cursor-not-allowed disabled:opacity-50",
               error
-                ? "border-[var(--color-red)] shadow-[3px_3px_0px_var(--color-red)]"
+                ? "border-[var(--color-red)] focus:ring-[var(--color-red)]/30"
                 : "border-[var(--border-color)]",
               leftSlot  && "pl-9",
               rightSlot && "pr-9",
@@ -48,13 +48,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         type={type}
         ref={ref}
         className={cn(
-          "h-11 w-full border-2 bg-[var(--bg-inset)] px-3 py-2",
+          "h-11 w-full border bg-[var(--bg-inset)] px-3 py-2",
           "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-          "transition-all duration-100",
-          "focus:border-[var(--color-accent)] focus:shadow-[3px_3px_0px_var(--color-accent)] focus:outline-none",
+          "transition-[border-color,box-shadow] duration-150",
+          "focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/30 focus:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-50",
           error
-            ? "border-[var(--color-red)] shadow-[3px_3px_0px_var(--color-red)]"
+            ? "border-[var(--color-red)] focus:ring-[var(--color-red)]/30"
             : "border-[var(--border-color)]",
           className,
         )}
