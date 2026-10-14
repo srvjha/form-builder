@@ -5,7 +5,8 @@ import { useParams }  from "next/navigation";
 import { motion }     from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import { trpc }           from "@/lib/trpc";
-import { PublicForm } from "@/components/form-renderer/public-form";
+import { PublicForm, resolveFormTheme } from "@/components/form-renderer/public-form";
+import { ClassicSuccessScreen } from "@/components/form-renderer/form-theme-success";
 import type { PublicField } from "@/components/form-renderer/field-renderer";
 
 function validateField(field: PublicField, value: string | string[]): string | null {
@@ -175,10 +176,16 @@ export default function PublicFormPage() {
 
   if (!form) return null;
 
-  if (submitted) return <SuccessScreen message={successMsg} />;
+  const theme = resolveFormTheme((form?.settings as Record<string, unknown> | null | undefined)?.formTheme);
+  if (submitted) {
+    return theme === "formcraft"
+      ? <SuccessScreen message={successMsg} />
+      : <ClassicSuccessScreen message={successMsg} theme={theme} />;
+  }
 
   return (
     <PublicForm
+      theme={theme}
       form={form}
       values={values}
       errors={errors}

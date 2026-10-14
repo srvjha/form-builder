@@ -51,6 +51,8 @@ export default function FormEditPage() {
       maxResponses:   data.maxResponses ?? undefined,
       closesAt:       data.closesAt ? String(data.closesAt) : undefined,
       settings: {
+        // keep every saved setting (e.g. formTheme) so autosave never drops one
+        ...((data.settings as Record<string, unknown> | null) ?? {}),
         showProgressBar:  data.settings?.showProgressBar  ?? true,
         shuffleFields:    data.settings?.shuffleFields    ?? false,
         oneResponsePerIp: data.settings?.oneResponsePerIp ?? false,

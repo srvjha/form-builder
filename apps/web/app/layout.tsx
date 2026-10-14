@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Syne } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Providers } from "@/providers";
 import "./globals.css";
@@ -9,6 +9,14 @@ const inter = Inter({
   variable: "--font-inter",
   display: "swap",
   weight: ["400", "500", "600", "700"],
+});
+
+/* Syne is only used by the Brutalist respondent theme */
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-syne",
+  display: "swap",
+  weight: ["700", "800"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -65,7 +73,7 @@ export default function RootLayout({
       <html
         lang="en"
         suppressHydrationWarning
-        className={`${inter.variable} ${jetbrainsMono.variable}`}
+        className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable}`}
       >
         <head>
           {/* Gambarino (display) + General Sans (text), from Fontshare */}

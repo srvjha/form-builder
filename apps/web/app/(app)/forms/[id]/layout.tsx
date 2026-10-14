@@ -17,6 +17,7 @@ import { useStore } from "zustand";
 
 const TABS = [
   { label: "Build",     seg: "edit"      },
+  { label: "Design",    seg: "design"    },
   { label: "Responses", seg: "responses" },
   { label: "Analytics", seg: "analytics" },
   { label: "Share",     seg: "share"     },

@@ -145,6 +145,7 @@ export default function FormSettingsPage() {
         showProgressBar:  form?.settings?.showProgressBar  ?? true,
         oneResponsePerIp: form?.settings?.oneResponsePerIp ?? false,
         maxFields:        (form?.settings as any)?.maxFields ?? 20,
+        formTheme:        (form?.settings as any)?.formTheme,
       },
     });
   }

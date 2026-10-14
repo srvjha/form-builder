@@ -8,6 +8,16 @@ import { FieldRenderer } from "@/components/form-renderer/field-renderer";
 import type { PublicField } from "@/components/form-renderer/field-renderer";
 import { APP_NAME } from "@/lib/constants";
 import Link from "next/link";
+import { ThemedForm, ClassicThemePreview, type ClassicTheme } from "@/components/form-renderer/form-themes";
+
+/* "formcraft" is the default design; the others are the classic respondent themes */
+export type FormTheme = "formcraft" | ClassicTheme;
+export const DEFAULT_FORM_THEME: FormTheme = "formcraft";
+
+export function resolveFormTheme(value: unknown): FormTheme {
+  const all: FormTheme[] = ["formcraft", "brutalist", "clean", "playful", "minimal", "terminal", "government", "newspaper", "scribble"];
+  return all.includes(value as FormTheme) ? (value as FormTheme) : DEFAULT_FORM_THEME;
+}
 
 /* ── Types ──────────────────────────────────────────────────── */
 
@@ -25,6 +35,7 @@ export interface PublicFormData {
 
 export interface PublicFormProps {
   form: PublicFormData;
+  theme?: FormTheme;
   values: Record<string, string | string[]>;
   errors: Record<string, string>;
   email: string;
@@ -39,11 +50,17 @@ export interface PublicFormProps {
 
 /* ── Form ───────────────────────────────────────────────────── */
 
-export function PublicForm({
+export function PublicForm({ theme = DEFAULT_FORM_THEME, ...props }: PublicFormProps) {
+  if (theme !== "formcraft") return <ThemedForm {...props} theme={theme} />;
+  return <FormCraftForm {...props} />;
+}
+
+/* The default FormCraft design */
+function FormCraftForm({
   form, values, errors, email, emailError,
   isSubmitting, submitError, onFieldChange, onEmailChange,
   onSubmit, progress,
-}: PublicFormProps) {
+}: Omit<PublicFormProps, "theme">) {
   const fields = (form.fields ?? []) as PublicField[];
   const showProgress = form.settings?.showProgressBar && fields.length > 0;
 
@@ -126,6 +143,23 @@ export function PublicForm({
             {APP_NAME}
           </Link>
         </p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Theme thumbnails for the Design tab ───────────────────── */
+export function ThemePreview({ theme }: { theme: FormTheme }) {
+  if (theme !== "formcraft") return <ClassicThemePreview theme={theme} />;
+  return (
+    <div className="flex h-full w-full flex-col justify-center gap-2 bg-[#0A0A0A] bg-[radial-gradient(rgba(255,255,255,0.09)_1px,transparent_1px)] bg-[length:14px_14px] p-5">
+      <p className="font-display text-[22px] leading-none text-[#F5F5F5]">Your form</p>
+      <div className="space-y-2 rounded-lg bg-[#121212] p-3 ring-1 ring-[#262626]">
+        <div className="h-2 w-20 rounded-full bg-[#3F3F46]" />
+        <div className="h-6 rounded-md bg-[#1A1A1A] ring-1 ring-[#262626]" />
+        <div className="h-2 w-16 rounded-full bg-[#3F3F46]" />
+        <div className="h-6 rounded-md bg-[#1A1A1A] ring-1 ring-[#60A5FA]" />
+        <div className="h-6 w-20 rounded-full bg-[#2563EB]" />
       </div>
     </div>
   );

@@ -61,6 +61,16 @@ export function FieldPalette({ onAdd }: FieldPaletteProps) {
   const addField   = useBuilderStore((s) => s.addField);
   const fieldCount = useBuilderStore((s) => s.fields.length);
   const maxFields  = useBuilderStore((s) => s.form.settings.maxFields ?? DEFAULT_MAX_FIELDS);
+  const settings   = useBuilderStore((s) => s.form.settings);
+  const setForm    = useBuilderStore((s) => s.setForm);
+
+  /* Raise the limit right here; autosave persists it (the server allows up to 100) */
+  const HARD_MAX = 100;
+  function raiseLimit(by: number) {
+    const next = Math.min(HARD_MAX, maxFields + by);
+    setForm({ settings: { ...settings, maxFields: next } });
+    toast.success(`Field limit raised to ${next}`);
+  }
 
   const isFull    = fieldCount >= maxFields;
   const remaining = maxFields - fieldCount;
@@ -69,7 +79,7 @@ export function FieldPalette({ onAdd }: FieldPaletteProps) {
 
   function handleAdd(type: FieldType) {
     if (isFull) {
-      toast.error(`Field limit reached (${maxFields}). Remove a field or raise the limit in Settings.`);
+      toast.error(`Field limit reached (${maxFields}). Raise it in the panel on the left.`);
       return;
     }
     const field = makeDefaultField(type);
@@ -99,18 +109,33 @@ export function FieldPalette({ onAdd }: FieldPaletteProps) {
         </span>
       </div>
 
-      {(isFull || isWarning) && (
-        <p
-          className={cn(
-            "shrink-0 px-4 pb-2 text-xs leading-snug",
-            isFull ? "text-[var(--color-red)]" : "text-[var(--text-secondary)]",
+      {isFull ? (
+        <div className="mx-3 mb-3 shrink-0 rounded-lg bg-[var(--bg-inset)] p-3">
+          <p className="text-xs leading-snug text-[var(--text-primary)]">
+            {maxFields >= HARD_MAX
+              ? `You've used all ${HARD_MAX} fields, the most a form can hold.`
+              : `You've used all ${maxFields} fields. Raise the limit to keep adding.`}
+          </p>
+          {maxFields < HARD_MAX && (
+            <div className="mt-2.5 flex gap-2">
+              {[...new Set([5, 10].map((n) => Math.min(n, HARD_MAX - maxFields)))].map((by) => (
+                <button
+                  key={by}
+                  type="button"
+                  onClick={() => raiseLimit(by)}
+                  className="inline-flex h-8 flex-1 items-center justify-center rounded-md bg-[var(--color-action)] text-xs font-medium text-white transition-[transform,background-color] hover:bg-[var(--color-action-hover)] active:scale-[0.97]"
+                >
+                  +{by} fields
+                </button>
+              ))}
+            </div>
           )}
-        >
-          {isFull
-            ? "Limit reached. Remove a field or raise the limit in Settings."
-            : `${remaining} field${remaining !== 1 ? "s" : ""} left.`}
+        </div>
+      ) : isWarning ? (
+        <p className="shrink-0 px-4 pb-2 text-xs leading-snug text-[var(--text-secondary)]">
+          {`${remaining} field${remaining !== 1 ? "s" : ""} left.`}
         </p>
-      )}
+      ) : null}
 
       {/* Types: a horizontal strip on phones, a plain list from md up */}
       <ul

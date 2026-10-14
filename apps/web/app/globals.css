@@ -229,6 +229,7 @@
 
   .font-display { font-family: var(--font-display); }
   .font-mono-ui { font-family: var(--font-mono); }
+  .font-syne    { font-family: var(--font-syne), sans-serif; }
 
   .bg-dot-grid {
     background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
