@@ -16,17 +16,18 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-11 w-full items-center justify-between gap-2 px-3",
+      "flex h-10 w-full items-center justify-between gap-2 px-3 text-left",
       "rounded-md border bg-[var(--bg-panel)]",
-      "text-sm text-[var(--text-primary)] font-medium",
+      "font-sans text-sm text-[var(--text-primary)]",
       "transition-[border-color,box-shadow] duration-150",
-      "focus:outline-none focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/30",
-      "disabled:cursor-not-allowed disabled:opacity-50",
+      "focus:outline-none focus:border-[var(--color-accent)] focus:ring-[3px] focus:ring-[var(--color-accent)]/25",
+      "data-[state=open]:border-[var(--color-accent)]",
+      "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[var(--bg-inset)]",
       "data-[placeholder]:text-[var(--text-muted)]",
-      "rounded-md",
+      "[&>span]:truncate",
       error
-        ? "border-[var(--color-red)] focus:ring-[var(--color-red)]/30"
-        : "border-[var(--border-color)]",
+        ? "border-[var(--color-red)] focus:border-[var(--color-red)] focus:ring-[var(--color-red)]/20"
+        : "border-[var(--border-color)] hover:border-[var(--text-muted)]/40",
       className,
     )}
     {...props}
@@ -75,13 +76,13 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-[var(--z-overlay)] min-w-[8rem] overflow-hidden",
-        "bg-[var(--bg-panel)] border border-[var(--border-color)]",
-        "shadow-soft-lg rounded-md",
+        "relative z-50 min-w-[8rem] max-h-[min(var(--radix-select-content-available-height),360px)] overflow-hidden",
+        "bg-[var(--bg-panel)] text-[var(--text-primary)] border border-[var(--border-color)]",
+        "shadow-soft-lg rounded-lg",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
-        position === "popper" && "data-[side=bottom]:translate-y-1",
+        position === "popper" && "min-w-[var(--radix-select-trigger-width)] data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1",
         className,
       )}
       position={position}
@@ -103,7 +104,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("px-2 py-1.5 text-[11px] font-bold tracking-wide text-[var(--text-muted)]", className)}
+    className={cn("px-2 py-1.5 text-xs font-medium text-[var(--text-muted)]", className)}
     {...props}
   />
 ));
@@ -117,10 +118,11 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex w-full cursor-default select-none items-center",
-      "h-9 px-8 text-sm font-medium rounded-md",
+      "h-9 pl-8 pr-3 text-sm rounded-md",
       "text-[var(--text-primary)]",
       "outline-none",
-      "focus:bg-[var(--bg-inset)] focus:border-l-[3px] focus:border-l-[var(--color-accent)]",
+      "focus:bg-[var(--bg-inset)]",
+      "data-[state=checked]:text-[var(--color-accent)] data-[state=checked]:font-medium",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}
@@ -128,7 +130,7 @@ const SelectItem = React.forwardRef<
   >
     <span className="absolute left-2 flex h-4 w-4 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check className="h-3 w-3 stroke-[3]" />
+        <Check className="h-3.5 w-3.5 stroke-[2.5] text-[var(--color-accent)]" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -142,7 +144,7 @@ const SelectSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Separator
     ref={ref}
-    className={cn("my-1 h-[2px] bg-[var(--border-muted)]", className)}
+    className={cn("-mx-1 my-1 h-px bg-[var(--border-muted)]", className)}
     {...props}
   />
 ));

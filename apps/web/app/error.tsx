@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { AlertTriangle, RefreshCcw } from "lucide-react";
+import { RefreshCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function GlobalError({
   error,
@@ -16,33 +17,22 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--bg-page)] px-4 sm:px-6">
-      <div className="w-full max-w-md rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-10 text-center shadow-soft-md">
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-accent-soft)]">
-          <AlertTriangle className="h-7 w-7 text-[var(--color-accent)]" />
-        </div>
-        <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-          Something went wrong
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-[var(--text-muted)]">
-          An unexpected error occurred. It has been logged.
+    <main className="flex min-h-screen flex-col items-center justify-center px-4 py-16 text-center sm:px-6">
+      <h1 className="font-display text-4xl text-[var(--text-primary)] sm:text-5xl">
+        This page failed to load
+      </h1>
+      <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-[var(--text-secondary)]">
+        The error has been logged. Try loading the page again.
+      </p>
+      {error.digest && (
+        <p className="mt-3 text-xs text-[var(--text-muted)]">
+          Error ID <code className="font-mono">{error.digest}</code>
         </p>
-
-        {error.digest && (
-          <p className="mt-3 font-mono text-[10px] text-[var(--text-muted)]">
-            Error ID: {error.digest}
-          </p>
-        )}
-
-        <button
-          type="button"
-          onClick={reset}
-          className="mt-8 inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[var(--color-accent)] px-5 text-sm font-semibold text-white shadow-soft-xs transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-soft-accent"
-        >
-          <RefreshCcw className="h-3.5 w-3.5" />
-          Try again
-        </button>
-      </div>
-    </div>
+      )}
+      <Button type="button" onClick={reset} className="mt-8">
+        <RefreshCcw className="h-4 w-4" aria-hidden />
+        Try again
+      </Button>
+    </main>
   );
 }

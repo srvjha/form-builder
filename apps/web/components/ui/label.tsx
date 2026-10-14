@@ -11,7 +11,7 @@ const Label = React.forwardRef<
   <LabelPrimitive.Root
     ref={ref}
     className={cn(
-      "text-xs font-bold tracking-wide text-[var(--text-primary)]",
+      "font-sans text-sm font-medium text-[var(--text-primary)]",
       "cursor-default select-none",
       "peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
       className,
@@ -20,7 +20,7 @@ const Label = React.forwardRef<
   >
     {children}
     {required && (
-      <span className="ml-1 text-[var(--color-accent)]" aria-hidden>*</span>
+      <span className="ml-0.5 text-[var(--color-accent)]" aria-hidden>*</span>
     )}
   </LabelPrimitive.Root>
 ));

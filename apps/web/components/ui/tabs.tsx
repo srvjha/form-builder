@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 const Tabs = TabsPrimitive.Root;
 
+/* Underline tabs: a hairline under the row, the active tab carries a blue rule. */
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
@@ -13,7 +14,8 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "flex items-end border-b border-[var(--border-color)] gap-0",
+      "flex items-end gap-1 overflow-x-auto shadow-[inset_0_-2px_0_var(--border-color)]",
+      "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
       className,
     )}
     {...props}
@@ -28,19 +30,15 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "relative px-4 pb-3 pt-2",
-      "text-xs font-bold tracking-wide",
+      "relative inline-flex shrink-0 items-center gap-2 whitespace-nowrap px-3 pb-2.5 pt-2",
+      "font-sans text-sm font-medium",
       "text-[var(--text-muted)] cursor-pointer",
-      "transition-colors duration-100",
+      "border-b-2 border-transparent",
+      "transition-colors duration-150",
       "hover:text-[var(--text-primary)]",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
+      "focus-visible:outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
       "disabled:pointer-events-none disabled:opacity-50",
-      // Active indicator
-      "data-[state=active]:text-[var(--color-accent)]",
-      "data-[state=active]:after:absolute data-[state=active]:after:bottom-[-2px]",
-      "data-[state=active]:after:left-0 data-[state=active]:after:right-0",
-      "data-[state=active]:after:h-[3px] data-[state=active]:after:bg-[var(--color-accent)]",
-      "data-[state=active]:after:content-['']",
+      "data-[state=active]:text-[var(--text-primary)] data-[state=active]:border-[var(--color-accent)]",
       className,
     )}
     {...props}
@@ -54,11 +52,7 @@ const TabsContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}
-    className={cn(
-      "mt-6",
-      "focus-visible:outline-none",
-      className,
-    )}
+    className={cn("mt-6 focus-visible:outline-none", className)}
     {...props}
   />
 ));

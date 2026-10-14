@@ -5,28 +5,33 @@ import { toast } from "sonner";
 import {
   Type, AlignLeft, Mail, Hash, Phone, Link2,
   Calendar, Clock, ChevronDown, CheckSquare, Check,
-  Star, Sliders, Upload, Lock,
+  Star, Sliders, Upload, Plus,
 } from "lucide-react";
 import type { FieldType, BuilderField } from "@/stores/builder-store";
 import { useBuilderStore, DEFAULT_MAX_FIELDS } from "@/stores/builder-store";
 import { cn } from "@/lib/utils";
 
-const FIELD_DEFS: { type: FieldType; label: string; icon: React.ElementType; color: string }[] = [
-  { type: "short_text",   label: "Short Text",    icon: Type,         color: "#2563EB" },
-  { type: "long_text",    label: "Long Text",     icon: AlignLeft,    color: "#2563EB" },
-  { type: "email",        label: "Email",         icon: Mail,         color: "#0EA5E9" },
-  { type: "number",       label: "Number",        icon: Hash,         color: "#0EA5E9" },
-  { type: "phone",        label: "Phone",         icon: Phone,        color: "#0EA5E9" },
-  { type: "url",          label: "URL",           icon: Link2,        color: "#0EA5E9" },
-  { type: "date",         label: "Date",          icon: Calendar,     color: "#64748B" },
-  { type: "time",         label: "Time",          icon: Clock,        color: "#64748B" },
-  { type: "select",       label: "Single Select", icon: ChevronDown,  color: "#10B981" },
-  { type: "multi_select", label: "Multi Select",  icon: CheckSquare,  color: "#10B981" },
-  { type: "checkbox",     label: "Checkbox",      icon: Check,        color: "#10B981" },
-  { type: "rating",       label: "Rating",        icon: Star,         color: "#0369A1" },
-  { type: "scale",        label: "Scale / NPS",   icon: Sliders,      color: "#0369A1" },
-  { type: "file_upload",  label: "File Upload",   icon: Upload,       color: "#94A3B8" },
+const FIELD_DEFS: { type: FieldType; label: string; icon: React.ElementType }[] = [
+  { type: "short_text",   label: "Short text",    icon: Type        },
+  { type: "long_text",    label: "Long text",     icon: AlignLeft   },
+  { type: "email",        label: "Email",         icon: Mail        },
+  { type: "number",       label: "Number",        icon: Hash        },
+  { type: "phone",        label: "Phone",         icon: Phone       },
+  { type: "url",          label: "URL",           icon: Link2       },
+  { type: "date",         label: "Date",          icon: Calendar    },
+  { type: "time",         label: "Time",          icon: Clock       },
+  { type: "select",       label: "Single select", icon: ChevronDown },
+  { type: "multi_select", label: "Multi select",  icon: CheckSquare },
+  { type: "checkbox",     label: "Checkbox",      icon: Check       },
+  { type: "rating",       label: "Rating",        icon: Star        },
+  { type: "scale",        label: "Scale / NPS",   icon: Sliders     },
+  { type: "file_upload",  label: "File upload",   icon: Upload      },
 ];
+
+/** Display name + icon for a field type (used by the canvas card header). */
+export function getFieldDef(type: FieldType) {
+  return FIELD_DEFS.find((f) => f.type === type) ?? { type, label: type, icon: Type };
+}
 
 export function makeDefaultField(type: FieldType): Omit<BuilderField, "order"> {
   const base: Omit<BuilderField, "order"> = {
@@ -77,71 +82,66 @@ export function FieldPalette({ onAdd }: FieldPaletteProps) {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
+    <div className="flex h-full flex-col">
       {/* Header with live counter */}
-      <div className="border-b border-[var(--border-color)] px-4 py-3">
-        <div className="flex items-center justify-between">
-          <p className="label-overline">Add field</p>
-          <span
-            className={cn(
-              "font-mono text-[10px] font-bold px-1.5 py-0.5 border",
-              isFull
-                ? "border-[var(--color-red)] bg-[var(--color-red)]/10 text-[var(--color-red)]"
-                : isWarning
-                  ? "border-[var(--color-yellow)]/40 bg-[var(--color-yellow)]/10 text-[var(--color-yellow)]"
-                  : "border-[var(--border-muted)] bg-[var(--bg-inset)] text-[var(--text-muted)]",
-            )}
-          >
-            {fieldCount}/{maxFields}
-          </span>
-        </div>
-
-        {/* Limit reached banner */}
-        {isFull && (
-          <div className="mt-2 flex items-center gap-1.5 border border-[var(--color-red)] bg-[var(--color-red)]/10 px-2 py-1.5">
-            <Lock className="h-3 w-3 text-[var(--color-red)] shrink-0" />
-            <p className="font-mono text-[10px] text-[var(--color-red)] leading-tight">
-              Limit reached. Remove a field or update the limit in Settings.
-            </p>
-          </div>
-        )}
-
-        {/* Warning when almost full */}
-        {isWarning && (
-          <p className="mt-1.5 text-[10px] text-[var(--text-muted)]">
-            {remaining} field{remaining !== 1 ? "s" : ""} remaining.
-          </p>
-        )}
+      <div className="flex shrink-0 items-baseline justify-between gap-3 px-4 pb-2 pt-3 md:pt-4">
+        <h2 className="font-sans text-[13px] font-semibold leading-tight tracking-normal text-[var(--text-primary)]">
+          Add a field
+        </h2>
+        <span
+          className={cn(
+            "text-xs tabular-nums",
+            isFull ? "font-medium text-[var(--color-red)]" : "text-[var(--text-muted)]",
+          )}
+          title={`${fieldCount} of ${maxFields} fields used`}
+        >
+          {fieldCount} of {maxFields}
+        </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3">
-        <div className="grid grid-cols-1 gap-1.5">
-          {FIELD_DEFS.map(({ type, label, icon: Icon, color }) => (
+      {(isFull || isWarning) && (
+        <p
+          className={cn(
+            "shrink-0 px-4 pb-2 text-xs leading-snug",
+            isFull ? "text-[var(--color-red)]" : "text-[var(--text-secondary)]",
+          )}
+        >
+          {isFull
+            ? "Limit reached. Remove a field or raise the limit in Settings."
+            : `${remaining} field${remaining !== 1 ? "s" : ""} left.`}
+        </p>
+      )}
+
+      {/* Types: a horizontal strip on phones, a plain list from md up */}
+      <ul
+        className="flex min-h-0 flex-1 gap-1.5 overflow-x-auto px-3 pb-3 md:flex-col md:gap-0.5 md:overflow-y-auto md:overflow-x-hidden md:px-2"
+        aria-label="Field types"
+      >
+        {FIELD_DEFS.map(({ type, label, icon: Icon }) => (
+          <li key={type} className="shrink-0">
             <button
-              key={type}
+              type="button"
               onClick={() => handleAdd(type)}
               disabled={isFull}
               className={cn(
-                "flex items-center gap-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] px-3 py-2.5 text-left shadow-soft-xs transition-all duration-150",
+                "group flex w-full items-center gap-2.5 whitespace-nowrap rounded-md text-left text-sm text-[var(--text-primary)] transition-colors",
+                "border border-[var(--border-color)] bg-[var(--bg-panel)] px-3 py-1.5",
+                "md:border-transparent md:bg-transparent md:px-2.5 md:py-2",
                 isFull
                   ? "cursor-not-allowed opacity-40"
-                  : "hover:border-[var(--border-muted)] hover:bg-[var(--bg-inset)] hover:shadow-soft-sm active:scale-[0.99]",
+                  : "hover:bg-[var(--bg-inset)] md:hover:bg-[var(--bg-inset)]",
               )}
             >
-              <div
-                className={cn(
-                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
-                  isFull && "grayscale",
-                )}
-                style={{ background: isFull ? undefined : color }}
-              >
-                <Icon className="h-3.5 w-3.5 text-white" />
-              </div>
-              <span className="font-display text-xs font-semibold tracking-wide">{label}</span>
+              <Icon className="h-4 w-4 shrink-0 text-[var(--text-muted)] transition-colors group-hover:text-[var(--text-primary)]" />
+              <span className="flex-1">{label}</span>
+              <Plus
+                className="hidden h-3.5 w-3.5 shrink-0 text-[var(--color-accent)] opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 md:block"
+                aria-hidden
+              />
             </button>
-          ))}
-        </div>
-      </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

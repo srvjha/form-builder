@@ -27,37 +27,33 @@ const CLOSE_NOTE = "You can now close this window.";
 
 function SuccessScreen({ message }: { message: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="flex min-h-screen flex-col items-center justify-center bg-[var(--bg-page)] px-4 sm:px-6"
-    >
+    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12 sm:px-6">
       <motion.div
-        initial={{ y: 12, opacity: 0 }}
+        initial={{ y: 8, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.08 }}
-        className="w-full max-w-md rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-8 text-center shadow-soft-md sm:p-10"
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="w-full max-w-md rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] px-6 py-10 text-center sm:px-10"
       >
-        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-accent-soft)]">
-          <CheckCircle2 className="h-7 w-7 text-[var(--color-accent)]" />
+        <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-accent-soft)]">
+          <CheckCircle2 className="h-6 w-6 text-[var(--color-accent)]" />
         </div>
-        <h1 className="font-display text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+        <h1 className="text-[32px] text-[var(--text-primary)]">
           Response submitted
         </h1>
-        <p className="mt-3 leading-relaxed text-[var(--text-secondary)]">{message}</p>
-        <p className="mt-4 text-sm text-[var(--text-muted)]">{CLOSE_NOTE}</p>
+        <p className="mt-4 text-[15px] leading-relaxed text-[var(--text-secondary)]">{message}</p>
+        <p className="mt-3 text-sm text-[var(--text-muted)]">{CLOSE_NOTE}</p>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
 
 /* ── Closed / error screen ──────────────────────────────────── */
 function BlockedScreen({ title, message }: { title: string; message: string }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-6 bg-[var(--bg-page)] px-4">
-      <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-8 shadow-soft-md max-w-sm w-full text-center">
-        <h2 className="font-display text-2xl font-bold tracking-tight text-[var(--text-primary)]">{title}</h2>
-        <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">{message}</p>
+    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12 sm:px-6">
+      <div className="w-full max-w-sm rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] px-6 py-10 text-center sm:px-8">
+        <h2 className="text-[30px] text-[var(--text-primary)]">{title}</h2>
+        <p className="mt-4 text-[15px] leading-relaxed text-[var(--text-secondary)]">{message}</p>
       </div>
     </div>
   );
@@ -164,10 +160,8 @@ export default function PublicFormPage() {
   /* ── States ─────────────────────────────────────────────── */
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--bg-page)]">
-        <div className="font-display text-sm font-semibold tracking-wide animate-pulse">
-          Loading…
-        </div>
+      <div className="flex min-h-screen items-center justify-center px-4" role="status">
+        <p className="animate-pulse text-sm text-[var(--text-secondary)]">Loading form…</p>
       </div>
     );
   }
@@ -175,7 +169,7 @@ export default function PublicFormPage() {
   if (error) {
     const msg = error.message.toLowerCase();
     if (msg.includes("closed"))    return <BlockedScreen title="Form closed"    message="This form is no longer accepting responses." />;
-    if (msg.includes("not found")) return <BlockedScreen title="Not found"      message="This form doesn't exist or has been removed." />;
+    if (msg.includes("not found")) return <BlockedScreen title="Form not found" message="This form doesn't exist or has been removed. Check the link with the person who sent it." />;
     return                                <BlockedScreen title="Unavailable"    message={error.message} />;
   }
 

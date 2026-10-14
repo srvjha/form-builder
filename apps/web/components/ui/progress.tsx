@@ -18,12 +18,12 @@ const Progress = React.forwardRef<
     {(label || showPercent) && (
       <div className="flex items-center justify-between">
         {label && (
-          <span className="text-xs font-bold tracking-wide text-[var(--text-muted)]">
+          <span className="text-sm text-[var(--text-secondary)]">
             {label}
           </span>
         )}
         {showPercent && (
-          <span className="font-mono text-xs font-bold text-[var(--text-primary)]">
+          <span className="text-sm font-medium tabular-nums text-[var(--text-primary)]">
             {value ?? 0}%
           </span>
         )}
@@ -32,15 +32,15 @@ const Progress = React.forwardRef<
     <ProgressPrimitive.Root
       ref={ref}
       className={cn(
-        "relative h-3 w-full overflow-hidden rounded-md",
-        "border border-[var(--border-color)] bg-[var(--bg-inset)]",
+        "relative h-2 w-full overflow-hidden rounded-full",
+        "bg-[var(--bg-inset)]",
         className,
       )}
       {...props}
     >
       <ProgressPrimitive.Indicator asChild>
         <motion.div
-          className="h-full bg-[var(--color-accent)]"
+          className="h-full rounded-full bg-[var(--color-action)]"
           initial={{ width: 0 }}
           animate={{ width: `${value ?? 0}%` }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}

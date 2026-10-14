@@ -7,31 +7,33 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?:     boolean;
 }
 
+const fieldClasses = (error?: boolean) =>
+  cn(
+    "h-10 w-full rounded-md border bg-[var(--bg-panel)] px-3 py-2",
+    "font-sans text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
+    "transition-[border-color,box-shadow] duration-150",
+    "focus:outline-none focus:border-[var(--color-accent)] focus:ring-[3px] focus:ring-[var(--color-accent)]/25",
+    "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[var(--bg-inset)]",
+    error
+      ? "border-[var(--color-red)] focus:border-[var(--color-red)] focus:ring-[var(--color-red)]/20"
+      : "border-[var(--border-color)] hover:border-[var(--text-muted)]/40",
+  );
+
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, leftSlot, rightSlot, error, ...props }, ref) => {
     if (leftSlot || rightSlot) {
       return (
         <div className={cn("relative flex items-center", className)}>
           {leftSlot && (
-            <div className="absolute left-3 flex items-center text-[var(--text-muted)] pointer-events-none">
+            <div className="pointer-events-none absolute left-3 flex items-center text-[var(--text-muted)]">
               {leftSlot}
             </div>
           )}
           <input
             type={type}
             ref={ref}
-            className={cn(
-              "h-11 w-full border bg-[var(--bg-inset)] px-3 py-2",
-              "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-              "transition-[border-color,box-shadow] duration-150",
-              "focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/30 focus:outline-none",
-              "disabled:cursor-not-allowed disabled:opacity-50",
-              error
-                ? "border-[var(--color-red)] focus:ring-[var(--color-red)]/30"
-                : "border-[var(--border-color)]",
-              leftSlot  && "pl-9",
-              rightSlot && "pr-9",
-            )}
+            aria-invalid={error || undefined}
+            className={cn(fieldClasses(error), leftSlot && "pl-9", rightSlot && "pr-9")}
             {...props}
           />
           {rightSlot && (
@@ -47,17 +49,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <input
         type={type}
         ref={ref}
-        className={cn(
-          "h-11 w-full border bg-[var(--bg-inset)] px-3 py-2",
-          "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-          "transition-[border-color,box-shadow] duration-150",
-          "focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/30 focus:outline-none",
-          "disabled:cursor-not-allowed disabled:opacity-50",
-          error
-            ? "border-[var(--color-red)] focus:ring-[var(--color-red)]/30"
-            : "border-[var(--border-color)]",
-          className,
-        )}
+        aria-invalid={error || undefined}
+        className={cn(fieldClasses(error), className)}
         {...props}
       />
     );

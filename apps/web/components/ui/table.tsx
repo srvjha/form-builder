@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="w-full overflow-x-auto rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-sm">
+    <div className="w-full overflow-x-auto rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)]">
       <table
         ref={ref}
         className={cn("w-full caption-bottom text-sm", className)}
@@ -59,7 +59,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
       ref={ref}
       className={cn(
         "transition-colors duration-100 hover:bg-[var(--bg-inset)]",
-        "data-[selected=true]:bg-[var(--bg-inset)] data-[selected=true]:border-l-[3px] data-[selected=true]:border-l-[var(--color-accent)]",
+        "data-[selected=true]:bg-[var(--color-accent-soft)] data-[state=selected]:bg-[var(--color-accent-soft)]",
         className,
       )}
       {...props}
@@ -76,7 +76,7 @@ const TableHead = React.forwardRef<
     ref={ref}
     className={cn(
       "h-10 px-4 text-left align-middle",
-      "text-xs font-semibold text-[var(--text-secondary)]",
+      "whitespace-nowrap font-sans text-[13px] font-medium text-[var(--text-secondary)]",
       "[&:has([role=checkbox])]:pr-0",
       "border-b border-[var(--border-color)]",
       className,

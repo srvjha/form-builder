@@ -45,10 +45,10 @@ export const FORM_STATUS_LABELS = {
 } as const;
 
 export const FORM_STATUS_COLORS = {
-  draft:     { bg: "bg-slate-100",   text: "text-slate-700",   border: "border-slate-200" },
-  published: { bg: "bg-green-100", text: "text-green-800", border: "border-green-200" },
-  closed:    { bg: "bg-sky-100",     text: "text-sky-800",     border: "border-sky-200" },
-  archived:  { bg: "bg-slate-100",   text: "text-slate-600",   border: "border-slate-200" },
+  draft:     { bg: "bg-zinc-100 dark:bg-zinc-800/70",  text: "text-zinc-700 dark:text-zinc-200", border: "border-zinc-200 dark:border-zinc-700" },
+  published: { bg: "bg-blue-50 dark:bg-blue-500/15",   text: "text-blue-700 dark:text-blue-300", border: "border-blue-200 dark:border-blue-500/30" },
+  closed:    { bg: "bg-zinc-50 dark:bg-zinc-900",      text: "text-zinc-500 dark:text-zinc-400", border: "border-zinc-200 dark:border-zinc-800" },
+  archived:  { bg: "bg-transparent",                   text: "text-zinc-500 dark:text-zinc-500", border: "border-zinc-200 dark:border-zinc-800" },
 } as const;
 
 export const NAV_ITEMS = [

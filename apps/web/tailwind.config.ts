@@ -12,8 +12,8 @@ const config: Config = {
     container: { center: true, padding: "2rem", screens: { "2xl": "1400px" } },
     extend: {
       fontFamily: {
-        sans:    ["var(--font-inter)", "system-ui", "sans-serif"],
-        display: ["var(--font-inter)", "system-ui", "sans-serif"],
+        sans:    ["var(--font-body)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
         mono:    ["var(--font-jetbrains-mono)", "monospace"],
       },
       colors: {
@@ -49,7 +49,7 @@ const config: Config = {
         none: "none",
       },
       borderWidth: {
-        DEFAULT: "2px",
+        DEFAULT: "1px",
         "0": "0", "1": "1px", "2": "2px", "3": "3px", "4": "4px",
       },
       fontSize: {

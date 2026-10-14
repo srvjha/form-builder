@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useUIStore } from "@/stores/ui-store";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
@@ -21,17 +21,6 @@ interface AppShellProps {
 export function AppShell({ children, title, actions }: AppShellProps) {
   const { commandOpen, setCommandOpen } = useUIStore();
   const router = useRouter();
-  const mainRef = useRef<HTMLElement>(null);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const el = mainRef.current;
-    if (!el) return;
-    const onScroll = () => setScrolled(el.scrollTop > 10);
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, []);
-
   /* ⌘K shortcut */
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -50,26 +39,27 @@ export function AppShell({ children, title, actions }: AppShellProps) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--bg-page)]">
+    // No fill here: the dot grid on <body> is the ground the whole app sits on
+    <div className="flex h-[100dvh] overflow-hidden">
       <Sidebar />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar title={title} actions={actions} scrolled={scrolled} />
-        <main ref={mainRef} className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <Topbar title={title} actions={actions} />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           {children}
         </main>
       </div>
 
       {/* Command Palette */}
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
-        <CommandInput placeholder="Search forms, actions..." />
+        <CommandInput placeholder="Search pages and actions" />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandEmpty>Nothing matches that search.</CommandEmpty>
 
           <CommandGroup heading="Actions">
             <CommandItem onSelect={() => navigate(ROUTES.formNew)}>
               <Plus className="h-4 w-4 text-[var(--text-muted)]" />
-              Create New Form
+              Create form
               <CommandShortcut>⌘N</CommandShortcut>
             </CommandItem>
           </CommandGroup>
@@ -83,7 +73,7 @@ export function AppShell({ children, title, actions }: AppShellProps) {
             </CommandItem>
             <CommandItem onSelect={() => navigate(ROUTES.forms)}>
               <FileText className="h-4 w-4 text-[var(--text-muted)]" />
-              My Forms
+              Forms
             </CommandItem>
             <CommandItem onSelect={() => navigate(ROUTES.explore)}>
               <Compass className="h-4 w-4 text-[var(--text-muted)]" />

@@ -11,23 +11,22 @@ const Switch = React.forwardRef<
   <SwitchPrimitive.Root
     ref={ref}
     className={cn(
-      "peer relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center",
-      "border border-[var(--border-color)] rounded-md",
-      "bg-[var(--bg-inset)]",
+      "peer relative inline-flex h-6 w-10 shrink-0 cursor-pointer items-center",
+      "rounded-full border-2 border-transparent",
+      "bg-[var(--border-color)]",
       "transition-colors duration-150",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg-page)]",
       "disabled:cursor-not-allowed disabled:opacity-50",
-      "data-[state=checked]:bg-[var(--color-accent)]",
+      "data-[state=checked]:bg-[var(--color-action)]",
       className,
     )}
     {...props}
   >
     <SwitchPrimitive.Thumb
       className={cn(
-        "pointer-events-none block h-4 w-4 bg-[var(--border-color)] rounded-md",
+        "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-soft-xs",
         "transition-transform duration-150",
-        "data-[state=checked]:translate-x-[22px] data-[state=unchecked]:translate-x-[2px]",
-        "data-[state=checked]:bg-[var(--color-white)]",
+        "data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0",
       )}
     />
   </SwitchPrimitive.Root>

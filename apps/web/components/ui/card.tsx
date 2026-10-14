@@ -5,27 +5,24 @@ import { motion } from "framer-motion";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+/* A solid panel on the dot ground. Flat at rest: the border does the
+   separating; shadows are reserved for things that float. */
 const cardVariants = cva(
-  [
-    "bg-[var(--bg-panel)] border border-[var(--border-color)]",
-    "rounded-xl shadow-soft-sm",
-  ],
+  "bg-[var(--bg-panel)] border border-[var(--border-color)] rounded-xl",
   {
     variants: {
       interactive: {
         true: [
           "cursor-pointer",
-          "transition-[box-shadow,transform,border-color] duration-200",
-          "hover:-translate-y-0.5 hover:shadow-soft-md hover:border-[var(--border-muted)]",
-          "active:translate-y-0 active:shadow-soft-sm",
+          "transition-colors duration-150",
+          "hover:border-[var(--color-accent)]",
+          "focus-visible:outline-none focus-visible:border-[var(--color-accent)]",
         ],
         false: "",
       },
       accent: {
-        red:    "accent-strip-left",
-        yellow: "yellow-strip-left",
-        green:  "green-strip-left",
-        none:   "",
+        blue: "border-l-4 border-l-[var(--color-accent)]",
+        none: "",
       },
       shadow: {
         none: "",
@@ -37,7 +34,7 @@ const cardVariants = cva(
     defaultVariants: {
       interactive: false,
       accent: "none",
-      shadow: "sm",
+      shadow: "none",
     },
   },
 );
@@ -57,9 +54,6 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         <motion.div
           ref={ref as React.Ref<HTMLDivElement>}
           className={classes}
-          whileHover={interactive ? { x: 2, y: 2 } : undefined}
-          whileTap={interactive ? { x: 4, y: 4 } : undefined}
-          transition={{ duration: 0.1 }}
           {...(props as React.ComponentProps<typeof motion.div>)}
         />
       );
@@ -75,7 +69,7 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
     <div
       ref={ref}
       className={cn(
-        "flex items-center justify-between px-6 py-4 border-b border-[var(--border-color)]",
+        "flex items-center justify-between gap-3 px-6 py-4 border-b border-[var(--border-muted)]",
         className,
       )}
       {...props}
@@ -88,7 +82,7 @@ const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HT
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn("text-base font-bold tracking-wide leading-none", className)}
+      className={cn("font-sans text-[15px] font-semibold leading-snug text-[var(--text-primary)]", className)}
       {...props}
     />
   ),
@@ -107,7 +101,7 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
     <div
       ref={ref}
       className={cn(
-        "flex items-center border-t border-[var(--border-color)] px-6 py-4",
+        "flex items-center gap-3 border-t border-[var(--border-muted)] px-6 py-4",
         className,
       )}
       {...props}

@@ -3,14 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, FileText, Search, MoreHorizontal, Eye, Edit3, BarChart2, Trash2, Copy } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Eye, Edit3, BarChart2, Trash2, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -44,7 +42,7 @@ export default function FormsPage() {
 
   const cloneMutation = trpc.forms.clone.useMutation({
     onSuccess: (cloned) => {
-      toast.success("Form duplicated!");
+      toast.success("Form duplicated");
       refetch();
       router.push(ROUTES.formEdit(cloned.id));
     },
@@ -59,26 +57,29 @@ export default function FormsPage() {
     <AppShell
       title="Forms"
       actions={
-        <Button size="sm" asChild>
-          <Link href={ROUTES.formNew}>
-            <Plus className="h-3.5 w-3.5" />
-            New Form
-          </Link>
-        </Button>
+        <Link
+          href={ROUTES.formNew}
+          aria-label="Create form"
+          className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--color-action)] text-white transition-colors hover:bg-[var(--color-action-hover)] lg:hidden"
+        >
+          <Plus className="h-4 w-4" />
+        </Link>
       }
     >
+      <div className="mx-auto w-full max-w-5xl">
       {/* Search */}
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <Input
           leftSlot={<Search className="h-4 w-4" />}
-          placeholder="Search forms..."
+          placeholder="Search forms by title"
+          aria-label="Search forms"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full sm:max-w-xs"
         />
         {forms && (
-          <span className="text-xs tabular-nums text-[var(--text-muted)]">
-            {filtered.length} / {forms.length} forms
+          <span className="text-sm tabular-nums text-[var(--text-muted)]">
+            {search ? `${filtered.length} of ${forms.length} forms` : `${forms.length} ${forms.length === 1 ? "form" : "forms"}`}
           </span>
         )}
       </div>
@@ -86,64 +87,100 @@ export default function FormsPage() {
       {/* Error */}
       {error && <ErrorState description={error.message} onRetry={() => refetch()} />}
 
-      {/* Loading grid */}
+      {/* Loading rows */}
       {isLoading && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="divide-y divide-[var(--border-muted)] rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)]">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-[152px] rounded-xl" />
+            <div key={i} className="flex items-center gap-4 px-4 py-4 sm:px-5">
+              <Skeleton className="h-4 flex-1 rounded" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="hidden h-4 w-16 rounded sm:block" />
+              <Skeleton className="hidden h-4 w-20 rounded sm:block" />
+            </div>
           ))}
         </div>
       )}
 
       {/* Empty */}
       {!isLoading && !error && filtered.length === 0 && (
-        <EmptyState
-          icon={<FileText className="h-6 w-6 text-[var(--color-accent)]" />}
-          title={search ? "No forms match" : "No forms yet"}
-          description={
-            search
-              ? `No forms found for "${search}". Try a different search.`
-              : "Create your first form and start collecting responses."
-          }
-          action={
-            !search
-              ? { label: "Create your first form", onClick: () => router.push(ROUTES.formNew) }
-              : undefined
-          }
-        />
+        <div className="rounded-xl border border-dashed border-[var(--border-color)] bg-[var(--bg-panel)] px-6 py-12 text-center">
+          <h3 className="text-base text-[var(--text-primary)]">
+            {search ? "No forms match that search" : "Create your first form"}
+          </h3>
+          <p className="mx-auto mt-1.5 max-w-sm text-sm text-[var(--text-secondary)]">
+            {search
+              ? `Nothing is titled "${search}". Check the spelling or clear the search.`
+              : "Start from a blank form, add a few questions and share the link."}
+          </p>
+          {search ? (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="mt-5 inline-flex h-9 items-center rounded-md border border-[var(--border-color)] bg-[var(--bg-inset)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-panel)]"
+            >
+              Clear search
+            </button>
+          ) : (
+            <Link
+              href={ROUTES.formNew}
+              className="mt-5 inline-flex h-9 items-center gap-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-inset)] px-4 text-sm font-medium text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent-soft)]"
+            >
+              <Plus className="h-4 w-4" />
+              Create form
+            </Link>
+          )}
+        </div>
       )}
 
-      {/* Forms grid */}
+      {/* Forms table */}
       {!isLoading && !error && filtered.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          <AnimatePresence>
-            {filtered.map((form: any, i: number) => (
-              <motion.div
-                key={form.id}
-                layout
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: i * 0.04, duration: 0.2 }}
-                className="group relative rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-soft-md"
-              >
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-display text-base font-semibold tracking-tight text-[var(--text-primary)]">
-                        {form.title}
-                      </h3>
-                      <p className="mt-0.5 text-xs text-[var(--text-muted)]">
-                        {formatRelative(form.updatedAt)}
-                      </p>
-                    </div>
+        <div className="overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)]">
+          <div className="hidden grid-cols-[minmax(0,1fr)_104px_104px_120px_32px] gap-4 border-b border-[var(--border-muted)] px-5 py-2.5 text-xs text-[var(--text-muted)] sm:grid">
+            <span>Title</span>
+            <span>Status</span>
+            <span className="text-right">Responses</span>
+            <span className="text-right">Updated</span>
+            <span className="sr-only">Actions</span>
+          </div>
+          <ul className="divide-y divide-[var(--border-muted)]">
+            {filtered.map((form: any) => {
+              const c = FORM_STATUS_COLORS[form.status as keyof typeof FORM_STATUS_COLORS];
+              return (
+                <li
+                  key={form.id}
+                  className="group relative grid grid-cols-[minmax(0,1fr)_auto_32px] items-center gap-x-3 px-4 py-3 transition-colors hover:bg-[var(--bg-inset)] sm:grid-cols-[minmax(0,1fr)_104px_104px_120px_32px] sm:gap-x-4 sm:px-5"
+                >
+                  <div className="min-w-0">
+                    <Link
+                      href={ROUTES.formEdit(form.id)}
+                      className="block truncate text-sm font-medium text-[var(--text-primary)] after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-inset focus-visible:after:ring-[var(--color-accent)]"
+                    >
+                      {form.title}
+                    </Link>
+                    <p className="mt-0.5 text-xs text-[var(--text-muted)] sm:hidden">
+                      {formatNumber(form.responseCount ?? 0)} responses, updated {formatRelative(form.updatedAt)}
+                    </p>
+                  </div>
+                  <div>
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full border px-2 py-px text-xs font-medium",
+                        c?.bg, c?.text, c?.border,
+                      )}
+                    >
+                      {FORM_STATUS_LABELS[form.status as keyof typeof FORM_STATUS_LABELS] ?? form.status}
+                    </span>
+                  </div>
+                  <span className="hidden text-right text-sm tabular-nums text-[var(--text-secondary)] sm:block">
+                    {formatNumber(form.responseCount ?? 0)}
+                  </span>
+                  <span className="hidden text-right text-sm text-[var(--text-muted)] sm:block">
+                    {formatRelative(form.updatedAt)}
+                  </span>
+                  <div className="relative z-10 flex justify-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon-sm" aria-label="Form actions" className="shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100">
+                        <Button variant="ghost" size="icon-sm" aria-label={`Actions for ${form.title}`}>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -170,28 +207,13 @@ export default function FormsPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-
-                  <div className="mt-4 flex items-center justify-between">
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
-                        FORM_STATUS_COLORS[form.status as keyof typeof FORM_STATUS_COLORS]?.bg,
-                        FORM_STATUS_COLORS[form.status as keyof typeof FORM_STATUS_COLORS]?.text,
-                        FORM_STATUS_COLORS[form.status as keyof typeof FORM_STATUS_COLORS]?.border,
-                      )}
-                    >
-                      {FORM_STATUS_LABELS[form.status as keyof typeof FORM_STATUS_LABELS]}
-                    </span>
-                    <span className="text-xs tabular-nums text-[var(--text-muted)]">
-                      {formatNumber(form.responseCount ?? 0)} responses
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
+      </div>
 
       {/* Delete confirmation dialog */}
       <Dialog

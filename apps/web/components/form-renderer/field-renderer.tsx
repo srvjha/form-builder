@@ -55,9 +55,9 @@ function RatingInput({ field, value, onChange }: Pick<FieldRendererProps, "field
           type="button"
           onClick={() => onChange(String(n))}
           className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-md border text-lg transition-colors",
+            "flex h-10 w-10 items-center justify-center rounded-md border text-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
             cur >= n
-              ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white"
+              ? "border-[var(--color-action)] bg-[var(--color-action)] text-white"
               : "border-[var(--border-color)] bg-[var(--bg-inset)] text-[var(--text-muted)] hover:border-[var(--color-accent)]",
           )}
           aria-label={`${n} star${n > 1 ? "s" : ""}`}
@@ -81,11 +81,12 @@ function ScaleInput({ field, value, onChange }: Pick<FieldRendererProps, "field"
           <button
             key={n}
             type="button"
+            aria-pressed={cur === n}
             onClick={() => onChange(String(n))}
             className={cn(
-              "flex h-10 min-w-10 items-center justify-center rounded-md border px-2 font-mono text-sm font-semibold transition-colors",
+              "flex h-10 min-w-10 items-center justify-center rounded-md border px-2 text-sm font-medium tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
               cur === n
-                ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-white"
+                ? "border-[var(--color-action)] bg-[var(--color-action)] text-white"
                 : "border-[var(--border-color)] bg-[var(--bg-inset)] text-[var(--text-secondary)] hover:border-[var(--color-accent)]",
             )}
           >
@@ -157,7 +158,7 @@ function MultiSelectInput({ field, value, onChange }: Pick<FieldRendererProps, "
               className={cn(
                 "flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-[4px] border",
                 active
-                  ? "border-[var(--color-accent)] bg-[var(--color-accent)]"
+                  ? "border-[var(--color-action)] bg-[var(--color-action)]"
                   : "border-[var(--border-color)]",
               )}
             >
@@ -245,7 +246,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
         >
           <span className="text-sm font-medium text-[var(--text-secondary)]">Click to upload a file</span>
           <input id={field.id} type="file" className="sr-only" onChange={(e) => onChange(e.target.files?.[0]?.name ?? "")} />
-          {strVal && <span className="text-xs font-semibold text-[var(--color-accent)]">{strVal}</span>}
+          {strVal && <span className="text-[13px] font-medium text-[var(--color-accent)]">{strVal}</span>}
         </label>
       );
       break;
@@ -256,15 +257,15 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
   return (
     <div className="space-y-2">
       {field.type !== "checkbox" && (
-        <Label htmlFor={field.id} required={field.required} className="text-sm">
+        <Label htmlFor={field.id} required={field.required} className="text-[15px] font-medium text-[var(--text-primary)]">
           {field.label}
         </Label>
       )}
       {field.helpText && (
-        <p className="-mt-1 text-xs text-[var(--text-muted)]">{field.helpText}</p>
+        <p className="-mt-1 text-[13px] text-[var(--text-secondary)]">{field.helpText}</p>
       )}
       {control}
-      {error && <p className="text-xs text-[var(--color-red)]">{error}</p>}
+      {error && <p role="alert" className="text-[13px] text-[var(--color-red)]">{error}</p>}
     </div>
   );
 }

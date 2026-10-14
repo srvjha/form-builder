@@ -43,22 +43,22 @@ export function GuestLoginButton() {
   return (
     <div className="mt-4 flex flex-col gap-3">
       <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-[var(--border-muted)]" />
+        <div className="h-px flex-1 bg-[var(--border-color)]" />
         <span className="text-xs text-[var(--text-muted)]">or</span>
-        <div className="h-px flex-1 bg-[var(--border-muted)]" />
+        <div className="h-px flex-1 bg-[var(--border-color)]" />
       </div>
 
       <button
         onClick={handleGuestLogin}
         disabled={loading || fetchStatus === "fetching"}
-        className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-panel)] px-4 text-sm font-medium text-[var(--text-primary)] shadow-soft-xs transition-colors hover:bg-[var(--bg-inset)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-10 w-full items-center justify-center gap-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-panel)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-inset)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <UserRound className="h-4 w-4" />
         )}
-        {loading ? "Signing in…" : "Continue as Guest"}
+        {loading ? "Signing in…" : "Continue as guest"}
       </button>
 
       {error && (

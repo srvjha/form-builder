@@ -1,7 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,105 +48,84 @@ export function PublicForm({
   const showProgress = form.settings?.showProgressBar && fields.length > 0;
 
   return (
-    <div className="min-h-screen bg-[var(--bg-page)]">
+    <div className="min-h-screen">
       {showProgress && (
-        <div className="fixed top-0 inset-x-0 z-50">
+        <div className="fixed inset-x-0 top-0 z-50">
           <Progress value={progress} className="h-1 rounded-none" />
         </div>
       )}
 
       <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-16">
-        {/* Header */}
-        <motion.header
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <p className="label-overline mb-2 text-[var(--text-muted)]">
-            {fields.length} question{fields.length !== 1 ? "s" : ""}
-          </p>
-          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-[var(--text-primary)] sm:text-4xl">
+        {/* Header, on the dotted ground */}
+        <header className="mb-8 text-center">
+          <h1 className="text-[34px] text-[var(--text-primary)] sm:text-[44px]">
             {form.title}
           </h1>
           {form.description && (
-            <p className="mt-3 leading-relaxed text-[var(--text-secondary)]">{form.description}</p>
+            <p className="mx-auto mt-4 max-w-[60ch] text-[15px] leading-relaxed text-[var(--text-secondary)]">
+              {form.description}
+            </p>
           )}
-        </motion.header>
+        </header>
 
-        <form onSubmit={onSubmit} noValidate className="space-y-4">
-          {form.collectEmail && (
-            <motion.section
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.04 }}
-              className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-5 shadow-soft-sm sm:p-6"
-            >
-              <div className="space-y-2">
-                <Label htmlFor="respondent-email" required className="text-sm">Your email</Label>
-                <Input
-                  id="respondent-email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => onEmailChange(e.target.value)}
-                  error={!!emailError}
-                  className="w-full"
-                  required
-                />
-                {emailError && <p className="text-xs text-[var(--color-red)]">{emailError}</p>}
-              </div>
-            </motion.section>
-          )}
+        <form
+          onSubmit={onSubmit}
+          noValidate
+          className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)]"
+        >
+          <div className="divide-y divide-[var(--border-muted)]">
+            {form.collectEmail && (
+              <section className="px-4 py-5 sm:px-8 sm:py-6">
+                <div className="space-y-2">
+                  <Label htmlFor="respondent-email" required className="text-[15px] font-medium text-[var(--text-primary)]">Your email</Label>
+                  <Input
+                    id="respondent-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => onEmailChange(e.target.value)}
+                    error={!!emailError}
+                    className="w-full"
+                    required
+                  />
+                  {emailError && <p role="alert" className="text-[13px] text-[var(--color-red)]">{emailError}</p>}
+                </div>
+              </section>
+            )}
 
-          <AnimatePresence>
-            {fields.map((field, i) => (
-              <motion.section
-                key={field.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 + i * 0.03, duration: 0.25 }}
-                className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-5 shadow-soft-sm sm:p-6"
-              >
+            {fields.map((field) => (
+              <section key={field.id} className="px-4 py-5 sm:px-8 sm:py-6">
                 <FieldRenderer
                   field={field}
                   value={values[field.id] ?? (field.type === "multi_select" ? [] : "")}
                   onChange={(v) => onFieldChange(field.id, v)}
                   error={errors[field.id]}
                 />
-              </motion.section>
+              </section>
             ))}
-          </AnimatePresence>
+          </div>
 
-          {submitError && (
-            <div
-              role="alert"
-              className="rounded-md border border-[var(--color-red)] bg-[var(--bg-panel)] px-4 py-3 text-sm text-[var(--color-red)]"
-            >
-              {submitError}
-            </div>
-          )}
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.15 + fields.length * 0.03 }}
-            className="pt-2"
-          >
-            <Button type="submit" size="lg" loading={isSubmitting} className="w-full gap-2 sm:w-auto">
-              Submit response <ArrowRight className="h-4 w-4" />
+          <div className="space-y-4 border-t border-[var(--border-color)] px-4 py-5 sm:px-8 sm:py-6">
+            {submitError && (
+              <div
+                role="alert"
+                className="rounded-md border border-[var(--color-red)]/40 bg-[var(--color-red)]/5 px-4 py-3 text-sm text-[var(--color-red)]"
+              >
+                {submitError}
+              </div>
+            )}
+            <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
+              Submit response
             </Button>
-          </motion.div>
+          </div>
         </form>
 
-        <div className="mt-14 flex items-center gap-2 border-t border-[var(--border-muted)] pt-6">
-          <Zap className="h-3.5 w-3.5 text-[var(--color-accent)]" />
-          <span className="text-xs text-[var(--text-muted)]">
-            Powered by{" "}
-            <Link href="/" className="font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
-              {APP_NAME}
-            </Link>
-          </span>
-        </div>
+        <p className="mt-8 text-center text-[13px] text-[var(--text-muted)]">
+          Made with{" "}
+          <Link href="/" className="rounded-sm font-medium text-[var(--text-secondary)] underline-offset-4 hover:text-[var(--text-primary)] hover:underline">
+            {APP_NAME}
+          </Link>
+        </p>
       </div>
     </div>
   );

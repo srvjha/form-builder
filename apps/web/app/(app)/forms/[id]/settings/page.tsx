@@ -2,12 +2,9 @@
 
 import { useParams }  from "next/navigation";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
-  Globe, Lock, Shuffle, UserCheck,
-  ExternalLink, CalendarClock, Hash, Save, Link as LinkIcon,
-  Check, Palette,
+  Globe, Lock, ExternalLink, CalendarClock, Hash, Save, Link as LinkIcon,
 } from "lucide-react";
 import { Button }   from "@/components/ui/button";
 import { Input }    from "@/components/ui/input";
@@ -19,44 +16,65 @@ import { ErrorState } from "@/components/shared/error-state";
 import { trpc }     from "@/lib/trpc";
 import { cn }       from "@/lib/utils";
 
-/* ── Tiny labelled field wrapper ────────────────────────────── */
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+/* ── Setting row: label + description left, control right ──── */
+function Row({
+  label,
+  hint,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  hint?: React.ReactNode;
+  htmlFor?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-xs font-semibold tracking-wide">{label}</Label>
-      {hint && <p className="text-xs text-[var(--text-muted)] -mt-1">{hint}</p>}
-      {children}
+    <div className="grid gap-3 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,320px)] sm:gap-8 sm:px-5">
+      <div className="min-w-0">
+        <Label htmlFor={htmlFor} className="text-sm font-medium text-[var(--text-primary)]">{label}</Label>
+        {hint && <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-muted)]">{hint}</p>}
+      </div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
 
-/* ── Toggle row ─────────────────────────────────────────────── */
+/* ── Toggle row: switch sits right, stays inline on phones ──── */
 function ToggleRow({
-  icon: Icon,
+  id,
   label,
   desc,
   checked,
   onCheckedChange,
 }: {
-  icon: React.ElementType;
+  id: string;
   label: string;
   desc: string;
   checked: boolean;
   onCheckedChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-4">
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border border-[var(--border-color)] bg-[var(--bg-inset)]">
-          <Icon className="h-3.5 w-3.5" />
-        </div>
-        <div>
-          <Label className="text-sm font-semibold">{label}</Label>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">{desc}</p>
-        </div>
+    <div className="flex items-center justify-between gap-6 px-4 py-4 sm:px-5">
+      <div className="min-w-0">
+        <Label htmlFor={id} className="cursor-pointer text-sm font-medium text-[var(--text-primary)]">{label}</Label>
+        <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-muted)]">{desc}</p>
       </div>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} />
+      <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
     </div>
+  );
+}
+
+/* ── A group: small heading above a solid panel of rows ────── */
+function Group({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-2">
+      <h2 className="px-1 font-sans text-[13px] font-semibold leading-tight tracking-normal text-[var(--text-primary)]">
+        {title}
+      </h2>
+      <div className="divide-y-1 divide-[var(--border-muted)] overflow-hidden rounded-xl border-1 border-[var(--border-color)] bg-[var(--bg-panel)]">
+        {children}
+      </div>
+    </section>
   );
 }
 
@@ -133,178 +151,152 @@ export default function FormSettingsPage() {
 
   if (error) return <div className="p-6"><ErrorState description={error.message} onRetry={refetch} /></div>;
 
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+
   return (
-    <div className="h-full overflow-y-auto p-6">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <div className="h-full overflow-y-auto px-4 py-6 sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-3xl space-y-8">
 
-        {/* ── Basics ───────────────────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-          <div className="border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-md">
-            <div className="border-b border-[var(--border-color)] px-6 py-4">
-              <p className="label-overline">Form details</p>
+        {/* ── Details ──────────────────────────────────────────── */}
+        <Group title="Form details">
+          {isLoading ? (
+            <div className="space-y-3 p-4 sm:p-5">
+              {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}
             </div>
-            <div className="space-y-5 p-6">
-              {isLoading ? (
-                <div className="space-y-4">
-                  {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-11" />)}
-                </div>
-              ) : (
-                <>
-                  <Field label="Title">
-                    <Input
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Untitled Form"
-                    />
-                  </Field>
-
-                  <Field label="Description" hint="Shown to respondents at the top of the form.">
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Tell respondents what this form is about…"
-                      rows={3}
-                    />
-                  </Field>
-
-                  <Field label="Custom URL slug" hint={`Public URL: ${typeof window !== "undefined" ? window.location.origin : ""}/f/${slug || "your-slug"}`}>
-                    <Input
-                      value={slug}
-                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
-                      placeholder="my-awesome-form"
-                      leftSlot={<LinkIcon className="h-4 w-4" />}
-                      spellCheck={false}
-                    />
-                  </Field>
-
-                  {/* Visibility */}
-                  <Field label="Visibility" hint="Public forms appear on the /explore page.">
-                    <div className="grid grid-cols-2 gap-0 border border-[var(--border-color)]">
-                      {(["unlisted", "public"] as const).map((v) => (
-                        <button
-                          key={v}
-                          type="button"
-                          onClick={() => setVisibility(v)}
-                          className={`flex items-center justify-center gap-2 py-3 font-display text-xs font-semibold tracking-wide border-r border-[var(--border-color)] last:border-r-0 transition-colors ${
-                            visibility === v
-                              ? "bg-[var(--text-primary)] text-white"
-                              : "bg-[var(--bg-panel)] hover:bg-[var(--bg-inset)]"
-                          }`}
-                        >
-                          {v === "public" ? <Globe className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-                          {v}
-                        </button>
-                      ))}
-                    </div>
-                  </Field>
-                </>
-              )}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── Submission behaviour ─────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
-          <div className="border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-md">
-            <div className="border-b border-[var(--border-color)] px-6 py-4">
-              <p className="label-overline">After submission</p>
-            </div>
-            <div className="space-y-5 p-6">
-              <Field
-                label="Success message"
-                hint="Shown on the confirmation screen after a successful submission."
-              >
-                <Textarea
-                  value={successMessage}
-                  onChange={(e) => setSuccessMessage(e.target.value)}
-                  placeholder="Thank you! Your response has been recorded."
-                  rows={2}
+          ) : (
+            <>
+              <Row label="Title" htmlFor="set-title">
+                <Input
+                  id="set-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Untitled form"
                 />
-              </Field>
+              </Row>
 
-              <Field
-                label="Redirect URL"
-                hint="Redirect to this URL instead of showing the success screen. Leave blank to show the default screen."
+              <Row label="Description" hint="Shown to respondents at the top of the form." htmlFor="set-desc">
+                <Textarea
+                  id="set-desc"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Tell respondents what this form is about"
+                  rows={3}
+                />
+              </Row>
+
+              <Row
+                label="Link"
+                htmlFor="set-slug"
+                hint={<>Public address: <span className="break-all font-mono text-[var(--text-secondary)]">{origin}/f/{slug || "your-slug"}</span></>}
               >
                 <Input
-                  value={redirectUrl}
-                  onChange={(e) => setRedirectUrl(e.target.value)}
-                  placeholder="https://example.com/thank-you"
-                  leftSlot={<ExternalLink className="h-4 w-4" />}
+                  id="set-slug"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+                  placeholder="my-form"
+                  leftSlot={<LinkIcon className="h-4 w-4" />}
+                  spellCheck={false}
                 />
-              </Field>
-            </div>
-          </div>
-        </motion.div>
+              </Row>
+
+              <Row label="Visibility" hint="Public forms appear on the Explore page. Unlisted forms open only from their link.">
+                <div className="grid grid-cols-2 gap-1 rounded-md bg-[var(--bg-inset)] p-1" role="radiogroup" aria-label="Visibility">
+                  {(["unlisted", "public"] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      role="radio"
+                      aria-checked={visibility === v}
+                      onClick={() => setVisibility(v)}
+                      className={cn(
+                        "flex h-8 items-center justify-center gap-1.5 rounded-[6px] text-sm font-medium transition-colors",
+                        visibility === v
+                          ? "bg-[var(--bg-panel)] text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]"
+                          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+                      )}
+                    >
+                      {v === "public" ? <Globe className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                      {v === "public" ? "Public" : "Unlisted"}
+                    </button>
+                  ))}
+                </div>
+              </Row>
+            </>
+          )}
+        </Group>
+
+        {/* ── After submission ─────────────────────────────────── */}
+        <Group title="After someone submits">
+          <Row label="Success message" hint="Shown on the confirmation screen." htmlFor="set-success">
+            <Textarea
+              id="set-success"
+              value={successMessage}
+              onChange={(e) => setSuccessMessage(e.target.value)}
+              placeholder="Thank you! Your response has been recorded."
+              rows={2}
+            />
+          </Row>
+
+          <Row label="Redirect URL" hint="Send people here instead of the confirmation screen. Leave blank to show the screen." htmlFor="set-redirect">
+            <Input
+              id="set-redirect"
+              value={redirectUrl}
+              onChange={(e) => setRedirectUrl(e.target.value)}
+              placeholder="https://example.com/thank-you"
+              leftSlot={<ExternalLink className="h-4 w-4" />}
+            />
+          </Row>
+        </Group>
 
         {/* ── Limits ───────────────────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.1 }}>
-          <div className="border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-md">
-            <div className="border-b border-[var(--border-color)] px-6 py-4">
-              <p className="label-overline">Limits</p>
-            </div>
-            <div className="grid gap-5 p-6 sm:grid-cols-2">
-              <Field
-                label="Max responses"
-                hint="Auto-close the form after this many responses. Leave blank for unlimited."
-              >
-                <Input
-                  type="number"
-                  min={1}
-                  value={maxResponses}
-                  onChange={(e) => setMaxResponses(e.target.value)}
-                  placeholder="Unlimited"
-                  leftSlot={<Hash className="h-4 w-4" />}
-                />
-              </Field>
+        <Group title="Limits">
+          <Row label="Max responses" hint="Close the form after this many responses. Leave blank for no limit." htmlFor="set-max">
+            <Input
+              id="set-max"
+              type="number"
+              min={1}
+              value={maxResponses}
+              onChange={(e) => setMaxResponses(e.target.value)}
+              placeholder="No limit"
+              leftSlot={<Hash className="h-4 w-4" />}
+            />
+          </Row>
 
-              <Field
-                label="Close at"
-                hint="Automatically stop accepting responses after this date & time."
-              >
-                <Input
-                  type="datetime-local"
-                  value={closesAt}
-                  onChange={(e) => setClosesAt(e.target.value)}
-                  leftSlot={<CalendarClock className="h-4 w-4" />}
-                />
-              </Field>
-            </div>
-          </div>
-        </motion.div>
+          <Row label="Close on" hint="Stop accepting responses after this date and time." htmlFor="set-close">
+            <Input
+              id="set-close"
+              type="datetime-local"
+              value={closesAt}
+              onChange={(e) => setClosesAt(e.target.value)}
+              leftSlot={<CalendarClock className="h-4 w-4" />}
+            />
+          </Row>
+        </Group>
 
         {/* ── Behaviour toggles ────────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.15 }}>
-          <div className="border border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-md">
-            <div className="border-b border-[var(--border-color)] px-6 py-4">
-              <p className="label-overline">Behaviour</p>
-            </div>
-            <div className="divide-y divide-[var(--border-muted)] px-6">
-              <ToggleRow
-                icon={Shuffle}
-                label="Shuffle fields"
-                desc="Randomise the order of questions for each respondent."
-                checked={shuffleFields}
-                onCheckedChange={setShuffleFields}
-              />
-              <ToggleRow
-                icon={UserCheck}
-                label="Require sign-in"
-                desc="Respondents must be signed in with a FormCraft account to submit."
-                checked={requireAuth}
-                onCheckedChange={setRequireAuth}
-              />
-            </div>
-          </div>
-        </motion.div>
+        <Group title="Behaviour">
+          <ToggleRow
+            id="set-shuffle"
+            label="Shuffle fields"
+            desc="Show the questions in a random order for each respondent."
+            checked={shuffleFields}
+            onCheckedChange={setShuffleFields}
+          />
+          <ToggleRow
+            id="set-auth"
+            label="Require sign-in"
+            desc="Respondents must sign in with a FormCraft account to submit."
+            checked={requireAuth}
+            onCheckedChange={setRequireAuth}
+          />
+        </Group>
 
-        {/* ── Save button ──────────────────────────────────────── */}
-        <div className="flex justify-end pb-4">
+        {/* ── Save ─────────────────────────────────────────────── */}
+        <div className="flex justify-end pb-6">
           <Button
-            size="lg"
             loading={updateMut.isPending}
             onClick={handleSave}
-            className="gap-2 shadow-soft-md"
+            className="h-10 w-full gap-2 !bg-[var(--color-action)] px-5 text-sm font-medium !text-white shadow-none hover:!bg-[var(--color-action-hover)] hover:shadow-none hover:brightness-100 sm:w-auto"
           >
             <Save className="h-4 w-4" />
             Save settings

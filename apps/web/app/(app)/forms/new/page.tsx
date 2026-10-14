@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  FileText, ArrowRight, Briefcase, CalendarDays,
-  Bug, BarChart2, MessageSquare, Users, Mail, Sparkles, Layers,
+  FileText, Briefcase, CalendarDays,
+  Bug, BarChart2, MessageSquare, Users, Mail, Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell }  from "@/components/layout/app-shell";
@@ -40,20 +40,16 @@ interface TemplateField {
 const TEMPLATES = [
   {
     id:          "blank",
-    icon:        Sparkles,
+    icon:        FileText,
     label:       "Blank",
-    description: "Start from scratch.",
+    description: "An empty form. Add fields yourself.",
     fields:      [] as TemplateField[],
-    color:       "bg-[var(--bg-inset)]",
-    accent:      "#64748B",
   },
   {
     id:          "contact",
     icon:        Mail,
-    label:       "Contact Form",
+    label:       "Contact form",
     description: "Name, email, subject, message.",
-    color:       "bg-slate-500/10",
-    accent:      "#0EA5E9",
     fields:      [
       { type: "short_text", label: "Full Name",    required: true,  placeholder: "Your full name" },
       { type: "email",      label: "Email Address", required: true,  placeholder: "you@example.com" },
@@ -65,10 +61,8 @@ const TEMPLATES = [
   {
     id:          "feedback",
     icon:        MessageSquare,
-    label:       "Feedback Form",
-    description: "Rating + NPS + open questions.",
-    color:       "bg-green-500/10",
-    accent:      "#10B981",
+    label:       "Feedback form",
+    description: "A rating, an NPS score and two open questions.",
     fields:      [
       { type: "rating",    label: "Overall experience",          required: true,  maxValue: 5 },
       { type: "scale",     label: "How likely are you to recommend us?", required: true,
@@ -82,10 +76,8 @@ const TEMPLATES = [
   {
     id:          "survey",
     icon:        BarChart2,
-    label:       "Quick Survey",
-    description: "3–5 questions with NPS.",
-    color:       "bg-sky-500/10",
-    accent:      "#2563EB",
+    label:       "Quick survey",
+    description: "Five short questions with a rating scale.",
     fields:      [
       { type: "short_text",   label: "Your Name",          required: false, placeholder: "Optional" },
       { type: "select",       label: "Age Range",           required: false,
@@ -114,10 +106,8 @@ const TEMPLATES = [
   {
     id:          "job_application",
     icon:        Briefcase,
-    label:       "Job Application",
-    description: "Professional HR intake form.",
-    color:       "bg-sky-500/10",
-    accent:      "#0284C7",
+    label:       "Job application",
+    description: "Contact details, experience and a cover letter.",
     fields:      [
       { type: "short_text", label: "Full Name",             required: true,  placeholder: "Jane Smith" },
       { type: "email",      label: "Email Address",          required: true,  placeholder: "jane@example.com" },
@@ -152,14 +142,12 @@ const TEMPLATES = [
     icon:        CalendarDays,
     label:       "Event RSVP",
     description: "Attendance, guests, dietary needs.",
-    color:       "bg-slate-500/10",
-    accent:      "#475569",
     fields:      [
       { type: "short_text",   label: "Full Name",              required: true,  placeholder: "Your name" },
       { type: "email",        label: "Email Address",           required: true,  placeholder: "you@example.com" },
       { type: "select",       label: "Will you attend?",        required: true,
         options: [
-          { value: "yes",   label: "Yes, I'll be there 🎉" },
+          { value: "yes",   label: "Yes, I'll be there" },
           { value: "no",    label: "Sorry, can't make it" },
           { value: "maybe", label: "Maybe — I'll confirm later" },
         ],
@@ -183,19 +171,17 @@ const TEMPLATES = [
   {
     id:          "bug_report",
     icon:        Bug,
-    label:       "Bug Report",
-    description: "Developer-style defect tracker.",
-    color:       "bg-sky-500/10",
-    accent:      "#0369A1",
+    label:       "Bug report",
+    description: "Severity, steps to reproduce and environment.",
     fields:      [
       { type: "short_text",   label: "Bug Title",              required: true,
         placeholder: "e.g. Login button unresponsive on Safari" },
       { type: "select",       label: "Severity",               required: true,
         options: [
-          { value: "critical", label: "🔴 Critical — app unusable" },
-          { value: "high",     label: "🟠 High — major feature broken" },
-          { value: "medium",   label: "🟡 Medium — some features affected" },
-          { value: "low",      label: "🟢 Low — cosmetic / minor" },
+          { value: "critical", label: "Critical: app unusable" },
+          { value: "high",     label: "High: major feature broken" },
+          { value: "medium",   label: "Medium: some features affected" },
+          { value: "low",      label: "Low: cosmetic or minor" },
         ],
       },
       { type: "long_text",    label: "Description",             required: true,
@@ -216,9 +202,7 @@ const TEMPLATES = [
     id:          "nps_survey",
     icon:        Users,
     label:       "NPS Survey",
-    description: "Net promoter score + followups.",
-    color:       "bg-green-500/10",
-    accent:      "#059669",
+    description: "Net promoter score with follow-up questions.",
     fields:      [
       { type: "scale",        label: "How likely are you to recommend us to a friend or colleague?",
         required: true, minValue: 0, maxValue: 10,
@@ -304,7 +288,7 @@ export default function NewFormPage() {
       }
 
       utils.forms.list.invalidate();
-      toast.success("Form created!");
+      toast.success("Form created");
       router.push(ROUTES.formEdit(form.id));
     } catch (err: any) {
       setSeeding(false);
@@ -313,57 +297,104 @@ export default function NewFormPage() {
   }
 
   const selectedTemplate = TEMPLATES.find((t) => t.id === template)!;
+  const previewFields    = selectedTemplate.fields as readonly TemplateField[];
 
   return (
-    <AppShell title="New Form">
-      <div className="mx-auto max-w-3xl">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="space-y-8"
-        >
-          {/* ── Template grid ─────────────────────────────────────── */}
-          <section>
-            <p className="label-overline mb-3">Start with a template</p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {TEMPLATES.map((t, i) => {
+    <AppShell>
+      <div className="mx-auto max-w-3xl pb-10">
+        <h1 className="font-display text-4xl text-[var(--text-primary)] sm:text-5xl">New form</h1>
+        <p className="mt-3 text-[var(--text-secondary)]">
+          Name it, pick a starting point, and you will land in the builder.
+        </p>
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-8">
+          {/* ── Name ─────────────────────────────────────────────── */}
+          <section className="space-y-2">
+            <h2 className="px-1 font-sans text-[13px] font-semibold leading-tight tracking-normal text-[var(--text-primary)]">
+              Details
+            </h2>
+            <div className="space-y-4 rounded-xl border-1 border-[var(--border-color)] bg-[var(--bg-panel)] p-4 sm:p-5">
+              <div className="space-y-1.5">
+                <Label htmlFor="form-title">Title</Label>
+                <Input
+                  id="form-title"
+                  placeholder="e.g. Customer feedback, Q4"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="form-desc">Description</Label>
+                <Textarea
+                  id="form-desc"
+                  placeholder="Optional. Shown to respondents at the top of the form."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* ── Template list ─────────────────────────────────────── */}
+          <section className="space-y-2">
+            <h2 className="px-1 font-sans text-[13px] font-semibold leading-tight tracking-normal text-[var(--text-primary)]">
+              Start from
+            </h2>
+            <div
+              className="grid gap-px overflow-hidden rounded-xl border-1 border-[var(--border-color)] bg-[var(--border-muted)] sm:grid-cols-2"
+              role="radiogroup"
+              aria-label="Template"
+            >
+              {TEMPLATES.map((t) => {
                 const Icon     = t.icon;
                 const isActive = template === t.id;
+                const count    = t.fields.length;
                 return (
                   <button
                     key={t.id}
                     type="button"
+                    role="radio"
+                    aria-checked={isActive}
                     onClick={() => setTemplate(t.id)}
                     className={cn(
-                      "flex flex-col gap-2.5 rounded-xl border p-4 text-left shadow-soft-xs transition-all duration-150 focus:outline-none",
-                      "focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]/30",
+                      "relative flex items-start gap-3 px-4 py-3.5 text-left transition-colors focus-visible:z-10",
                       isActive
-                        ? "border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--text-primary)] shadow-soft-sm ring-1 ring-[var(--color-accent)]/20"
-                        : "border-[var(--border-color)] bg-[var(--bg-panel)] hover:border-[var(--border-muted)] hover:shadow-soft-sm",
+                        ? "bg-[var(--color-accent-soft)]"
+                        : "bg-[var(--bg-panel)] hover:bg-[var(--bg-inset)]",
                     )}
                   >
-                    <div
+                    <Icon
                       className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-lg",
-                        isActive ? "bg-[var(--color-accent)] text-[var(--color-white)]" : "bg-[var(--bg-inset)] text-[var(--text-secondary)]",
+                        "mt-0.5 h-4 w-4 shrink-0",
+                        isActive ? "text-[var(--color-accent)]" : "text-[var(--text-muted)]",
                       )}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-display text-xs font-semibold tracking-wide">
-                        {t.label}
-                      </p>
-                      <p
-                        className={cn(
-                          "mt-0.5 text-[11px] leading-tight",
-                          "text-[var(--text-muted)]",
-                        )}
-                      >
+                      aria-hidden
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-baseline justify-between gap-3">
+                        <span
+                          className={cn(
+                            "text-sm font-medium",
+                            isActive ? "text-[var(--color-accent)]" : "text-[var(--text-primary)]",
+                          )}
+                        >
+                          {t.label}
+                        </span>
+                        <span className="shrink-0 text-xs tabular-nums text-[var(--text-muted)]">
+                          {count === 0 ? "No fields" : `${count} fields`}
+                        </span>
+                      </span>
+                      <span className="mt-0.5 block text-xs leading-snug text-[var(--text-secondary)]">
                         {t.description}
-                      </p>
-                    </div>
+                      </span>
+                    </span>
+                    {isActive && (
+                      <span className="absolute inset-y-0 left-0 w-[3px] bg-[var(--color-accent)]" aria-hidden />
+                    )}
                   </button>
                 );
               })}
@@ -371,89 +402,45 @@ export default function NewFormPage() {
 
             {/* Template field preview */}
             <AnimatePresence mode="wait">
-              {selectedTemplate.fields.length > 0 && (
+              {previewFields.length > 0 && (
                 <motion.div
                   key={template}
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.15 }}
-                  className="mt-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-inset)] px-5 py-3"
+                  className="rounded-xl border-1 border-[var(--border-color)] bg-[var(--bg-panel)] px-4 py-3 sm:px-5"
                 >
-                  <p className="label-overline mb-2 text-[var(--text-muted)]">
-                    Will add {selectedTemplate.fields.length} fields:
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">
+                    Adds these {previewFields.length} fields
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    {(selectedTemplate.fields as readonly TemplateField[]).map((f, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1 rounded-full border border-[var(--border-muted)] bg-[var(--bg-panel)] px-2.5 py-0.5 font-mono text-[11px]"
-                      >
-                        <span className="text-[var(--color-accent)]">
-                          {f.type.replace("_", " ")}
-                        </span>
-                        <span className="text-[var(--text-muted)]">·</span>
-                        {f.label}
-                        {f.required && (
-                          <span className="ml-0.5 text-[var(--color-accent)]">*</span>
-                        )}
-                      </span>
+                  <ol className="mt-2 grid gap-x-6 gap-y-1 text-sm text-[var(--text-primary)] sm:grid-cols-2">
+                    {previewFields.map((f, i) => (
+                      <li key={i} className="flex min-w-0 items-baseline gap-2">
+                        <span className="w-4 shrink-0 text-right text-xs tabular-nums text-[var(--text-muted)]">{i + 1}</span>
+                        <span className="truncate">{f.label}</span>
+                        {f.required && <span className="shrink-0 text-xs text-[var(--color-accent)]">Required</span>}
+                      </li>
                     ))}
-                  </div>
+                  </ol>
                 </motion.div>
               )}
             </AnimatePresence>
           </section>
 
-          {/* ── Form details ───────────────────────────────────────── */}
-          <form onSubmit={handleSubmit} className="space-y-5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-5 shadow-soft-sm sm:p-6">
-            <div className="flex items-center gap-3 border-b border-[var(--border-muted)] pb-4">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--color-accent)]">
-                <FileText className="h-4 w-4 text-white" />
-              </div>
-              <h2 className="font-display text-lg font-semibold tracking-tight">
-                Form details
-              </h2>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="form-title">Form title</Label>
-              <Input
-                id="form-title"
-                placeholder="e.g. Customer Feedback Q4"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                autoFocus
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="form-desc">Description</Label>
-              <Textarea
-                id="form-desc"
-                placeholder="Optional — shown to respondents at the top of the form."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            {/* ── Field limit ──────────────────────────────────────── */}
-            <div className="rounded-lg border border-[var(--border-muted)] bg-[var(--bg-inset)] p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-[var(--color-accent)] shrink-0" />
-                <p className="font-display text-xs font-semibold tracking-wide">
-                  Field limit
+          {/* ── Field limit ──────────────────────────────────────── */}
+          <section className="space-y-2">
+            <h2 className="px-1 font-sans text-[13px] font-semibold leading-tight tracking-normal text-[var(--text-primary)]">
+              Limits
+            </h2>
+            <div className="flex flex-col gap-3 rounded-xl border-1 border-[var(--border-color)] bg-[var(--bg-panel)] p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-5">
+              <div className="min-w-0">
+                <Label htmlFor="max-fields" className="text-sm font-medium">Field limit</Label>
+                <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-muted)]">
+                  The most fields this form can hold. The builder stops adding fields once it is reached. Default is {DEFAULT_MAX_FIELDS}.
                 </p>
-                <span className="ml-auto rounded-full border border-[var(--border-muted)] bg-[var(--bg-panel)] px-2 py-0.5 font-mono text-[10px] text-[var(--text-muted)]">
-                  Default: {DEFAULT_MAX_FIELDS}
-                </span>
               </div>
-              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                Maximum number of fields allowed in this form. The builder will lock once this limit is hit. Leave as-is to use the default.
-              </p>
-              <div className="flex items-center gap-3">
+              <div className="flex shrink-0 items-center gap-3">
                 <Input
                   id="max-fields"
                   type="number"
@@ -461,43 +448,42 @@ export default function NewFormPage() {
                   max={100}
                   value={maxFields}
                   onChange={(e) => setMaxFields(e.target.value)}
-                  className="w-28 font-mono"
+                  className="w-24 tabular-nums"
                   leftSlot={<Layers className="h-4 w-4" />}
                 />
                 {maxFields !== String(DEFAULT_MAX_FIELDS) && (
                   <button
                     type="button"
                     onClick={() => setMaxFields(String(DEFAULT_MAX_FIELDS))}
-                    className="font-mono text-[11px] text-[var(--text-muted)] underline underline-offset-2 hover:text-[var(--text-primary)] transition-colors"
+                    className="text-xs text-[var(--text-secondary)] underline underline-offset-2 transition-colors hover:text-[var(--text-primary)]"
                   >
-                    Reset to default ({DEFAULT_MAX_FIELDS})
+                    Reset
                   </button>
                 )}
               </div>
             </div>
+          </section>
 
-            <div className="flex items-center gap-3 pt-2">
-              <Button
-                type="submit"
-                size="lg"
-                loading={isPending}
-                disabled={!title.trim() || isPending}
-                className="gap-2 shadow-soft-md"
-              >
-                {seeding ? "Adding fields…" : "Create & Open Builder"}
-                {!seeding && <ArrowRight className="h-4 w-4" />}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => router.back()}
-                disabled={isPending}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </motion.div>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => router.back()}
+              disabled={isPending}
+              className="h-10 text-sm font-medium"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              loading={isPending}
+              disabled={!title.trim() || isPending}
+              className="h-10 px-5 text-sm font-medium !bg-[var(--color-action)] !text-white shadow-none hover:!bg-[var(--color-action-hover)] hover:shadow-none hover:brightness-100"
+            >
+              {seeding ? "Adding fields…" : "Create form"}
+            </Button>
+          </div>
+        </form>
       </div>
     </AppShell>
   );
