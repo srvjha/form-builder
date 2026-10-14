@@ -1,6 +1,7 @@
 "use client";
 
 import { nanoid } from "nanoid";
+import { useState } from "react";
 import { toast } from "sonner";
 import {
   Type, AlignLeft, Mail, Hash, Phone, Link2,
@@ -66,10 +67,24 @@ export function FieldPalette({ onAdd }: FieldPaletteProps) {
 
   /* Raise the limit right here; autosave persists it (the server allows up to 100) */
   const HARD_MAX = 100;
-  function raiseLimit(by: number) {
-    const next = Math.min(HARD_MAX, maxFields + by);
+  function setLimit(next: number) {
     setForm({ settings: { ...settings, maxFields: next } });
-    toast.success(`Field limit raised to ${next}`);
+    toast.success(`Field limit set to ${next}`);
+  }
+  function raiseLimit(by: number) {
+    setLimit(Math.min(HARD_MAX, maxFields + by));
+  }
+
+  /* Custom limit: any whole number from the current field count up to the server maximum */
+  const [customLimit, setCustomLimit] = useState("");
+  const customValue = Number(customLimit);
+  const customValid =
+    customLimit.trim() !== "" && Number.isInteger(customValue) && customValue > maxFields && customValue <= HARD_MAX;
+  function applyCustom(e: React.FormEvent) {
+    e.preventDefault();
+    if (!customValid) return;
+    setLimit(customValue);
+    setCustomLimit("");
   }
 
   const isFull    = fieldCount >= maxFields;
@@ -129,6 +144,37 @@ export function FieldPalette({ onAdd }: FieldPaletteProps) {
                 </button>
               ))}
             </div>
+          )}
+          {maxFields < HARD_MAX && (
+            <form onSubmit={applyCustom} className="mt-2 flex gap-2">
+              <label htmlFor="custom-field-limit" className="sr-only">
+                Custom field limit
+              </label>
+              <input
+                id="custom-field-limit"
+                type="number"
+                inputMode="numeric"
+                min={maxFields + 1}
+                max={HARD_MAX}
+                step={1}
+                value={customLimit}
+                onChange={(e) => setCustomLimit(e.target.value)}
+                placeholder={`Custom, up to ${HARD_MAX}`}
+                className="h-8 min-w-0 flex-1 rounded-md bg-[var(--bg-panel)] px-2.5 text-xs text-[var(--text-primary)] ring-1 ring-[var(--border-color)] outline-none placeholder:text-[var(--text-muted)] focus:ring-2 focus:ring-[var(--color-accent)]"
+              />
+              <button
+                type="submit"
+                disabled={!customValid}
+                className="inline-flex h-8 shrink-0 items-center justify-center rounded-md px-3 text-xs font-medium text-[var(--text-primary)] ring-1 ring-[var(--border-color)] transition-colors hover:bg-[var(--bg-panel)] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Set
+              </button>
+            </form>
+          )}
+          {customLimit.trim() !== "" && !customValid && (
+            <p className="mt-1.5 text-[11px] text-[var(--text-secondary)]">
+              Enter a whole number from {maxFields + 1} to {HARD_MAX}.
+            </p>
           )}
         </div>
       ) : isWarning ? (
