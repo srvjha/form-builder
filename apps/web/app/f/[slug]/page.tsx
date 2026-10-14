@@ -26,6 +26,8 @@ function validateField(field: PublicField, value: string | string[]): string | n
 }
 
 /* ── Theme-aware success screen ─────────────────────────────── */
+const CLOSE_NOTE = "You can now close this window.";
+
 function SuccessScreen({
   message,
   theme,
@@ -52,6 +54,7 @@ function SuccessScreen({
           </div>
           <h1 className="font-display text-2xl font-black uppercase tracking-tight">Response submitted!</h1>
           <p className="mt-3 text-[var(--text-muted)]">{message}</p>
+          <p className="mt-4 font-mono text-xs uppercase tracking-wider text-[var(--text-muted)]">{CLOSE_NOTE}</p>
           <Link
             href="/"
             className="mt-8 inline-flex items-center gap-2 border-2 border-[#0A0A0A] bg-[var(--color-accent)] px-5 py-2.5 font-display text-xs font-extrabold uppercase tracking-wider text-white shadow-[3px_3px_0_#0A0A0A] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0_#0A0A0A]"
@@ -77,6 +80,7 @@ function SuccessScreen({
           </div>
           <h2 className="text-2xl font-bold text-gray-900">All done!</h2>
           <p className="mt-3 text-gray-500 text-sm">{message}</p>
+          <p className="mt-2 text-xs text-gray-400">{CLOSE_NOTE}</p>
           <Link
             href="/"
             className="mt-7 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
@@ -106,6 +110,7 @@ function SuccessScreen({
           <div className="text-5xl mb-4">🎊</div>
           <h2 className="text-2xl font-extrabold text-purple-700">You&apos;re amazing!</h2>
           <p className="mt-3 text-gray-500 text-sm">{message}</p>
+          <p className="mt-2 text-xs text-gray-400">{CLOSE_NOTE}</p>
           <Link
             href="/"
             className="mt-7 inline-flex items-center gap-2 rounded-2xl bg-purple-600 px-6 py-3 text-sm font-bold text-white hover:bg-purple-700"
@@ -130,6 +135,7 @@ function SuccessScreen({
           <CheckSquare className="h-8 w-8 text-gray-900 mb-6" />
           <h2 className="text-2xl font-semibold text-gray-900 tracking-tight">Submitted</h2>
           <p className="mt-3 text-gray-500 text-sm leading-relaxed">{message}</p>
+          <p className="mt-2 text-xs text-gray-400">{CLOSE_NOTE}</p>
           <div className="mt-6 h-px bg-gray-200" />
           <Link href="/" className="mt-5 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900">
             <Zap className="h-3.5 w-3.5" /> {APP_NAME}
@@ -151,6 +157,7 @@ function SuccessScreen({
           <p className="text-[#3D7A3D] text-xs mb-4">[PROCESS] exit code: 0 — SUCCESS</p>
           <p className="text-[#7EE787] text-xl font-bold">$ echo &quot;Response saved!&quot;</p>
           <p className="text-[#A0D0A0] mt-2 text-sm">{`> `}{message}</p>
+          <p className="text-[#3D7A3D] mt-1 text-xs">{`# `}{CLOSE_NOTE}</p>
           <div className="mt-6 border-t border-[#30A030]/30 pt-4">
             <Link href="/" className="text-xs text-[#3D7A3D] hover:text-[#7EE787] transition-colors">
               ~$ ./return_home.sh
@@ -182,6 +189,7 @@ function SuccessScreen({
               Form Submitted Successfully
             </h2>
             <p className="text-sm text-[#555] mt-3 leading-relaxed">{message}</p>
+            <p className="text-xs text-[#555] mt-2">{CLOSE_NOTE}</p>
             <div className="mt-3 text-xs text-[#888]">
               Ref. No: FC/{new Date().getFullYear()}/{Math.random().toString(36).slice(2, 8).toUpperCase()}
             </div>
@@ -212,6 +220,7 @@ function SuccessScreen({
             SUBMITTED!
           </h2>
           <p className="italic text-[#555] text-sm leading-relaxed">&ldquo;{message}&rdquo;</p>
+          <p className="mt-3 text-[11px] uppercase tracking-widest text-[#888]">{CLOSE_NOTE}</p>
           <div className="mt-8 text-[10px] uppercase tracking-widest text-[#888]">
             ━━━{" "}
             <Link href="/" className="font-bold text-[#1A1A1A] hover:underline">{APP_NAME}</Link>
@@ -251,6 +260,7 @@ function SuccessScreen({
             Done!
           </h2>
           <p className="mt-3 text-sm text-[#6B5744] italic leading-relaxed">{message}</p>
+          <p className="mt-2 text-xs text-[#6B5744]">{CLOSE_NOTE}</p>
           <Link
             href="/"
             className="mt-6 inline-block text-sm font-bold text-[#E84040] underline hover:text-[#2D2416]"
@@ -270,6 +280,7 @@ function SuccessScreen({
       className="flex min-h-screen flex-col items-center justify-center px-8 bg-white"
     >
       <p className="text-gray-500">{message}</p>
+      <p className="mt-2 text-xs text-gray-400">{CLOSE_NOTE}</p>
       <Link href="/" className="mt-4 text-sm text-gray-500 hover:text-gray-900">{APP_NAME}</Link>
     </motion.div>
   );
