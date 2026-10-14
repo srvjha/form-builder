@@ -63,7 +63,7 @@ export default function FormEditPage() {
     setFields(
       (data.fields ?? []).map((f: any) => ({
         id:           f.id,
-        type:         f.fieldType,
+        type:         f.type, // the column is `type` (was read as `fieldType`, which is undefined)
         label:        f.label,
         placeholder:  f.placeholder   ?? undefined,
         helpText:     f.helpText      ?? undefined,
