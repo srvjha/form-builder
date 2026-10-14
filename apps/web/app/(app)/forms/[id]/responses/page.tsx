@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { Trash2, ChevronDown, ChevronUp, Mail, Download, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,13 +13,15 @@ import { EmptyState }  from "@/components/shared/empty-state";
 import { ErrorState }  from "@/components/shared/error-state";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { trpc }        from "@/lib/trpc";
-import { buildCsv, downloadCsv } from "@/lib/utils";
+import { buildCsv, downloadCsv, formatAnswerValue } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
 export default function ResponsesPage() {
   const { id } = useParams<{ id: string }>();
-  const [expandedId, setExpandedId]   = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  /* Deep link from the "View Response" email: ?response=<id> */
+  const [expandedId, setExpandedId]   = useState<string | null>(searchParams.get("response"));
   const [deleteId,   setDeleteId]     = useState<string | null>(null);
   const [page,       setPage]         = useState(1);
   const [exporting,  setExporting]    = useState(false);
@@ -28,6 +30,18 @@ export default function ResponsesPage() {
     { formId: id, page, pageSize: PAGE_SIZE },
     { enabled: !!id },
   );
+  const { data: form } = trpc.forms.get.useQuery({ formId: id }, { enabled: !!id });
+  const fieldsById = useMemo(
+    () => new Map(((form as any)?.fields ?? []).map((f: any) => [f.id, f])),
+    [form],
+  );
+
+  /* Scroll the deep-linked response into view once it renders */
+  useEffect(() => {
+    const target = searchParams.get("response");
+    if (target && data) document.getElementById(`response-${target}`)?.scrollIntoView({ block: "center" });
+  }, [data, searchParams]);
+
   const deleteMut = trpc.forms.deleteResponse.useMutation({
     onSuccess: () => { toast.success("Response deleted"); setDeleteId(null); refetch(); },
     onError:   (e) => toast.error(e.message),
@@ -122,7 +136,7 @@ export default function ResponsesPage() {
               {responses.map((res: any, i: number) => {
                 const isExpanded = expandedId === res.id;
                 return (
-                  <div key={res.id} className={i < responses.length - 1 ? "border-b-2 border-[#0A0A0A]" : ""}>
+                  <div key={res.id} id={`response-${res.id}`} className={i < responses.length - 1 ? "border-b-2 border-[#0A0A0A]" : ""}>
                     <div
                       className="grid grid-cols-[1fr_160px_120px_80px] cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-[var(--bg-inset)]"
                       onClick={() => setExpandedId(isExpanded ? null : res.id)}
@@ -159,16 +173,18 @@ export default function ResponsesPage() {
                           className="overflow-hidden border-t-2 border-dashed border-[var(--border-muted)]"
                         >
                           <div className="grid gap-4 p-6 sm:grid-cols-2">
-                            {(res.answers ?? []).map((ans: any) => (
-                              <div key={ans.id} className="border-2 border-[var(--border-muted)] bg-[var(--bg-inset)] p-4">
-                                <p className="label-overline mb-1.5 text-[var(--text-muted)]">{ans.field?.label ?? "Field"}</p>
-                                <p className="text-sm font-semibold text-[var(--text-primary)] break-words">
-                                  {Array.isArray(ans.value)
-                                    ? ans.value.join(", ")
-                                    : (ans.value || <span className="italic text-[var(--text-muted)]">No answer</span>)}
-                                </p>
-                              </div>
-                            ))}
+                            {(res.answers ?? []).map((ans: any) => {
+                              const field = fieldsById.get(ans.fieldId) as any;
+                              const text  = formatAnswerValue(field, ans.value);
+                              return (
+                                <div key={ans.id} className="border-2 border-[var(--border-muted)] bg-[var(--bg-inset)] p-4">
+                                  <p className="label-overline mb-1.5 text-[var(--text-muted)]">{field?.label ?? "Deleted field"}</p>
+                                  <p className="text-sm font-semibold text-[var(--text-primary)] break-words">
+                                    {text || <span className="italic text-[var(--text-muted)]">No answer</span>}
+                                  </p>
+                                </div>
+                              );
+                            })}
                           </div>
                         </motion.div>
                       )}

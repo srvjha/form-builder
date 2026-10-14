@@ -65,7 +65,24 @@ function csvCell(val: unknown): string {
   return str;
 }
 
-export interface CsvExportField  { id: string; label: string; type: string }
+export interface CsvExportField  {
+  id: string;
+  label: string;
+  type: string;
+  options?: { value: string; label: string }[] | null;
+}
+
+/** Turn a stored answer into display text, mapping option values (e.g. "option_2") to their labels. */
+export function formatAnswerValue(
+  field: { options?: { value: string; label: string }[] | null } | undefined,
+  value: unknown,
+  separator = ", ",
+): string {
+  if (value === null || value === undefined) return "";
+  const labelFor = (v: unknown) =>
+    field?.options?.find((o) => o.value === v)?.label ?? String(v);
+  return Array.isArray(value) ? value.map(labelFor).join(separator) : labelFor(value);
+}
 export interface CsvExportAnswer { fieldId: string; value: unknown }
 export interface CsvExportRow {
   id: string;
@@ -88,10 +105,7 @@ export function buildCsv(fields: CsvExportField[], rows: CsvExportRow[]): string
       row.respondentEmail ?? "",
       row.completionTimeMs != null ? Math.round(row.completionTimeMs / 1000) : "",
     ];
-    const fieldCells = fields.map((f) => {
-      const v = answerMap.get(f.id);
-      return Array.isArray(v) ? v.join("; ") : v;
-    });
+    const fieldCells = fields.map((f) => formatAnswerValue(f, answerMap.get(f.id), "; "));
     return [...staticCells, ...fieldCells].map(csvCell).join(",");
   });
 

@@ -303,7 +303,7 @@ export const formsRouter = router({
       const form = await formService.getFormById(input.formId, ctx.auth.userId);
       const { items } = await responseService.getFormResponses(input.formId, { pageSize: 9999 });
       return {
-        fields: (form.fields ?? []).map((f: any) => ({ id: f.id, label: f.label, type: f.fieldType })),
+        fields: (form.fields ?? []).map((f: any) => ({ id: f.id, label: f.label, type: f.type, options: f.options })),
         responses: items,
       };
     }),
