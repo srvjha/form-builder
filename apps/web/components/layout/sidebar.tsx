@@ -5,9 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, FileText, Compass, Settings, PanelLeftClose, PanelLeftOpen, Plus, X,
+  BarChart3, LayoutTemplate, ShieldCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUIStore } from "@/stores/ui-store";
+import { trpc } from "@/lib/trpc";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { ROUTES, APP_NAME } from "@/lib/constants";
@@ -16,8 +18,12 @@ import { Logo, LogoMark } from "@/components/shared/logo";
 const NAV = [
   { label: "Dashboard",  href: ROUTES.dashboard,  Icon: LayoutDashboard },
   { label: "Forms",      href: ROUTES.forms,       Icon: FileText },
+  { label: "Analytics",  href: ROUTES.analytics,   Icon: BarChart3 },
+  { label: "Templates",  href: ROUTES.templates,   Icon: LayoutTemplate },
   { label: "Explore",    href: ROUTES.explore,     Icon: Compass },
 ];
+
+const NAV_ADMIN = { label: "Admin", href: ROUTES.admin, Icon: ShieldCheck };
 
 const NAV_BOTTOM = [
   { label: "Settings", href: ROUTES.settings, Icon: Settings },
@@ -113,6 +119,10 @@ export function Sidebar() {
 }
 
 function SidebarContent({ pathname, collapsed }: { pathname: string; collapsed: boolean }) {
+  // Admin link only for admins; hidden while loading or on error
+  const { data: adminMe } = trpc.admin.me.useQuery(undefined, { staleTime: 5 * 60_000, retry: false });
+  const bottomNav = adminMe?.isAdmin ? [NAV_ADMIN, ...NAV_BOTTOM] : NAV_BOTTOM;
+
   return (
     <>
       {/* Wordmark */}
@@ -159,7 +169,7 @@ function SidebarContent({ pathname, collapsed }: { pathname: string; collapsed: 
       </ScrollArea>
 
       <nav className="flex flex-col gap-0.5 px-3 py-3">
-        {NAV_BOTTOM.map(({ label, href, Icon }) => (
+        {bottomNav.map(({ label, href, Icon }) => (
           <NavItem
             key={href}
             label={label}

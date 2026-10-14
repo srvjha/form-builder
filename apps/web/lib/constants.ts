@@ -13,6 +13,9 @@ export const ROUTES = {
   formAnalytics: (id: string) => `/forms/${id}/analytics`,
   publicForm:  (slug: string) => `/f/${slug}`,
   explore:     "/explore",
+  analytics:   "/analytics",
+  templates:   "/templates",
+  admin:       "/admin",
   settings:    "/settings",
   settingsAppearance:    "/settings/appearance",
   settingsNotifications: "/settings/notifications",
@@ -54,6 +57,8 @@ export const FORM_STATUS_COLORS = {
 export const NAV_ITEMS = [
   { label: "Dashboard",  href: ROUTES.dashboard,  icon: "LayoutDashboard" },
   { label: "Forms",      href: ROUTES.forms,       icon: "FileText" },
+  { label: "Analytics",  href: ROUTES.analytics,   icon: "BarChart3" },
+  { label: "Templates",  href: ROUTES.templates,   icon: "LayoutTemplate" },
   { label: "Explore",    href: ROUTES.explore,     icon: "Compass" },
 ] as const;
 

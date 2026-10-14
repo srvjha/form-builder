@@ -1,299 +1,55 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FileText, Briefcase, CalendarDays,
-  Bug, BarChart2, MessageSquare, Users, Mail, Layers,
-} from "lucide-react";
-import { toast } from "sonner";
+import { Layers } from "lucide-react";
 import { AppShell }  from "@/components/layout/app-shell";
 import { Button }    from "@/components/ui/button";
 import { Input }     from "@/components/ui/input";
 import { Label }     from "@/components/ui/label";
 import { Textarea }  from "@/components/ui/textarea";
-import { trpc }      from "@/lib/trpc";
-import { ROUTES }    from "@/lib/constants";
 import { cn }        from "@/lib/utils";
 import { DEFAULT_MAX_FIELDS } from "@/stores/builder-store";
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-type FieldType =
-  | "short_text" | "long_text" | "email" | "number" | "phone"
-  | "url" | "select" | "multi_select" | "checkbox" | "rating" | "scale";
-
-interface TemplateField {
-  type:        FieldType;
-  label:       string;
-  placeholder?: string;
-  helpText?:   string;
-  required?:   boolean;
-  options?:    { value: string; label: string }[];
-  minValue?:   number;
-  maxValue?:   number;
-  minLabel?:   string;
-  maxLabel?:   string;
-}
-
-// ── Template definitions ───────────────────────────────────────────────────────
-const TEMPLATES = [
-  {
-    id:          "blank",
-    icon:        FileText,
-    label:       "Blank",
-    description: "An empty form. Add fields yourself.",
-    fields:      [] as TemplateField[],
-  },
-  {
-    id:          "contact",
-    icon:        Mail,
-    label:       "Contact form",
-    description: "Name, email, subject, message.",
-    fields:      [
-      { type: "short_text", label: "Full Name",    required: true,  placeholder: "Your full name" },
-      { type: "email",      label: "Email Address", required: true,  placeholder: "you@example.com" },
-      { type: "short_text", label: "Subject",       required: false, placeholder: "What is this about?" },
-      { type: "long_text",  label: "Message",       required: true,  placeholder: "Write your message here…",
-        helpText: "We'll get back to you within 1–2 business days." },
-    ] as TemplateField[],
-  },
-  {
-    id:          "feedback",
-    icon:        MessageSquare,
-    label:       "Feedback form",
-    description: "A rating, an NPS score and two open questions.",
-    fields:      [
-      { type: "rating",    label: "Overall experience",          required: true,  maxValue: 5 },
-      { type: "scale",     label: "How likely are you to recommend us?", required: true,
-        minValue: 0, maxValue: 10, minLabel: "Not at all likely", maxLabel: "Extremely likely" },
-      { type: "long_text", label: "What did you enjoy most?",    required: false,
-        placeholder: "Tell us what stood out…" },
-      { type: "long_text", label: "What could we improve?",      required: false,
-        placeholder: "Any suggestions are welcome." },
-    ] as TemplateField[],
-  },
-  {
-    id:          "survey",
-    icon:        BarChart2,
-    label:       "Quick survey",
-    description: "Five short questions with a rating scale.",
-    fields:      [
-      { type: "short_text",   label: "Your Name",          required: false, placeholder: "Optional" },
-      { type: "select",       label: "Age Range",           required: false,
-        options: [
-          { value: "under_18",  label: "Under 18" },
-          { value: "18_24",     label: "18–24" },
-          { value: "25_34",     label: "25–34" },
-          { value: "35_44",     label: "35–44" },
-          { value: "45_plus",   label: "45+" },
-        ],
-      },
-      { type: "multi_select", label: "Topics of interest", required: false,
-        options: [
-          { value: "design",    label: "Design" },
-          { value: "dev",       label: "Development" },
-          { value: "marketing", label: "Marketing" },
-          { value: "product",   label: "Product" },
-          { value: "other",     label: "Other" },
-        ],
-      },
-      { type: "scale",        label: "How would you rate your experience?", required: true,
-        minValue: 1, maxValue: 10, minLabel: "Poor", maxLabel: "Excellent" },
-      { type: "long_text",    label: "Any other comments?", required: false },
-    ] as TemplateField[],
-  },
-  {
-    id:          "job_application",
-    icon:        Briefcase,
-    label:       "Job application",
-    description: "Contact details, experience and a cover letter.",
-    fields:      [
-      { type: "short_text", label: "Full Name",             required: true,  placeholder: "Jane Smith" },
-      { type: "email",      label: "Email Address",          required: true,  placeholder: "jane@example.com" },
-      { type: "phone",      label: "Phone Number",           required: false, placeholder: "+1 555 000 0000" },
-      { type: "url",        label: "LinkedIn Profile",       required: false, placeholder: "https://linkedin.com/in/…" },
-      { type: "url",        label: "Portfolio / Website",    required: false, placeholder: "https://yoursite.com" },
-      { type: "select",     label: "Years of Experience",    required: true,
-        options: [
-          { value: "0_1",   label: "0–1 years (Entry level)" },
-          { value: "2_4",   label: "2–4 years" },
-          { value: "5_9",   label: "5–9 years" },
-          { value: "10_15", label: "10–15 years" },
-          { value: "15_p",  label: "15+ years (Senior)" },
-        ],
-      },
-      { type: "select",     label: "How did you hear about us?", required: false,
-        options: [
-          { value: "linkedin",  label: "LinkedIn" },
-          { value: "referral",  label: "Referral" },
-          { value: "job_board", label: "Job board" },
-          { value: "website",   label: "Company website" },
-          { value: "other",     label: "Other" },
-        ],
-      },
-      { type: "long_text",  label: "Cover Letter",           required: true,
-        placeholder: "Tell us why you're a great fit for this role…",
-        helpText: "Max 600 words recommended." },
-    ] as TemplateField[],
-  },
-  {
-    id:          "event_rsvp",
-    icon:        CalendarDays,
-    label:       "Event RSVP",
-    description: "Attendance, guests, dietary needs.",
-    fields:      [
-      { type: "short_text",   label: "Full Name",              required: true,  placeholder: "Your name" },
-      { type: "email",        label: "Email Address",           required: true,  placeholder: "you@example.com" },
-      { type: "select",       label: "Will you attend?",        required: true,
-        options: [
-          { value: "yes",   label: "Yes, I'll be there" },
-          { value: "no",    label: "Sorry, can't make it" },
-          { value: "maybe", label: "Maybe — I'll confirm later" },
-        ],
-      },
-      { type: "number",       label: "Number of additional guests", required: false,
-        helpText: "Enter 0 if you're attending alone.", placeholder: "0" },
-      { type: "select",       label: "Dietary Requirements",    required: false,
-        options: [
-          { value: "none",        label: "None" },
-          { value: "vegetarian",  label: "Vegetarian" },
-          { value: "vegan",       label: "Vegan" },
-          { value: "gluten_free", label: "Gluten-free" },
-          { value: "halal",       label: "Halal" },
-          { value: "other",       label: "Other (please specify below)" },
-        ],
-      },
-      { type: "long_text",    label: "Special requirements or notes", required: false,
-        placeholder: "Accessibility needs, allergies not listed above, etc." },
-    ] as TemplateField[],
-  },
-  {
-    id:          "bug_report",
-    icon:        Bug,
-    label:       "Bug report",
-    description: "Severity, steps to reproduce and environment.",
-    fields:      [
-      { type: "short_text",   label: "Bug Title",              required: true,
-        placeholder: "e.g. Login button unresponsive on Safari" },
-      { type: "select",       label: "Severity",               required: true,
-        options: [
-          { value: "critical", label: "Critical: app unusable" },
-          { value: "high",     label: "High: major feature broken" },
-          { value: "medium",   label: "Medium: some features affected" },
-          { value: "low",      label: "Low: cosmetic or minor" },
-        ],
-      },
-      { type: "long_text",    label: "Description",             required: true,
-        placeholder: "What happened? What were you doing when it occurred?" },
-      { type: "long_text",    label: "Steps to Reproduce",      required: false,
-        placeholder: "1. Go to …\n2. Click …\n3. See error" },
-      { type: "short_text",   label: "Expected Behavior",       required: false,
-        placeholder: "What should have happened?" },
-      { type: "short_text",   label: "Actual Behavior",         required: false,
-        placeholder: "What actually happened?" },
-      { type: "short_text",   label: "Browser / OS / Version",  required: false,
-        placeholder: "e.g. Chrome 124 / macOS 14" },
-      { type: "email",        label: "Your Email (optional)",   required: false,
-        placeholder: "dev@company.com", helpText: "We'll follow up if we need more info." },
-    ] as TemplateField[],
-  },
-  {
-    id:          "nps_survey",
-    icon:        Users,
-    label:       "NPS survey",
-    description: "Net promoter score with follow-up questions.",
-    fields:      [
-      { type: "scale",        label: "How likely are you to recommend us to a friend or colleague?",
-        required: true, minValue: 0, maxValue: 10,
-        minLabel: "0 — Not at all likely", maxLabel: "10 — Extremely likely" },
-      { type: "select",       label: "What's the primary reason for your score?", required: false,
-        options: [
-          { value: "product",  label: "Quality of the product/service" },
-          { value: "support",  label: "Customer support" },
-          { value: "price",    label: "Price & value" },
-          { value: "ease",     label: "Ease of use" },
-          { value: "other",    label: "Other" },
-        ],
-      },
-      { type: "long_text",    label: "How can we improve?",     required: false,
-        placeholder: "Any feedback helps us get better." },
-      { type: "short_text",   label: "Name (optional)",         required: false },
-      { type: "email",        label: "Email (optional)",        required: false,
-        placeholder: "We'll only contact you if you'd like follow-up." },
-    ] as TemplateField[],
-  },
-] as const;
-
-type TemplateId = (typeof TEMPLATES)[number]["id"];
+import { TEMPLATES, getTemplate, type TemplateField, type TemplateId } from "@/lib/templates";
+import { useCreateForm } from "@/lib/use-create-form";
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 export default function NewFormPage() {
-  const router = useRouter();
-  const [title,       setTitle]       = useState("");
+  // useSearchParams needs a Suspense boundary on a statically rendered route
+  return (
+    <Suspense fallback={null}>
+      <NewFormContent />
+    </Suspense>
+  );
+}
+
+function NewFormContent() {
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  // ?template=<id> preselects that template and names the form after it
+  const initialTemplate = getTemplate(searchParams.get("template"));
+
+  const [title,       setTitle]       = useState(
+    initialTemplate && initialTemplate.id !== "blank" ? initialTemplate.label : "",
+  );
   const [description, setDescription] = useState("");
-  const [template,    setTemplate]    = useState<TemplateId>("blank");
+  const [template,    setTemplate]    = useState<TemplateId>(initialTemplate?.id ?? "blank");
   const [maxFields,   setMaxFields]   = useState<string>(String(DEFAULT_MAX_FIELDS));
-  const [seeding,     setSeeding]     = useState(false);
 
-  const utils          = trpc.useUtils();
-  const createMutation = trpc.forms.create.useMutation();
-  const addFieldMutation = trpc.forms.addField.useMutation();
-
-  const isPending = createMutation.isPending || seeding;
+  const { createForm, isPending, seeding } = useCreateForm();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
 
-    try {
-      const parsedMax = Math.max(1, Math.min(100, parseInt(maxFields, 10) || DEFAULT_MAX_FIELDS));
-      const form = await createMutation.mutateAsync({
-        title:       title.trim(),
-        description: description.trim() || undefined,
-        settings: {
-          showProgressBar:  true,
-          shuffleFields:    false,
-          oneResponsePerIp: false,
-          requireAuth:      false,
-          maxFields:        parsedMax,
-        },
-      });
-
-      const selectedTemplate = TEMPLATES.find((t) => t.id === template);
-      const templateFields   = (selectedTemplate?.fields ?? []) as TemplateField[];
-
-      if (templateFields.length > 0) {
-        setSeeding(true);
-        // Seed fields in parallel for speed
-        await Promise.all(
-          templateFields.map((f) =>
-            addFieldMutation.mutateAsync({
-              formId:      form.id,
-              type:        f.type,
-              label:       f.label,
-              placeholder: f.placeholder,
-              helpText:    f.helpText,
-              required:    f.required ?? false,
-              options:     f.options,
-              minValue:    f.minValue,
-              maxValue:    f.maxValue,
-              minLabel:    f.minLabel,
-              maxLabel:    f.maxLabel,
-              validations: {},
-            }),
-          ),
-        );
-        setSeeding(false);
-      }
-
-      utils.forms.list.invalidate();
-      toast.success("Form created");
-      router.push(ROUTES.formEdit(form.id));
-    } catch (err: any) {
-      setSeeding(false);
-      toast.error(err?.message ?? "Failed to create form");
-    }
+    const parsedMax = Math.max(1, Math.min(100, parseInt(maxFields, 10) || DEFAULT_MAX_FIELDS));
+    await createForm({
+      title,
+      description,
+      templateId: template,
+      maxFields:  parsedMax,
+    });
   }
 
   const selectedTemplate = TEMPLATES.find((t) => t.id === template)!;

@@ -10,7 +10,10 @@ import {
 } from "@/components/ui/command";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
-import { LayoutDashboard, FileText, Plus, Settings, Compass } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import {
+  LayoutDashboard, FileText, Plus, Settings, Compass, BarChart3, LayoutTemplate, ShieldCheck,
+} from "lucide-react";
 
 interface AppShellProps {
   children:   React.ReactNode;
@@ -21,6 +24,7 @@ interface AppShellProps {
 export function AppShell({ children, title, actions }: AppShellProps) {
   const { commandOpen, setCommandOpen } = useUIStore();
   const router = useRouter();
+  const { data: adminMe } = trpc.admin.me.useQuery(undefined, { staleTime: 5 * 60_000, retry: false });
   /* ⌘K shortcut */
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -75,10 +79,24 @@ export function AppShell({ children, title, actions }: AppShellProps) {
               <FileText className="h-4 w-4 text-[var(--text-muted)]" />
               Forms
             </CommandItem>
+            <CommandItem onSelect={() => navigate(ROUTES.analytics)}>
+              <BarChart3 className="h-4 w-4 text-[var(--text-muted)]" />
+              Analytics
+            </CommandItem>
+            <CommandItem onSelect={() => navigate(ROUTES.templates)}>
+              <LayoutTemplate className="h-4 w-4 text-[var(--text-muted)]" />
+              Templates
+            </CommandItem>
             <CommandItem onSelect={() => navigate(ROUTES.explore)}>
               <Compass className="h-4 w-4 text-[var(--text-muted)]" />
               Explore
             </CommandItem>
+            {adminMe?.isAdmin && (
+              <CommandItem onSelect={() => navigate(ROUTES.admin)}>
+                <ShieldCheck className="h-4 w-4 text-[var(--text-muted)]" />
+                Admin
+              </CommandItem>
+            )}
             <CommandItem onSelect={() => navigate(ROUTES.settings)}>
               <Settings className="h-4 w-4 text-[var(--text-muted)]" />
               Settings
