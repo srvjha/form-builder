@@ -159,7 +159,7 @@ export default function FormEditPage() {
       setFields(
         current.map((f) =>
           f.id === field.id
-            ? { ...f, id: serverField.id, order: serverField.order }
+            ? { ...f, id: serverField.id, clientKey: f.clientKey ?? f.id, order: serverField.order }
             : f,
         ),
       );
@@ -304,7 +304,9 @@ export default function FormEditPage() {
                   <AnimatePresence>
                     {fields.map((f) => (
                       <FieldCard
-                        key={f.id}
+                        // Keyed by the id it was created with, so swapping in the server id
+                        // does not unmount and re-animate the card (that caused the jump)
+                        key={f.clientKey ?? f.id}
                         field={f}
                         isActive={f.id === activeFieldId}
                         onRemove={handleRemoveField}
