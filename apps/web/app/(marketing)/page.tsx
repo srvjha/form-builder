@@ -4,7 +4,7 @@ import Link from "next/link";
 import { SignUpButton, useAuth } from "@clerk/nextjs";
 import { AnimatePresence, animate, motion, useReducedMotion, type Variants } from "framer-motion";
 import { Check, ChevronDown, Copy, GripVertical, Mail, Star, Type } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { ROUTES } from "@/lib/constants";
 
 /* Same rule the server uses (packages/services/utils/slug.ts) */
@@ -39,28 +39,82 @@ const secondaryBtn =
   "inline-flex min-h-[48px] items-center justify-center rounded-full bg-[var(--bg-inset)] px-7 text-[16px] font-medium text-[var(--text-primary)] transition-[transform,background-color] duration-150 hover:bg-[var(--border-color)] active:scale-[0.97]";
 
 /* ─── Hero: a real field set inside the headline ─────────────── */
-/* One steady field. It opens once with the shutter, then holds still. */
+/* Four real field types take turns in one fixed box: the current one slides up
+   and out while the next rises in, so there is never an empty frame or a resize. */
+const SLOT_FIELDS = ["email", "rating", "select", "text"] as const;
+type SlotField = (typeof SLOT_FIELDS)[number];
+
+function SlotContent({ kind }: { kind: SlotField }) {
+  if (kind === "email") {
+    return (
+      <>
+        <Mail className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
+        <span className="whitespace-nowrap">you@company.com</span>
+        <span className="ml-auto h-[1.2em] w-[0.08em] shrink-0 bg-[var(--color-accent)]" />
+      </>
+    );
+  }
+  if (kind === "rating") {
+    return (
+      <span className="flex w-full items-center justify-between">
+        {[0, 1, 2, 3, 4].map((s) => (
+          <Star
+            key={s}
+            className={`h-[1.4em] w-[1.4em] ${s < 4 ? "fill-[var(--color-accent)] text-[var(--color-accent)]" : "text-[var(--border-color)]"}`}
+          />
+        ))}
+      </span>
+    );
+  }
+  if (kind === "select") {
+    return (
+      <>
+        <span className="rounded-full bg-[var(--color-accent-soft)] px-[0.6em] py-[0.3em] text-[var(--color-accent)]">Weekly</span>
+        <ChevronDown className="ml-auto h-[1.1em] w-[1.1em] shrink-0 text-[var(--text-muted)]" />
+      </>
+    );
+  }
+  return (
+    <>
+      <Type className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
+      <span className="whitespace-nowrap">Loved the checkout</span>
+    </>
+  );
+}
+
 function FieldInSentence() {
   const reduce = useReducedMotion();
+  const [i, setI] = useState(0);
+
+  useEffect(() => {
+    if (reduce) return;
+    const id = setInterval(() => setI((v) => (v + 1) % SLOT_FIELDS.length), 2400);
+    return () => clearInterval(id);
+  }, [reduce]);
+
   return (
     <motion.span
       data-ui
       aria-hidden
+      /* Shutter: opens once from the baseline */
       initial={reduce ? false : { clipPath: "inset(100% 0 0 0)" }}
       animate={{ clipPath: "inset(0% 0 0 0)" }}
       transition={{ duration: 1.1, ease: EASE, delay: 0.35 }}
-      className="relative mx-[0.14em] inline-flex h-[0.86em] w-[2.6em] translate-y-[0.06em] items-center overflow-hidden rounded-[0.16em] bg-[var(--bg-panel)] align-baseline ring-1 ring-[var(--border-color)] max-sm:mx-auto max-sm:my-[0.12em] max-sm:flex max-sm:h-[1.1em] max-sm:w-full"
+      className="relative mx-[0.14em] inline-flex h-[0.86em] w-[2.8em] translate-y-[0.06em] overflow-hidden rounded-[0.16em] bg-[var(--bg-panel)] align-baseline ring-1 ring-[var(--border-color)] max-sm:mx-auto max-sm:my-[0.12em] max-sm:flex max-sm:h-[1.1em] max-sm:w-full"
     >
-      <motion.span
-        initial={reduce ? false : { scale: 1.12 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 1.5, ease: EASE, delay: 0.35 }}
-        className="flex h-full w-full items-center gap-[0.5em] px-[0.16em] font-sans text-[0.2em] leading-none tracking-normal text-[var(--text-primary)] max-sm:text-[0.36em]"
-      >
-        <Mail className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
-        <span className="truncate">you@company.com</span>
-        <span className="ml-auto h-[1.2em] w-[0.08em] shrink-0 bg-[var(--color-accent)]" />
-      </motion.span>
+      {/* The current field slides up and out while the next rises in, at the same time */}
+      <AnimatePresence initial={false}>
+        <motion.span
+          key={SLOT_FIELDS[i]}
+          initial={{ y: "100%" }}
+          animate={{ y: "0%" }}
+          exit={{ y: "-100%" }}
+          transition={{ duration: 0.55, ease: EASE }}
+          className="absolute inset-0 flex items-center gap-[0.6em] px-[1.1em] font-sans text-[0.2em] leading-none tracking-normal text-[var(--text-primary)] max-sm:text-[0.36em]"
+        >
+          <SlotContent kind={SLOT_FIELDS[i]!} />
+        </motion.span>
+      </AnimatePresence>
     </motion.span>
   );
 }
