@@ -97,9 +97,20 @@ function SlotContent({ kind }: { kind: SlotField }) {
   );
 }
 
+/* What the label on the field's border reads for each field */
+const SLOT_LABELS: Record<SlotField, string> = {
+  name: "Full name",
+  email: "Email",
+  gender: "Gender",
+  rating: "Rate your visit",
+};
+
+/* Drawn as a form field being filled in: a blue focus ring and a label notched into its top border.
+   The outer layer holds the ring and label; only the inner layer clips the sliding fields. */
 function FieldInSentence() {
   const reduce = useReducedMotion();
   const [i, setI] = useState(0);
+  const kind = SLOT_FIELDS[i]!;
 
   useEffect(() => {
     if (reduce) return;
@@ -111,25 +122,43 @@ function FieldInSentence() {
     <motion.span
       data-ui
       aria-hidden
-      /* Shutter: opens once from the baseline */
-      initial={reduce ? false : { clipPath: "inset(100% 0 0 0)" }}
-      animate={{ clipPath: "inset(0% 0 0 0)" }}
+      /* Shutter: opens once from the baseline; negative insets leave room for the label and ring */
+      initial={reduce ? false : { clipPath: "inset(100% -10% -10% -10%)" }}
+      animate={{ clipPath: "inset(-40% -10% -10% -10%)" }}
       transition={{ duration: 1.1, ease: EASE, delay: 0.35 }}
-      className="relative mx-[0.14em] inline-flex h-[0.86em] w-[2.8em] translate-y-[0.06em] overflow-hidden rounded-[0.16em] bg-[var(--bg-panel)] align-baseline ring-1 ring-[var(--border-color)] max-sm:mx-auto max-sm:my-[0.12em] max-sm:flex max-sm:h-[1.1em] max-sm:w-full"
+      className="relative mx-[0.14em] inline-flex h-[0.86em] w-[2.8em] translate-y-[0.06em] rounded-[0.16em] align-baseline [--slot-fill:var(--bg-panel)] dark:[--slot-fill:var(--bg-inset)] bg-[var(--slot-fill)] ring-[0.012em] ring-[var(--color-accent)] shadow-[0_0_0_0.03em_color-mix(in_srgb,var(--color-accent)_16%,transparent)] max-sm:mx-auto max-sm:my-[0.2em] max-sm:flex max-sm:h-[1.1em] max-sm:w-full max-sm:ring-[0.03em]"
     >
-      {/* The current field slides up and out while the next rises in, at the same time */}
-      <AnimatePresence initial={false}>
-        <motion.span
-          key={SLOT_FIELDS[i]}
-          initial={{ y: "100%" }}
-          animate={{ y: "0%" }}
-          exit={{ y: "-100%" }}
-          transition={{ duration: 0.55, ease: EASE }}
-          className="absolute inset-0 flex items-center gap-[0.6em] px-[1.1em] font-sans text-[0.2em] leading-none tracking-normal text-[var(--text-primary)] max-sm:text-[0.36em]"
-        >
-          <SlotContent kind={SLOT_FIELDS[i]!} />
-        </motion.span>
-      </AnimatePresence>
+      {/* Label notched into the top border; its background is split so it cuts the ring cleanly */}
+      <span className="absolute left-[2.4em] top-0 z-10 -translate-y-1/2 overflow-hidden rounded-[0.04em] bg-[linear-gradient(to_bottom,var(--bg-page)_50%,var(--slot-fill)_50%)] px-[0.4em] font-sans text-[0.115em] leading-[1.5] tracking-normal text-[var(--color-accent)] max-sm:left-[1.2em] max-sm:px-[0.3em] max-sm:text-[0.28em]">
+        <AnimatePresence initial={false} mode="popLayout">
+          <motion.span
+            key={kind}
+            className="block whitespace-nowrap"
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: "0%", opacity: 1 }}
+            exit={{ y: "-100%", opacity: 0 }}
+            transition={{ duration: 0.55, ease: EASE }}
+          >
+            {SLOT_LABELS[kind]}
+          </motion.span>
+        </AnimatePresence>
+      </span>
+
+      <span className="absolute inset-0 overflow-hidden rounded-[inherit]">
+        {/* The current field slides up and out while the next rises in, at the same time */}
+        <AnimatePresence initial={false}>
+          <motion.span
+            key={kind}
+            initial={{ y: "100%" }}
+            animate={{ y: "0%" }}
+            exit={{ y: "-100%" }}
+            transition={{ duration: 0.55, ease: EASE }}
+            className="absolute inset-0 flex items-center gap-[0.6em] px-[1.1em] font-sans text-[0.2em] leading-none tracking-normal text-[var(--text-primary)] max-sm:text-[0.36em]"
+          >
+            <SlotContent kind={kind} />
+          </motion.span>
+        </AnimatePresence>
+      </span>
     </motion.span>
   );
 }
