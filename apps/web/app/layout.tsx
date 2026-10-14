@@ -67,6 +67,14 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${inter.variable} ${jetbrainsMono.variable}`}
       >
+        <head>
+          {/* Set light/dark before first paint so there is no flash */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(){try{var m=JSON.parse(localStorage.getItem("formcraft-theme")||"{}").state.colorMode;var d=m==="dark"||((m==null||m==="system")&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);}catch(e){}})();`,
+            }}
+          />
+        </head>
         <body className="font-sans antialiased bg-page text-[var(--text-primary)]">
           <Providers>{children}</Providers>
         </body>

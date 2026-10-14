@@ -2,11 +2,12 @@
 
 import { Toaster } from "sonner";
 import { TRPCProvider } from "./trpc-provider";
+import { ColorModeProvider } from "./color-mode-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <TRPCProvider>
-      {children}
+      <ColorModeProvider>{children}</ColorModeProvider>
       <Toaster
         position="bottom-right"
         richColors={false}
