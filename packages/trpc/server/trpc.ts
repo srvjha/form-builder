@@ -78,3 +78,25 @@ export const protectedProcedure = tRPCContext.procedure.use(async ({ ctx, next }
     },
   });
 });
+
+/* ── Admin access ───────────────────────────────────────────────────────────
+   Admins are listed by email in ADMIN_EMAILS (comma-separated). The check runs
+   on the server for every admin call, so hiding the link is not the protection. */
+const DEFAULT_ADMIN_EMAILS = "jhasaurav0209001@gmail.com";
+
+export function isAdminEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  const allowed = (process.env.ADMIN_EMAILS ?? DEFAULT_ADMIN_EMAILS)
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return allowed.includes(email.trim().toLowerCase());
+}
+
+export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const user = await userService.getUserById(ctx.auth.userId);
+  if (!isAdminEmail(user?.email)) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access only" });
+  }
+  return next({ ctx });
+});

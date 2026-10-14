@@ -1,4 +1,4 @@
-import { and, eq, count, sql, gte, lte, desc } from "@repo/database";
+import { and, eq, count, sql, gte, lte, desc, inArray } from "@repo/database";
 import db from "@repo/database";
 import {
   formAnalyticsTable,
@@ -41,8 +41,53 @@ export class AnalyticsService extends BaseService {
     formId: string,
     opts: { from?: Date; to?: Date } = {},
   ): Promise<FormAnalyticsSummary> {
+    return { ...(await this.getAnalyticsForForms([formId], opts)), formId };
+  }
+
+  /** Per-form totals for a set of forms, for the cross-form breakdown */
+  async getPerFormTotals(
+    formIds: string[],
+    opts: { from?: Date; to?: Date } = {},
+  ): Promise<Array<{ formId: string; views: number; starts: number; submissions: number; abandons: number }>> {
+    if (formIds.length === 0) return [];
+    const rows = await db
+      .select({ formId: formAnalyticsTable.formId, event: formAnalyticsTable.event, total: count() })
+      .from(formAnalyticsTable)
+      .where(
+        and(
+          inArray(formAnalyticsTable.formId, formIds),
+          opts.from ? gte(formAnalyticsTable.occurredAt, opts.from) : undefined,
+          opts.to ? lte(formAnalyticsTable.occurredAt, opts.to) : undefined,
+        ),
+      )
+      .groupBy(formAnalyticsTable.formId, formAnalyticsTable.event);
+
+    const map = new Map(formIds.map((id) => [id, { formId: id, views: 0, starts: 0, submissions: 0, abandons: 0 }]));
+    for (const r of rows) {
+      const e = map.get(r.formId);
+      if (!e) continue;
+      const n = Number(r.total);
+      if (r.event === "view")    e.views       = n;
+      if (r.event === "start")   e.starts      = n;
+      if (r.event === "submit")  e.submissions = n;
+      if (r.event === "abandon") e.abandons    = n;
+    }
+    return [...map.values()];
+  }
+
+  /** The same summary as getFormAnalytics, across any set of forms (formId is "all") */
+  async getAnalyticsForForms(
+    formIds: string[],
+    opts: { from?: Date; to?: Date } = {},
+  ): Promise<FormAnalyticsSummary> {
+    if (formIds.length === 0) {
+      return {
+        formId: "all", totalViews: 0, uniqueViews: 0, totalStarts: 0, totalSubmissions: 0, totalAbandons: 0,
+        completionRate: 0, avgCompletionTimeMs: null, topCountries: [], topReferrers: [], dailySubmissions: [], dailyEvents: [],
+      };
+    }
     const timeFilter = and(
-      eq(formAnalyticsTable.formId, formId),
+      inArray(formAnalyticsTable.formId, formIds),
       opts.from ? gte(formAnalyticsTable.occurredAt, opts.from) : undefined,
       opts.to ? lte(formAnalyticsTable.occurredAt, opts.to) : undefined,
     );
@@ -73,7 +118,7 @@ export class AnalyticsService extends BaseService {
       .from(formResponsesTable)
       .where(
         and(
-          eq(formResponsesTable.formId, formId),
+          inArray(formResponsesTable.formId, formIds),
           opts.from ? gte(formResponsesTable.submittedAt, opts.from) : undefined,
           opts.to ? lte(formResponsesTable.submittedAt, opts.to) : undefined,
         ),
@@ -154,7 +199,7 @@ export class AnalyticsService extends BaseService {
       totalViews > 0 ? Math.round((totalSubmissions / totalViews) * 100) : 0;
 
     return {
-      formId,
+      formId: "all",
       totalViews,
       uniqueViews: Number(uniqueViews ?? 0),
       totalStarts,

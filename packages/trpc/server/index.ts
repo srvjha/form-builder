@@ -5,6 +5,8 @@ import { formsRouter } from "./routes/forms/route";
 import { publicRouter } from "./routes/public/route";
 import { exploreRouter } from "./routes/explore/route";
 import { themesRouter } from "./routes/themes/route";
+import { analyticsRouter } from "./routes/analytics/route";
+import { adminRouter } from "./routes/admin/route";
 
 export const serverRouter = router({
   health: healthRouter,
@@ -13,6 +15,8 @@ export const serverRouter = router({
   public: publicRouter,
   explore: exploreRouter,
   themes: themesRouter,
+  analytics: analyticsRouter,
+  admin: adminRouter,
 });
 
 export type ServerRouter = typeof serverRouter;
