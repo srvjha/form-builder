@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { SignUpButton, useAuth } from "@clerk/nextjs";
-import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer-motion";
+import { AnimatePresence, animate, motion, useReducedMotion, type Variants } from "framer-motion";
 import { Check, ChevronDown, Copy, GripVertical, Mail, Star, Type } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { ROUTES } from "@/lib/constants";
 
 /* Same rule the server uses (packages/services/utils/slug.ts) */
@@ -39,23 +39,13 @@ const secondaryBtn =
   "inline-flex min-h-[48px] items-center justify-center rounded-full bg-[var(--bg-inset)] px-7 text-[16px] font-medium text-[var(--text-primary)] transition-[transform,background-color] duration-150 hover:bg-[var(--border-color)] active:scale-[0.97]";
 
 /* ─── Hero: a real field set inside the headline ─────────────── */
-const SLOT_FIELDS = ["email", "rating", "select", "text"] as const;
-
+/* One steady field. It opens once with the shutter, then holds still. */
 function FieldInSentence() {
   const reduce = useReducedMotion();
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    if (reduce) return;
-    const id = setInterval(() => setI((v) => (v + 1) % SLOT_FIELDS.length), 2400);
-    return () => clearInterval(id);
-  }, [reduce]);
-  const kind = SLOT_FIELDS[i]!;
-
   return (
     <motion.span
       data-ui
       aria-hidden
-      /* Shutter: opens upward from the baseline while the field settles */
       initial={reduce ? false : { clipPath: "inset(100% 0 0 0)" }}
       animate={{ clipPath: "inset(0% 0 0 0)" }}
       transition={{ duration: 1.1, ease: EASE, delay: 0.35 }}
@@ -65,48 +55,11 @@ function FieldInSentence() {
         initial={reduce ? false : { scale: 1.12 }}
         animate={{ scale: 1 }}
         transition={{ duration: 1.5, ease: EASE, delay: 0.35 }}
-        className="flex h-full w-full items-center px-[0.16em]"
+        className="flex h-full w-full items-center gap-[0.5em] px-[0.16em] font-sans text-[0.2em] leading-none tracking-normal text-[var(--text-primary)] max-sm:text-[0.36em]"
       >
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={kind}
-            initial={{ y: "60%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "-60%", opacity: 0 }}
-            transition={{ duration: 0.35, ease: EASE }}
-            className="flex w-full items-center gap-[0.5em] font-sans text-[0.2em] leading-none tracking-normal max-sm:text-[0.36em] text-[var(--text-primary)]"
-          >
-            {kind === "email" && (
-              <>
-                <Mail className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
-                <span className="truncate">you@company.com</span>
-                <span className="ml-auto h-[1.2em] w-[0.08em] bg-[var(--color-accent)]" />
-              </>
-            )}
-            {kind === "rating" && (
-              <span className="flex w-full justify-between">
-                {[0, 1, 2, 3, 4].map((s) => (
-                  <Star
-                    key={s}
-                    className={`h-[1.5em] w-[1.5em] ${s < 4 ? "fill-[var(--color-accent)] text-[var(--color-accent)]" : "text-[var(--border-color)]"}`}
-                  />
-                ))}
-              </span>
-            )}
-            {kind === "select" && (
-              <>
-                <span className="rounded-full bg-[var(--color-accent-soft)] px-[0.6em] py-[0.3em] text-[var(--color-accent)]">Weekly</span>
-                <ChevronDown className="ml-auto h-[1.1em] w-[1.1em] text-[var(--text-muted)]" />
-              </>
-            )}
-            {kind === "text" && (
-              <>
-                <Type className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
-                <span className="truncate">The checkout was quick</span>
-              </>
-            )}
-          </motion.span>
-        </AnimatePresence>
+        <Mail className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
+        <span className="truncate">you@company.com</span>
+        <span className="ml-auto h-[1.2em] w-[0.08em] shrink-0 bg-[var(--color-accent)]" />
       </motion.span>
     </motion.span>
   );
@@ -552,9 +505,26 @@ function StageFragment({ stage }: { stage: number }) {
 }
 
 function Stages() {
-  const [stage, setStage] = useState(0);
+  const reduce = useReducedMotion();
   const sliderId = useId();
+  const last = STAGES.length - 1;
+  const [pos, setPos] = useState(0); // 0..last, fractional while dragging
+  const stage = Math.round(pos);
   const current = STAGES[stage]!;
+
+  /* Glide to a stage instead of jumping */
+  function settle(target: number) {
+    const to = Math.max(0, Math.min(last, Math.round(target)));
+    if (reduce) {
+      setPos(to);
+      return;
+    }
+    animate(pos, to, { duration: 0.35, ease: EASE, onUpdate: setPos });
+  }
+
+  /* The thumb centre runs from half a thumb in from each end */
+  const at = (t: number) => `calc(var(--thumb) / 2 + (100% - var(--thumb)) * ${t})`;
+  const fill = at(pos / last);
 
   return (
     <section aria-labelledby={`${sliderId}-h`} className="mx-auto flex max-w-[1280px] flex-col items-center px-4 py-32 text-center sm:px-8 md:py-44">
@@ -582,7 +552,7 @@ function Stages() {
         </AnimatePresence>
       </div>
 
-      <div className="mt-14 w-full max-w-[720px]">
+      <div className="stage-track mt-14 w-full max-w-[720px]">
         <label htmlFor={sliderId} className="sr-only">
           Stage
         </label>
@@ -590,21 +560,31 @@ function Stages() {
           id={sliderId}
           type="range"
           min={0}
-          max={STAGES.length - 1}
-          step={1}
-          value={stage}
-          onChange={(e) => setStage(Number(e.target.value))}
+          max={last}
+          step={0.001}
+          value={pos}
+          onChange={(e) => setPos(Number(e.target.value))}
+          onPointerUp={(e) => settle(Number((e.target as HTMLInputElement).value))}
+          onTouchEnd={(e) => settle(Number((e.target as HTMLInputElement).value))}
+          onKeyDown={(e) => {
+            if (["ArrowRight", "ArrowUp"].includes(e.key)) { e.preventDefault(); settle(stage + 1); }
+            if (["ArrowLeft", "ArrowDown"].includes(e.key)) { e.preventDefault(); settle(stage - 1); }
+            if (e.key === "Home") { e.preventDefault(); settle(0); }
+            if (e.key === "End") { e.preventDefault(); settle(last); }
+          }}
           aria-valuetext={current.name}
           className="stage-slider w-full"
-          style={{ ["--fill" as string]: `${(stage / (STAGES.length - 1)) * 100}%` }}
+          style={{ ["--fill" as string]: fill }}
         />
-        <div className="mt-4 grid grid-cols-4 text-[16px]">
+        {/* Each label sits under the centre of the thumb at its stop */}
+        <div className="relative mt-3 h-11">
           {STAGES.map((s, k) => (
             <button
               key={s.name}
               type="button"
-              onClick={() => setStage(k)}
-              className={`min-h-[44px] transition-colors ${k === stage ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+              onClick={() => settle(k)}
+              style={{ left: at(k / last) }}
+              className={`absolute top-0 min-h-[44px] -translate-x-1/2 whitespace-nowrap px-2 text-[16px] transition-colors ${k === stage ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
             >
               {s.name}
             </button>
@@ -626,7 +606,7 @@ function Close({ isSignedIn }: { isSignedIn: boolean }) {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, margin: "-80px" }}
-        className="mx-auto flex min-h-[80svh] max-w-[1280px] flex-col items-center justify-center px-4 py-24 text-center sm:px-8 md:min-h-[90svh]"
+        className="mx-auto flex min-h-[70svh] max-w-[1280px] flex-col items-center justify-center px-4 pb-20 pt-32 text-center sm:px-8"
       >
         <motion.h2 variants={rise} className="font-display text-[clamp(42px,10vw,160px)] leading-[0.9] tracking-[-0.03em]">
           Ask once.

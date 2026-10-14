@@ -168,6 +168,10 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Never leave one word alone on a heading's last line; paragraphs avoid orphans too */
+  h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
+  p, li, blockquote { text-wrap: pretty; }
+
   /* Gambarino is a single regular cut; headings take presence from size, not weight */
   h1, h2 {
     font-family: var(--font-display);
@@ -302,6 +306,9 @@
 /* ─────────────────────────────────────────────────────────
    LANDING — stage slider (solid track, passed part in ink, square blue thumb)
 ───────────────────────────────────────────────────────── */
+.stage-track { --thumb: 32px; }
+@media (max-width: 640px) { .stage-track { --thumb: 40px; } }
+
 .stage-slider {
   -webkit-appearance: none;
   appearance: none;
@@ -312,12 +319,12 @@
 .stage-slider::-webkit-slider-runnable-track {
   height: 8px;
   border-radius: 999px;
-  background: linear-gradient(to right, var(--text-primary) var(--fill, 0%), var(--bg-inset) var(--fill, 0%));
+  background: linear-gradient(to right, var(--text-primary) var(--fill, 0%), var(--border-color) var(--fill, 0%));
 }
 .stage-slider::-moz-range-track {
   height: 8px;
   border-radius: 999px;
-  background: var(--bg-inset);
+  background: var(--border-color);
 }
 .stage-slider::-moz-range-progress {
   height: 8px;
@@ -326,22 +333,20 @@
 }
 .stage-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 32px;
-  height: 32px;
-  margin-top: -12px;
+  width: var(--thumb, 32px);
+  height: var(--thumb, 32px);
+  margin-top: calc((8px - var(--thumb, 32px)) / 2);
   border-radius: 8px;
   background: var(--color-action);
   border: 0;
   transition: transform 150ms ease;
 }
 .stage-slider::-moz-range-thumb {
-  width: 32px;
-  height: 32px;
+  width: var(--thumb, 32px);
+  height: var(--thumb, 32px);
   border-radius: 8px;
   background: var(--color-action);
   border: 0;
 }
 .stage-slider:active::-webkit-slider-thumb { transform: scale(0.94); }
-@media (max-width: 640px) {
-  .stage-slider::-webkit-slider-thumb { width: 40px; height: 40px; margin-top: -16px; }
-}
+.stage-slider { height: var(--thumb, 32px); }

@@ -20,8 +20,8 @@ const linkCls =
 export function MarketingFooter() {
   return (
     <footer className="overflow-hidden bg-[var(--text-primary)] text-[var(--bg-page)]">
-      <div className="mx-auto max-w-[1280px] px-4 pt-20 sm:px-8">
-        <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-8">
+        <div className="flex flex-col gap-10 pt-12 sm:flex-row sm:justify-between">
           <p className="max-w-[22rem] text-[16px] leading-relaxed">
             Forms, responses and analytics in one place, built by one developer.
           </p>
@@ -47,17 +47,17 @@ export function MarketingFooter() {
           </div>
         </div>
 
-        <p className="mt-24 text-[13px] opacity-70">
+        <p className="mt-16 text-[13px] opacity-70">
           © {new Date().getFullYear()} {APP_NAME}
         </p>
-      </div>
 
-      <p
-        aria-hidden
-        className="select-none whitespace-nowrap px-2 font-display text-[26vw] leading-[0.8] tracking-[-0.04em] [transform:translateY(22%)]"
-      >
-        {APP_NAME}
-      </p>
+        {/* Same column and left edge as the text above; sized to fill it, cut only by the bottom edge */}
+        <div aria-hidden className="mt-6 [container-type:inline-size]">
+          <p className="select-none whitespace-nowrap font-display text-[23.5cqw] leading-[0.8] tracking-[-0.04em] [transform:translateY(18%)]">
+            {APP_NAME}
+          </p>
+        </div>
+      </div>
     </footer>
   );
 }
