@@ -201,7 +201,7 @@ const TEMPLATES = [
   {
     id:          "nps_survey",
     icon:        Users,
-    label:       "NPS Survey",
+    label:       "NPS survey",
     description: "Net promoter score with follow-up questions.",
     fields:      [
       { type: "scale",        label: "How likely are you to recommend us to a friend or colleague?",
@@ -344,11 +344,8 @@ export default function NewFormPage() {
             <h2 className="px-1 font-sans text-[13px] font-semibold leading-tight tracking-normal text-[var(--text-primary)]">
               Start from
             </h2>
-            <div
-              className="grid gap-px overflow-hidden rounded-xl border-1 border-[var(--border-color)] bg-[var(--border-muted)] sm:grid-cols-2"
-              role="radiogroup"
-              aria-label="Template"
-            >
+            {/* Each template is its own tile with room around it */}
+            <div className="grid gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Template">
               {TEMPLATES.map((t) => {
                 const Icon     = t.icon;
                 const isActive = template === t.id;
@@ -361,40 +358,39 @@ export default function NewFormPage() {
                     aria-checked={isActive}
                     onClick={() => setTemplate(t.id)}
                     className={cn(
-                      "relative flex items-start gap-3 px-4 py-3.5 text-left transition-colors focus-visible:z-10",
+                      "relative flex items-start gap-4 rounded-xl p-5 text-left transition-[background-color,box-shadow] duration-150 active:scale-[0.99]",
                       isActive
-                        ? "bg-[var(--color-accent-soft)]"
-                        : "bg-[var(--bg-panel)] hover:bg-[var(--bg-inset)]",
+                        ? "bg-[var(--color-accent-soft)] ring-2 ring-[var(--color-accent)]"
+                        : "bg-[var(--bg-panel)] ring-1 ring-[var(--border-color)] hover:bg-[var(--bg-inset)]",
                     )}
                   >
-                    <Icon
+                    <span
                       className={cn(
-                        "mt-0.5 h-4 w-4 shrink-0",
-                        isActive ? "text-[var(--color-accent)]" : "text-[var(--text-muted)]",
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
+                        isActive
+                          ? "bg-[var(--color-action)] text-white"
+                          : "bg-[var(--bg-inset)] text-[var(--text-secondary)]",
                       )}
                       aria-hidden
-                    />
+                    >
+                      <Icon className="h-5 w-5" />
+                    </span>
                     <span className="min-w-0 flex-1">
                       <span className="flex items-baseline justify-between gap-3">
+                        <span className="text-[15px] font-medium text-[var(--text-primary)]">{t.label}</span>
                         <span
                           className={cn(
-                            "text-sm font-medium",
-                            isActive ? "text-[var(--color-accent)]" : "text-[var(--text-primary)]",
+                            "shrink-0 text-xs tabular-nums",
+                            isActive ? "text-[var(--color-accent)]" : "text-[var(--text-muted)]",
                           )}
                         >
-                          {t.label}
-                        </span>
-                        <span className="shrink-0 text-xs tabular-nums text-[var(--text-muted)]">
                           {count === 0 ? "No fields" : `${count} fields`}
                         </span>
                       </span>
-                      <span className="mt-0.5 block text-xs leading-snug text-[var(--text-secondary)]">
+                      <span className="mt-1.5 block text-[13px] leading-relaxed text-[var(--text-secondary)]">
                         {t.description}
                       </span>
                     </span>
-                    {isActive && (
-                      <span className="absolute inset-y-0 left-0 w-[3px] bg-[var(--color-accent)]" aria-hidden />
-                    )}
                   </button>
                 );
               })}
