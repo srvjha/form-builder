@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 import { Zap } from "lucide-react";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
@@ -17,14 +18,30 @@ const NAV_LINKS = [
 export function MarketingNav() {
   const { isSignedIn, isLoaded } = useAuth();
   const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(false);
+
+  /* Transparent over the hero; gains a blurred panel once the page scrolls */
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[var(--border-color)] bg-[var(--bg-panel)]/80 backdrop-blur-md">
+    <header
+      className={cn(
+        "fixed inset-x-0 top-0 z-40 w-full border-b transition-[background-color,border-color,backdrop-filter] duration-300",
+        scrolled
+          ? "border-[var(--border-muted)] bg-[var(--bg-page)]/75 backdrop-blur-xl"
+          : "border-transparent bg-transparent",
+      )}
+    >
       <div className="mx-auto flex h-16 max-w-content items-center justify-between gap-4 px-4 sm:px-6">
         {/* Logo */}
         <Link href={ROUTES.home} className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--color-accent)] shadow-soft-xs">
-            <Zap className="h-4 w-4 text-white" />
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-brand-gradient shadow-soft-xs">
+            <Zap className="h-4 w-4 fill-[var(--color-highlight)] text-[var(--color-highlight)]" />
           </span>
           <span className="font-display text-sm font-semibold tracking-tight text-[var(--text-primary)]">
             {APP_NAME}

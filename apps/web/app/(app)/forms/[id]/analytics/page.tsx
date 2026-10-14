@@ -19,11 +19,11 @@ import { trpc }       from "@/lib/trpc";
 
 /* ── Palette ──────────────────────────────────────────────── */
 const C = {
-  accent:  "#0D9488",
+  accent:  "#2563EB",
   blue:    "#0EA5E9",
   green:   "#10B981",
-  yellow:  "#38BDF8",
-  purple:  "#14B8A6",
+  yellow:  "#EAB308",
+  purple:  "#3B82F6",
   red:     "#64748B",
   muted:   "#94A3B8",
 };

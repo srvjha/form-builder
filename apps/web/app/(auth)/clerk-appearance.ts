@@ -4,7 +4,7 @@ import { dark } from "@clerk/ui/themes";
 const BASE = {
   variables: {
     borderRadius:           "0.5rem",
-    colorPrimary:           "#0D9488",
+    colorPrimary:           "#2563EB",
     colorDanger:            "#EF4444",
     fontFamily:             "inherit",
     fontSize:               "14px",
@@ -14,7 +14,7 @@ const BASE = {
     rootBox: "!w-full",
     cardBox: "!w-full",
     card: "!shadow-[0_1px_3px_rgba(15,23,42,0.08),0_1px_2px_rgba(15,23,42,0.04)] !rounded-xl",
-    footerActionLink: "!text-[#0D9488]",
+    footerActionLink: "!text-[#2563EB]",
   },
 } satisfies Partial<ClerkAppearanceTheme>;
 
@@ -23,7 +23,7 @@ export const clerkAppearanceDark: ClerkAppearanceTheme = {
   theme: dark as any,
   variables: {
     ...BASE.variables,
-    colorPrimary:         "#2DD4BF",
+    colorPrimary:         "#60A5FA",
     colorBackground:      "#12151F",
     colorForeground:      "#E6E9F2",
     colorMutedForeground: "#8B93A7",
@@ -47,7 +47,7 @@ export const clerkAppearanceDark: ClerkAppearanceTheme = {
     identityPreviewEditButton:    "!text-[#B6BDCE]",
     footer:                       "!bg-[#12151F]",
     footerActionText:             "!text-[#8B93A7]",
-    footerActionLink:             "!text-[#2DD4BF]",
+    footerActionLink:             "!text-[#60A5FA]",
     footerPages:                  "!text-[#8B93A7] [&_*]:!text-[#8B93A7]",
     footerPagesLink:              "!text-[#8B93A7]",
   },

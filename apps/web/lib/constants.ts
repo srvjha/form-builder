@@ -46,7 +46,7 @@ export const FORM_STATUS_LABELS = {
 
 export const FORM_STATUS_COLORS = {
   draft:     { bg: "bg-slate-100",   text: "text-slate-700",   border: "border-slate-200" },
-  published: { bg: "bg-emerald-100", text: "text-emerald-800", border: "border-emerald-200" },
+  published: { bg: "bg-green-100", text: "text-green-800", border: "border-green-200" },
   closed:    { bg: "bg-sky-100",     text: "text-sky-800",     border: "border-sky-200" },
   archived:  { bg: "bg-slate-100",   text: "text-slate-600",   border: "border-slate-200" },
 } as const;

@@ -10,7 +10,7 @@ function resolveAccent(): string {
   return (
     getComputedStyle(document.documentElement)
       .getPropertyValue("--color-accent")
-      .trim() || "#0D9488"
+      .trim() || "#2563EB"
   );
 }
 
@@ -33,7 +33,7 @@ function withAccent(
 
 export function ThemedClerkSignIn() {
   const resolved = useThemeStore((s) => s.resolved);
-  const [accent, setAccent] = useState("#0D9488");
+  const [accent, setAccent] = useState("#2563EB");
 
   useEffect(() => {
     setAccent(resolveAccent());

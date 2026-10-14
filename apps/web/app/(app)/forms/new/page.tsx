@@ -67,7 +67,7 @@ const TEMPLATES = [
     icon:        MessageSquare,
     label:       "Feedback Form",
     description: "Rating + NPS + open questions.",
-    color:       "bg-emerald-500/10",
+    color:       "bg-green-500/10",
     accent:      "#10B981",
     fields:      [
       { type: "rating",    label: "Overall experience",          required: true,  maxValue: 5 },
@@ -84,8 +84,8 @@ const TEMPLATES = [
     icon:        BarChart2,
     label:       "Quick Survey",
     description: "3–5 questions with NPS.",
-    color:       "bg-teal-500/10",
-    accent:      "#0D9488",
+    color:       "bg-sky-500/10",
+    accent:      "#2563EB",
     fields:      [
       { type: "short_text",   label: "Your Name",          required: false, placeholder: "Optional" },
       { type: "select",       label: "Age Range",           required: false,
@@ -217,7 +217,7 @@ const TEMPLATES = [
     icon:        Users,
     label:       "NPS Survey",
     description: "Net promoter score + followups.",
-    color:       "bg-emerald-500/10",
+    color:       "bg-green-500/10",
     accent:      "#059669",
     fields:      [
       { type: "scale",        label: "How likely are you to recommend us to a friend or colleague?",

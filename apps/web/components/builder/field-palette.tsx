@@ -12,8 +12,8 @@ import { useBuilderStore, DEFAULT_MAX_FIELDS } from "@/stores/builder-store";
 import { cn } from "@/lib/utils";
 
 const FIELD_DEFS: { type: FieldType; label: string; icon: React.ElementType; color: string }[] = [
-  { type: "short_text",   label: "Short Text",    icon: Type,         color: "#0D9488" },
-  { type: "long_text",    label: "Long Text",     icon: AlignLeft,    color: "#0D9488" },
+  { type: "short_text",   label: "Short Text",    icon: Type,         color: "#2563EB" },
+  { type: "long_text",    label: "Long Text",     icon: AlignLeft,    color: "#2563EB" },
   { type: "email",        label: "Email",         icon: Mail,         color: "#0EA5E9" },
   { type: "number",       label: "Number",        icon: Hash,         color: "#0EA5E9" },
   { type: "phone",        label: "Phone",         icon: Phone,        color: "#0EA5E9" },
