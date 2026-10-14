@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { SignUpButton, useAuth } from "@clerk/nextjs";
 import { AnimatePresence, animate, motion, useReducedMotion, type Variants } from "framer-motion";
-import { Check, ChevronDown, Copy, GripVertical, Mail, Star, Type } from "lucide-react";
+import { Check, ChevronDown, Copy, GripVertical, Mail, Star, Type, User } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { ROUTES } from "@/lib/constants";
 
@@ -41,44 +41,59 @@ const secondaryBtn =
 /* ─── Hero: a real field set inside the headline ─────────────── */
 /* Four real field types take turns in one fixed box: the current one slides up
    and out while the next rises in, so there is never an empty frame or a resize. */
-const SLOT_FIELDS = ["email", "rating", "select", "text"] as const;
+/* The fields almost every form has, so visitors recognise them at a glance */
+const SLOT_FIELDS = ["name", "email", "gender", "rating"] as const;
 type SlotField = (typeof SLOT_FIELDS)[number];
 
 function SlotContent({ kind }: { kind: SlotField }) {
-  if (kind === "email") {
+  if (kind === "name") {
     return (
       <>
-        <Mail className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
-        <span className="whitespace-nowrap">you@company.com</span>
+        <User className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
+        <span className="whitespace-nowrap">Jane Cooper</span>
         <span className="ml-auto h-[1.2em] w-[0.08em] shrink-0 bg-[var(--color-accent)]" />
       </>
     );
   }
-  if (kind === "rating") {
+  if (kind === "email") {
     return (
-      <span className="flex w-full items-center justify-between">
-        {[0, 1, 2, 3, 4].map((s) => (
-          <Star
-            key={s}
-            className={`h-[1.4em] w-[1.4em] ${s < 4 ? "fill-[var(--color-accent)] text-[var(--color-accent)]" : "text-[var(--border-color)]"}`}
-          />
+      <>
+        <Mail className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
+        <span className="whitespace-nowrap">jane@company.com</span>
+      </>
+    );
+  }
+  if (kind === "gender") {
+    /* A single-choice field: one option picked */
+    return (
+      <span className="flex w-full items-center gap-[0.5em]">
+        {(["Female", "Male"] as const).map((g, k) => (
+          <span
+            key={g}
+            className={`flex flex-1 items-center justify-center gap-[0.4em] rounded-full py-[0.35em] ${
+              k === 0 ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]" : "text-[var(--text-muted)] ring-1 ring-[var(--border-color)]"
+            }`}
+          >
+            <span
+              className={`h-[0.7em] w-[0.7em] rounded-full ${
+                k === 0 ? "bg-[var(--color-accent)]" : "ring-1 ring-[var(--text-muted)]"
+              }`}
+            />
+            {g}
+          </span>
         ))}
       </span>
     );
   }
-  if (kind === "select") {
-    return (
-      <>
-        <span className="rounded-full bg-[var(--color-accent-soft)] px-[0.6em] py-[0.3em] text-[var(--color-accent)]">Weekly</span>
-        <ChevronDown className="ml-auto h-[1.1em] w-[1.1em] shrink-0 text-[var(--text-muted)]" />
-      </>
-    );
-  }
   return (
-    <>
-      <Type className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
-      <span className="whitespace-nowrap">Loved the checkout</span>
-    </>
+    <span className="flex w-full items-center justify-between">
+      {[0, 1, 2, 3, 4].map((s) => (
+        <Star
+          key={s}
+          className={`h-[1.4em] w-[1.4em] ${s < 4 ? "fill-[var(--color-accent)] text-[var(--color-accent)]" : "text-[var(--border-color)]"}`}
+        />
+      ))}
+    </span>
   );
 }
 
