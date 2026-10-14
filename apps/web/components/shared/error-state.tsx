@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -13,42 +13,36 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({
-  title = "Something went wrong",
-  description = "An unexpected error occurred. Please try again.",
+  title = "This didn't load",
+  description = "Check your connection, then try again.",
   code,
   onRetry,
   className,
 }: ErrorStateProps) {
   return (
     <div
+      role="alert"
       className={cn(
-        "border-2 border-[var(--border-color)] bg-[var(--bg-panel)] p-8",
-        "border-l-4 border-l-[var(--color-red)]",
+        "flex items-start gap-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)] p-5",
         className,
       )}
     >
-      <div className="flex items-start gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center border-2 border-[var(--color-red)] bg-[var(--bg-inset)]">
-          <AlertTriangle className="h-5 w-5 text-[var(--color-red)]" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-base font-extrabold uppercase tracking-wide text-[var(--text-primary)]">
-            ✖ {title}
-          </h3>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">{description}</p>
-          {code && (
-            <span className="mt-3 inline-block bg-[var(--bg-inset)] border border-[var(--border-muted)] px-2 py-1 font-mono text-xs text-[var(--text-muted)]">
-              {code}
-            </span>
-          )}
-          {onRetry && (
-            <div className="mt-5 flex gap-3">
-              <Button size="sm" onClick={onRetry}>
-                Try Again
-              </Button>
-            </div>
-          )}
-        </div>
+      <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-red)]" aria-hidden />
+      <div className="min-w-0 flex-1">
+        <h3 className="font-sans text-[15px] font-semibold text-[var(--text-primary)]">{title}</h3>
+        <p className="mt-1 text-sm leading-relaxed text-[var(--text-secondary)]">{description}</p>
+        {code && (
+          <code className="mt-3 inline-block break-all rounded-md bg-[var(--bg-inset)] px-2 py-1 font-mono text-xs text-[var(--text-muted)]">
+            {code}
+          </code>
+        )}
+        {onRetry && (
+          <div className="mt-4">
+            <Button size="sm" variant="secondary" onClick={onRetry}>
+              Try again
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

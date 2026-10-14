@@ -1,19 +1,12 @@
 "use client";
 
-import { useState }       from "react";
+import { useId, useState } from "react";
 import { useUser }        from "@clerk/nextjs";
-import { motion }         from "framer-motion";
-import { User, Palette, Bell, Shield } from "lucide-react";
 import { AppShell }       from "@/components/layout/app-shell";
-import { Button }         from "@/components/ui/button";
-import { Input }          from "@/components/ui/input";
 import { Switch }         from "@/components/ui/switch";
 import { Label }          from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useThemeStore, type FormTheme }  from "@/stores/theme-store";
+import { useThemeStore }  from "@/stores/theme-store";
 import { cn }             from "@/lib/utils";
-import Link from "next/link";
-import { ROUTES } from "@/lib/constants";
 
 const COLOR_MODES = [
   { id: "light",  label: "Light" },
@@ -21,143 +14,128 @@ const COLOR_MODES = [
   { id: "system", label: "System" },
 ] as const;
 
+const NOTIFICATIONS = [
+  { label: "New response",      desc: "Get an email every time someone submits your form.", defaultOn: true },
+  { label: "Weekly digest",     desc: "A weekly summary of all your form activity.",         defaultOn: false },
+  { label: "Milestone alerts",  desc: "Notify when a form hits 10, 100, 1000 responses.",   defaultOn: true },
+] as const;
+
+const PANEL = "rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)]";
+
+function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <section className="grid gap-3 md:grid-cols-[200px_minmax(0,1fr)] md:gap-8">
+      <div>
+        <h3 className="text-[15px] text-[var(--text-primary)]">{title}</h3>
+        {description && <p className="mt-1 text-sm text-[var(--text-muted)]">{description}</p>}
+      </div>
+      <div className="min-w-0">{children}</div>
+    </section>
+  );
+}
+
+/* One row per notification; owns its own state so hooks are never called inside a loop */
+function NotificationRow({ label, desc, defaultOn }: { label: string; desc: string; defaultOn: boolean }) {
+  const [on, setOn] = useState(defaultOn);
+  const id = useId();
+  return (
+    <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-5">
+      <div className="min-w-0">
+        <Label htmlFor={id} className="text-sm font-medium text-[var(--text-primary)]">{label}</Label>
+        <p className="mt-0.5 text-sm text-[var(--text-secondary)]">{desc}</p>
+      </div>
+      <Switch id={id} checked={on} onCheckedChange={setOn} />
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const { user } = useUser();
-  const { colorMode, setColorMode, theme } = useThemeStore();
-
-  const THEME_LABELS: Record<FormTheme, { name: string; desc: string }> = {
-    brutalist:  { name: "Brutalist",   desc: "Raw concrete aesthetic. Zero rounded corners. Offset shadows." },
-    ocean:      { name: "Ocean",       desc: "Cool blues and crisp whites. Trustworthy & professional." },
-    midnight:   { name: "Midnight",    desc: "Deep dark surfaces with electric indigo accents." },
-    forest:     { name: "Forest",      desc: "Earthy greens and natural tones. Calm & grounded." },
-    solar:      { name: "Solar",       desc: "Warm amber and golden tones. Energetic & optimistic." },
-    lavender:   { name: "Lavender",    desc: "Soft purples and violets. Creative & expressive." },
-    monochrome: { name: "Monochrome",  desc: "Pure black and white. Timeless & editorial." },
-    coral:      { name: "Coral",       desc: "Warm coral and rose tones. Vibrant & friendly." },
-  };
+  const { colorMode, setColorMode } = useThemeStore();
 
   return (
     <AppShell title="Settings">
-      <div className="mx-auto max-w-2xl">
-        <Tabs defaultValue="profile">
-          <TabsList className="mb-6">
-            <TabsTrigger value="profile"  className="gap-1.5"><User    className="h-3.5 w-3.5" /> Profile</TabsTrigger>
-            <TabsTrigger value="appearance" className="gap-1.5"><Palette className="h-3.5 w-3.5" /> Appearance</TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-1.5"><Bell className="h-3.5 w-3.5" /> Notifications</TabsTrigger>
-          </TabsList>
-
-          {/* ── Profile ──────────────────────────────────────────── */}
-          <TabsContent value="profile">
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-              <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] p-6 shadow-brut-md space-y-5">
-                <div className="flex items-center gap-4 border-b-2 border-[var(--border-muted)] pb-5">
-                  <div className="flex h-14 w-14 items-center justify-center border-2 border-[#0A0A0A] bg-[var(--color-accent)] font-display text-xl font-black text-white">
-                    {user?.firstName?.[0] ?? user?.emailAddresses[0]?.emailAddress[0]?.toUpperCase() ?? "?"}
-                  </div>
-                  <div>
-                    <p className="font-display text-base font-extrabold uppercase tracking-tight">
-                      {user?.fullName ?? "Anonymous"}
-                    </p>
-                    <p className="font-mono text-xs text-[var(--text-muted)]">
-                      {user?.primaryEmailAddress?.emailAddress}
-                    </p>
-                  </div>
-                </div>
-
-                <p className="font-mono text-xs text-[var(--text-muted)]">
-                  Profile information is managed through Clerk. Click the avatar in the top bar to update your name, email, or password.
+      <div className="mx-auto w-full max-w-4xl space-y-10 pt-2">
+        {/* ── Profile ──────────────────────────────────────────── */}
+        <Section title="Profile" description="Managed through your account.">
+          <div className={PANEL}>
+            <div className="flex items-center gap-4 px-4 py-4 sm:px-5">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-soft)] text-lg font-semibold text-[var(--color-accent)]">
+                {user?.firstName?.[0] ?? user?.emailAddresses[0]?.emailAddress[0]?.toUpperCase() ?? "?"}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-[15px] font-semibold text-[var(--text-primary)]">
+                  {user?.fullName ?? "Anonymous"}
                 </p>
-
-                <div className="border-2 border-[var(--border-muted)] bg-[var(--bg-inset)] p-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="font-mono text-xs text-[var(--text-muted)]">User ID</span>
-                    <span className="font-mono text-xs truncate max-w-[200px]">{user?.id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-mono text-xs text-[var(--text-muted)]">Member since</span>
-                    <span className="font-mono text-xs">
-                      {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
-                    </span>
-                  </div>
-                </div>
+                <p className="truncate text-sm text-[var(--text-secondary)]">
+                  {user?.primaryEmailAddress?.emailAddress}
+                </p>
               </div>
-            </motion.div>
-          </TabsContent>
+            </div>
 
-          {/* ── Appearance ───────────────────────────────────────── */}
-          <TabsContent value="appearance">
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-              <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] p-6 shadow-brut-md">
-                <p className="label-overline mb-5">Color mode</p>
-                <div className="grid grid-cols-3 gap-0 border-2 border-[#0A0A0A]">
-                  {COLOR_MODES.map(({ id, label }) => (
-                    <button
-                      key={id}
-                      onClick={() => setColorMode(id)}
-                      className={cn(
-                        "py-3 font-display text-xs font-extrabold uppercase tracking-wider border-r-2 border-[#0A0A0A] last:border-r-0 transition-colors",
-                        colorMode === id
-                          ? "bg-[#0A0A0A] text-white"
-                          : "bg-[var(--bg-panel)] hover:bg-[var(--bg-inset)]",
-                      )}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="mt-6 border-t-2 border-[var(--border-muted)] pt-5">
-                  <p className="label-overline mb-3">Form theme</p>
-                  <div className="flex items-start justify-between gap-4 border-2 border-[var(--border-muted)] bg-[var(--bg-inset)] p-4">
-                    <div>
-                      <p className="font-display text-sm font-extrabold uppercase tracking-tight">
-                        {THEME_LABELS[theme]?.name ?? theme}
-                      </p>
-                      <p className="mt-1 text-xs text-[var(--text-muted)]">
-                        {THEME_LABELS[theme]?.desc}
-                      </p>
-                    </div>
-                    <Link
-                      href={ROUTES.themes}
-                      className="shrink-0 border-2 border-[var(--border-color)] bg-[var(--bg-panel)] px-3 py-1.5 font-display text-[10px] font-extrabold uppercase tracking-wider transition-all hover:bg-[var(--color-accent)] hover:text-white hover:border-[var(--color-accent)]"
-                    >
-                      Change
-                    </Link>
-                  </div>
-                </div>
+            <dl className="divide-y divide-[var(--border-muted)] border-t border-[var(--border-muted)]">
+              <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-5">
+                <dt className="shrink-0 text-sm text-[var(--text-secondary)]">User ID</dt>
+                <dd className="min-w-0 truncate font-mono text-xs text-[var(--text-secondary)]">{user?.id}</dd>
               </div>
-            </motion.div>
-          </TabsContent>
-
-          {/* ── Notifications ────────────────────────────────────── */}
-          <TabsContent value="notifications">
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-              <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-                <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
-                  <p className="label-overline">Email notifications</p>
-                </div>
-                <div className="divide-y-2 divide-[var(--border-muted)] px-6">
-                  {[
-                    { label: "New response",      desc: "Get an email every time someone submits your form.", defaultOn: true },
-                    { label: "Weekly digest",     desc: "A weekly summary of all your form activity.",         defaultOn: false },
-                    { label: "Milestone alerts",  desc: "Notify when a form hits 10, 100, 1000 responses.",   defaultOn: true },
-                  ].map(({ label, desc, defaultOn }) => {
-                    const [on, setOn] = useState(defaultOn);
-                    return (
-                      <div key={label} className="flex items-center justify-between gap-4 py-4">
-                        <div>
-                          <Label className="text-sm font-semibold">{label}</Label>
-                          <p className="text-xs text-[var(--text-muted)] mt-0.5">{desc}</p>
-                        </div>
-                        <Switch checked={on} onCheckedChange={setOn} />
-                      </div>
-                    );
-                  })}
-                </div>
+              <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-5">
+                <dt className="text-sm text-[var(--text-secondary)]">Member since</dt>
+                <dd className="text-sm text-[var(--text-primary)]">
+                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
+                </dd>
               </div>
-            </motion.div>
-          </TabsContent>
-        </Tabs>
+            </dl>
+
+            <p className="border-t border-[var(--border-muted)] px-4 py-3 text-sm text-[var(--text-muted)] sm:px-5">
+              To change your name, email or password, open the avatar menu in the top bar.
+            </p>
+          </div>
+        </Section>
+
+        {/* ── Appearance ───────────────────────────────────────── */}
+        <Section title="Appearance" description="How FormCraft looks on this device.">
+          <div className={cn(PANEL, "px-4 py-4 sm:px-5")}>
+            <p id="color-mode-label" className="mb-3 text-sm font-medium text-[var(--text-primary)]">Color mode</p>
+            <div
+              role="radiogroup"
+              aria-labelledby="color-mode-label"
+              className="grid w-full grid-cols-3 gap-1 rounded-md border border-[var(--border-color)] bg-[var(--bg-inset)] p-1 sm:w-80"
+            >
+              {COLOR_MODES.map(({ id, label }) => {
+                const selected = colorMode === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setColorMode(id)}
+                    className={cn(
+                      "h-8 rounded-[6px] text-sm font-medium transition-colors duration-150",
+                      selected
+                        ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
+                    )}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            {colorMode === "system" && (
+              <p className="mt-3 text-sm text-[var(--text-muted)]">Follows your operating system setting.</p>
+            )}
+          </div>
+        </Section>
+
+        {/* ── Notifications ────────────────────────────────────── */}
+        <Section title="Notifications" description="Emails sent to your account address.">
+          <div className={cn(PANEL, "divide-y divide-[var(--border-muted)]")}>
+            {NOTIFICATIONS.map((n) => (
+              <NotificationRow key={n.label} label={n.label} desc={n.desc} defaultOn={n.defaultOn} />
+            ))}
+          </div>
+        </Section>
       </div>
     </AppShell>
   );

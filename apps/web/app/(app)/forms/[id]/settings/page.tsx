@@ -2,12 +2,9 @@
 
 import { useParams }  from "next/navigation";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
-  Globe, Lock, Shuffle, UserCheck,
-  ExternalLink, CalendarClock, Hash, Save, Link as LinkIcon,
-  Check, Palette,
+  Globe, Lock, ExternalLink, CalendarClock, Hash, Save, Link as LinkIcon,
 } from "lucide-react";
 import { Button }   from "@/components/ui/button";
 import { Input }    from "@/components/ui/input";
@@ -18,49 +15,66 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/shared/error-state";
 import { trpc }     from "@/lib/trpc";
 import { cn }       from "@/lib/utils";
-import {
-  type FormTheme,
-  ThemePreview,
-} from "@/components/form-renderer/public-form";
 
-/* ── Tiny labelled field wrapper ────────────────────────────── */
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+/* ── Setting row: label + description left, control right ──── */
+function Row({
+  label,
+  hint,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  hint?: React.ReactNode;
+  htmlFor?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-xs font-extrabold uppercase tracking-wider">{label}</Label>
-      {hint && <p className="text-xs text-[var(--text-muted)] -mt-1">{hint}</p>}
-      {children}
+    <div className="grid gap-3 px-4 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,320px)] sm:gap-8 sm:px-5">
+      <div className="min-w-0">
+        <Label htmlFor={htmlFor} className="text-sm font-medium text-[var(--text-primary)]">{label}</Label>
+        {hint && <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-muted)]">{hint}</p>}
+      </div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
 
-/* ── Toggle row ─────────────────────────────────────────────── */
+/* ── Toggle row: switch sits right, stays inline on phones ──── */
 function ToggleRow({
-  icon: Icon,
+  id,
   label,
   desc,
   checked,
   onCheckedChange,
 }: {
-  icon: React.ElementType;
+  id: string;
   label: string;
   desc: string;
   checked: boolean;
   onCheckedChange: (v: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-4">
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center border-2 border-[#0A0A0A] bg-[var(--bg-inset)]">
-          <Icon className="h-3.5 w-3.5" />
-        </div>
-        <div>
-          <Label className="text-sm font-semibold">{label}</Label>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">{desc}</p>
-        </div>
+    <div className="flex items-center justify-between gap-6 px-4 py-4 sm:px-5">
+      <div className="min-w-0">
+        <Label htmlFor={id} className="cursor-pointer text-sm font-medium text-[var(--text-primary)]">{label}</Label>
+        <p className="mt-0.5 text-xs leading-relaxed text-[var(--text-muted)]">{desc}</p>
       </div>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} />
+      <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
     </div>
+  );
+}
+
+/* ── A group: small heading above a solid panel of rows ────── */
+function Group({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-2">
+      <h2 className="px-1 font-sans text-[13px] font-semibold leading-tight tracking-normal text-[var(--text-primary)]">
+        {title}
+      </h2>
+      <div className="divide-y-1 divide-[var(--border-muted)] overflow-hidden rounded-xl border-1 border-[var(--border-color)] bg-[var(--bg-panel)]">
+        {children}
+      </div>
+    </section>
   );
 }
 
@@ -92,7 +106,6 @@ export default function FormSettingsPage() {
   const [visibility,     setVisibility]     = useState<"public" | "unlisted">("unlisted");
   const [shuffleFields,  setShuffleFields]  = useState(false);
   const [requireAuth,    setRequireAuth]    = useState(false);
-  const [formTheme,      setFormTheme]      = useState<FormTheme>("brutalist");
 
   /* Seed once data loads */
   useEffect(() => {
@@ -111,7 +124,6 @@ export default function FormSettingsPage() {
     setVisibility(form.visibility ?? "unlisted");
     setShuffleFields(!!form.settings?.shuffleFields);
     setRequireAuth(!!form.settings?.requireAuth);
-    setFormTheme(((form.settings as any)?.formTheme as FormTheme) ?? "brutalist");
   }, [form?.id]);
 
   function handleSave() {
@@ -129,274 +141,163 @@ export default function FormSettingsPage() {
       settings: {
         shuffleFields,
         requireAuth,
-        formTheme,
         // preserve the other settings from the server
         showProgressBar:  form?.settings?.showProgressBar  ?? true,
         oneResponsePerIp: form?.settings?.oneResponsePerIp ?? false,
         maxFields:        (form?.settings as any)?.maxFields ?? 20,
+        formTheme:        (form?.settings as any)?.formTheme,
       },
     });
   }
 
   if (error) return <div className="p-6"><ErrorState description={error.message} onRetry={refetch} /></div>;
 
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+
   return (
-    <div className="h-full overflow-y-auto p-6">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <div className="h-full overflow-y-auto px-4 py-6 sm:px-6 sm:py-10">
+      <div className="mx-auto max-w-3xl space-y-8">
 
-        {/* ── Basics ───────────────────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
-              <p className="label-overline">Form details</p>
+        {/* ── Details ──────────────────────────────────────────── */}
+        <Group title="Form details">
+          {isLoading ? (
+            <div className="space-y-3 p-4 sm:p-5">
+              {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}
             </div>
-            <div className="space-y-5 p-6">
-              {isLoading ? (
-                <div className="space-y-4">
-                  {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-11" />)}
-                </div>
-              ) : (
-                <>
-                  <Field label="Title">
-                    <Input
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Untitled Form"
-                    />
-                  </Field>
+          ) : (
+            <>
+              <Row label="Title" htmlFor="set-title">
+                <Input
+                  id="set-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Untitled form"
+                />
+              </Row>
 
-                  <Field label="Description" hint="Shown to respondents at the top of the form.">
-                    <Textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Tell respondents what this form is about…"
-                      rows={3}
-                    />
-                  </Field>
-
-                  <Field label="Custom URL slug" hint={`Public URL: ${typeof window !== "undefined" ? window.location.origin : ""}/f/${slug || "your-slug"}`}>
-                    <Input
-                      value={slug}
-                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
-                      placeholder="my-awesome-form"
-                      leftSlot={<LinkIcon className="h-4 w-4" />}
-                      spellCheck={false}
-                    />
-                  </Field>
-
-                  {/* Visibility */}
-                  <Field label="Visibility" hint="Public forms appear on the /explore page.">
-                    <div className="grid grid-cols-2 gap-0 border-2 border-[#0A0A0A]">
-                      {(["unlisted", "public"] as const).map((v) => (
-                        <button
-                          key={v}
-                          type="button"
-                          onClick={() => setVisibility(v)}
-                          className={`flex items-center justify-center gap-2 py-3 font-display text-xs font-extrabold uppercase tracking-wider border-r-2 border-[#0A0A0A] last:border-r-0 transition-colors ${
-                            visibility === v
-                              ? "bg-[#0A0A0A] text-white"
-                              : "bg-[var(--bg-panel)] hover:bg-[var(--bg-inset)]"
-                          }`}
-                        >
-                          {v === "public" ? <Globe className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
-                          {v}
-                        </button>
-                      ))}
-                    </div>
-                  </Field>
-                </>
-              )}
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── Submission behaviour ─────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
-              <p className="label-overline">After submission</p>
-            </div>
-            <div className="space-y-5 p-6">
-              <Field
-                label="Success message"
-                hint="Shown on the confirmation screen after a successful submission."
-              >
+              <Row label="Description" hint="Shown to respondents at the top of the form." htmlFor="set-desc">
                 <Textarea
-                  value={successMessage}
-                  onChange={(e) => setSuccessMessage(e.target.value)}
-                  placeholder="Thank you! Your response has been recorded."
-                  rows={2}
+                  id="set-desc"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Tell respondents what this form is about"
+                  rows={3}
                 />
-              </Field>
+              </Row>
 
-              <Field
-                label="Redirect URL"
-                hint="Redirect to this URL instead of showing the success screen. Leave blank to show the default screen."
+              <Row
+                label="Link"
+                htmlFor="set-slug"
+                hint={<>Public address: <span className="break-all font-mono text-[var(--text-secondary)]">{origin}/f/{slug || "your-slug"}</span></>}
               >
                 <Input
-                  value={redirectUrl}
-                  onChange={(e) => setRedirectUrl(e.target.value)}
-                  placeholder="https://example.com/thank-you"
-                  leftSlot={<ExternalLink className="h-4 w-4" />}
+                  id="set-slug"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+                  placeholder="my-form"
+                  leftSlot={<LinkIcon className="h-4 w-4" />}
+                  spellCheck={false}
                 />
-              </Field>
-            </div>
-          </div>
-        </motion.div>
+              </Row>
 
-        {/* ── Limits ───────────────────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.1 }}>
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
-              <p className="label-overline">Limits</p>
-            </div>
-            <div className="grid gap-5 p-6 sm:grid-cols-2">
-              <Field
-                label="Max responses"
-                hint="Auto-close the form after this many responses. Leave blank for unlimited."
-              >
-                <Input
-                  type="number"
-                  min={1}
-                  value={maxResponses}
-                  onChange={(e) => setMaxResponses(e.target.value)}
-                  placeholder="Unlimited"
-                  leftSlot={<Hash className="h-4 w-4" />}
-                />
-              </Field>
-
-              <Field
-                label="Close at"
-                hint="Automatically stop accepting responses after this date & time."
-              >
-                <Input
-                  type="datetime-local"
-                  value={closesAt}
-                  onChange={(e) => setClosesAt(e.target.value)}
-                  leftSlot={<CalendarClock className="h-4 w-4" />}
-                />
-              </Field>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── Behaviour toggles ────────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.15 }}>
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="border-b-2 border-[#0A0A0A] px-6 py-4">
-              <p className="label-overline">Behaviour</p>
-            </div>
-            <div className="divide-y-2 divide-[var(--border-muted)] px-6">
-              <ToggleRow
-                icon={Shuffle}
-                label="Shuffle fields"
-                desc="Randomise the order of questions for each respondent."
-                checked={shuffleFields}
-                onCheckedChange={setShuffleFields}
-              />
-              <ToggleRow
-                icon={UserCheck}
-                label="Require sign-in"
-                desc="Respondents must be signed in with a FormCraft account to submit."
-                checked={requireAuth}
-                onCheckedChange={setRequireAuth}
-              />
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── Form Design / Theme ──────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.2 }}>
-          <div className="border-2 border-[#0A0A0A] bg-[var(--bg-panel)] shadow-brut-md">
-            <div className="flex items-center gap-3 border-b-2 border-[#0A0A0A] px-6 py-4">
-              <Palette className="h-4 w-4 text-[var(--color-accent)]" />
-              <p className="label-overline">Form design</p>
-            </div>
-
-            <div className="p-6 space-y-6">
-              <p className="text-xs text-[var(--text-muted)]">
-                Choose a visual style for your public-facing form. Changes are visible to respondents.
-              </p>
-
-              {/* 2×2 theme grid */}
-              <div className="grid grid-cols-2 gap-3">
-                {(
-                  [
-                    { id: "brutalist" as FormTheme, name: "Brutalist Pro",    desc: "Bold borders, offset shadows"    },
-                    { id: "clean"     as FormTheme, name: "Clean Card",       desc: "Modern cards, soft shadows"      },
-                    { id: "playful"   as FormTheme, name: "Animated Playful", desc: "Vibrant gradient, spring motion" },
-                    { id: "minimal"   as FormTheme, name: "Notion Minimal",   desc: "Clean white, typographic"        },
-                  ] as { id: FormTheme; name: string; desc: string }[]
-                ).map(({ id, name, desc }) => {
-                  const active = formTheme === id;
-                  return (
+              <Row label="Visibility" hint="Public forms appear on the Explore page. Unlisted forms open only from their link.">
+                <div className="grid grid-cols-2 gap-1 rounded-md bg-[var(--bg-inset)] p-1" role="radiogroup" aria-label="Visibility">
+                  {(["unlisted", "public"] as const).map((v) => (
                     <button
-                      key={id}
+                      key={v}
                       type="button"
-                      onClick={() => setFormTheme(id)}
+                      role="radio"
+                      aria-checked={visibility === v}
+                      onClick={() => setVisibility(v)}
                       className={cn(
-                        "relative flex flex-col overflow-hidden border-2 text-left transition-all",
-                        active
-                          ? "border-[var(--color-accent)] shadow-[3px_3px_0_var(--color-accent)]"
-                          : "border-[#0A0A0A] shadow-[2px_2px_0_#0A0A0A] hover:shadow-[3px_3px_0_#0A0A0A]",
+                        "flex h-8 items-center justify-center gap-1.5 rounded-[6px] text-sm font-medium transition-colors",
+                        visibility === v
+                          ? "bg-[var(--bg-panel)] text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]"
+                          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]",
                       )}
                     >
-                      {/* Mini preview */}
-                      <div className="h-32 w-full overflow-hidden">
-                        <ThemePreview theme={id} />
-                      </div>
-
-                      {/* Label */}
-                      <div className={cn(
-                        "flex items-center justify-between border-t-2 border-[#0A0A0A] px-3 py-2",
-                        active ? "bg-[var(--color-accent)]" : "bg-[var(--bg-panel)]",
-                      )}>
-                        <div>
-                          <p className={cn(
-                            "font-display text-[11px] font-extrabold uppercase tracking-wide",
-                            active ? "text-white" : "text-[var(--text-primary)]",
-                          )}>
-                            {name}
-                          </p>
-                          <p className={cn(
-                            "font-mono text-[9px]",
-                            active ? "text-white/70" : "text-[var(--text-muted)]",
-                          )}>
-                            {desc}
-                          </p>
-                        </div>
-                        {active && <Check className="h-3.5 w-3.5 text-white shrink-0" />}
-                      </div>
+                      {v === "public" ? <Globe className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+                      {v === "public" ? "Public" : "Unlisted"}
                     </button>
-                  );
-                })}
-              </div>
-
-              {/* Live preview panel */}
-              <div className="border-2 border-[#0A0A0A] overflow-hidden shadow-[2px_2px_0_#0A0A0A]">
-                <div className="flex items-center justify-between border-b-2 border-[#0A0A0A] px-4 py-2 bg-[var(--bg-inset)]">
-                  <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">
-                    Preview
-                  </p>
-                  <span className="font-mono text-[10px] text-[var(--color-accent)] font-bold uppercase tracking-wide">
-                    {formTheme}
-                  </span>
+                  ))}
                 </div>
-                <div className="h-52 overflow-hidden">
-                  <ThemePreview theme={formTheme} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+              </Row>
+            </>
+          )}
+        </Group>
 
-        {/* ── Save button ──────────────────────────────────────── */}
-        <div className="flex justify-end pb-4">
+        {/* ── After submission ─────────────────────────────────── */}
+        <Group title="After someone submits">
+          <Row label="Success message" hint="Shown on the confirmation screen." htmlFor="set-success">
+            <Textarea
+              id="set-success"
+              value={successMessage}
+              onChange={(e) => setSuccessMessage(e.target.value)}
+              placeholder="Thank you! Your response has been recorded."
+              rows={2}
+            />
+          </Row>
+
+          <Row label="Redirect URL" hint="Send people here instead of the confirmation screen. Leave blank to show the screen." htmlFor="set-redirect">
+            <Input
+              id="set-redirect"
+              value={redirectUrl}
+              onChange={(e) => setRedirectUrl(e.target.value)}
+              placeholder="https://example.com/thank-you"
+              leftSlot={<ExternalLink className="h-4 w-4" />}
+            />
+          </Row>
+        </Group>
+
+        {/* ── Limits ───────────────────────────────────────────── */}
+        <Group title="Limits">
+          <Row label="Max responses" hint="Close the form after this many responses. Leave blank for no limit." htmlFor="set-max">
+            <Input
+              id="set-max"
+              type="number"
+              min={1}
+              value={maxResponses}
+              onChange={(e) => setMaxResponses(e.target.value)}
+              placeholder="No limit"
+              leftSlot={<Hash className="h-4 w-4" />}
+            />
+          </Row>
+
+          <Row label="Close on" hint="Stop accepting responses after this date and time." htmlFor="set-close">
+            <Input
+              id="set-close"
+              type="datetime-local"
+              value={closesAt}
+              onChange={(e) => setClosesAt(e.target.value)}
+              leftSlot={<CalendarClock className="h-4 w-4" />}
+            />
+          </Row>
+        </Group>
+
+        {/* ── Behaviour toggles ────────────────────────────────── */}
+        <Group title="Behaviour">
+          <ToggleRow
+            id="set-shuffle"
+            label="Shuffle fields"
+            desc="Show the questions in a random order for each respondent."
+            checked={shuffleFields}
+            onCheckedChange={setShuffleFields}
+          />
+          <ToggleRow
+            id="set-auth"
+            label="Require sign-in"
+            desc="Respondents must sign in with a FormCraft account to submit."
+            checked={requireAuth}
+            onCheckedChange={setRequireAuth}
+          />
+        </Group>
+
+        {/* ── Save ─────────────────────────────────────────────── */}
+        <div className="flex justify-end pb-6">
           <Button
-            size="lg"
             loading={updateMut.isPending}
             onClick={handleSave}
-            className="gap-2 shadow-brut-md"
+            className="h-10 w-full gap-2 !bg-[var(--color-action)] px-5 text-sm font-medium !text-white shadow-none hover:!bg-[var(--color-action-hover)] hover:shadow-none hover:brightness-100 sm:w-auto"
           >
             <Save className="h-4 w-4" />
             Save settings

@@ -1,292 +1,197 @@
 "use client";
 
-import { useParams }     from "next/navigation";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { toast }         from "sonner";
-import { Check, Sparkles, ExternalLink, Globe } from "lucide-react";
-import { Button }        from "@/components/ui/button";
-import { Skeleton }      from "@/components/ui/skeleton";
-import { trpc }          from "@/lib/trpc";
-import { cn }            from "@/lib/utils";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "sonner";
+import { Check, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
 import {
   PublicForm,
+  ThemePreview,
+  resolveFormTheme,
   type FormTheme,
 } from "@/components/form-renderer/public-form";
 
-/* ── Theme definitions ──────────────────────────────────────── */
-const THEMES: {
-  id:       FormTheme;
-  name:     string;
-  tagline:  string;
-  tags:     string[];
-  accent:   string;
-}[] = [
-  {
-    id:      "brutalist",
-    name:    "Brutalist Pro",
-    tagline: "Hard borders, offset shadows, numbered questions",
-    tags:    ["Bold", "Minimal", "On-brand"],
-    accent:  "#FF3B00",
-  },
-  {
-    id:      "clean",
-    name:    "Clean Card",
-    tagline: "White cards, soft shadows, blue accent",
-    tags:    ["Professional", "Modern", "Familiar"],
-    accent:  "#3B82F6",
-  },
-  {
-    id:      "playful",
-    name:    "Animated Playful",
-    tagline: "Vibrant gradient, spring animations, emoji hints",
-    tags:    ["Fun", "Lively", "Engaging"],
-    accent:  "#7C3AED",
-  },
-  {
-    id:      "minimal",
-    name:    "Notion Minimal",
-    tagline: "Clean white, underline inputs, editorial feel",
-    tags:    ["Clean", "Focus", "Distraction-free"],
-    accent:  "#111827",
-  },
-  {
-    id:      "terminal",
-    name:    "Terminal",
-    tagline: "Dark CLI aesthetic, green-on-black, monospace",
-    tags:    ["Hacker", "Tech", "Dark"],
-    accent:  "#7EE787",
-  },
-  {
-    id:      "government",
-    name:    "Gov't Portal",
-    tagline: "Tricolor header, navy blue, official table layout",
-    tags:    ["Formal", "Official", "Structured"],
-    accent:  "#FF9933",
-  },
-  {
-    id:      "newspaper",
-    name:    "Newspaper",
-    tagline: "Serif typesetting, newsprint bg, editorial feel",
-    tags:    ["Editorial", "Classic", "Readable"],
-    accent:  "#1A1A1A",
-  },
-  {
-    id:      "scribble",
-    name:    "Scribble",
-    tagline: "Hand-drawn borders, warm paper, doodle feel",
-    tags:    ["Playful", "Handmade", "Unique"],
-    accent:  "#E84040",
-  },
+/* How respondents see this form. Independent of the FormCraft app theme. */
+const THEMES: { id: FormTheme; name: string; description: string }[] = [
+  { id: "formcraft",  name: "FormCraft",      description: "Dotted dark ground, one blue accent. The default." },
+  { id: "brutalist",  name: "Brutalist",      description: "Hard borders, offset shadows, numbered questions." },
+  { id: "clean",      name: "Clean card",     description: "White cards and soft shadows, a familiar feel." },
+  { id: "playful",    name: "Playful",        description: "Vibrant gradient, springy motion, emoji hints." },
+  { id: "minimal",    name: "Notion minimal", description: "Plain white, underlined inputs, editorial." },
+  { id: "terminal",   name: "Terminal",       description: "Green on black, monospace, command-line feel." },
+  { id: "government", name: "Gov't portal",   description: "Tricolour header and an official table layout." },
+  { id: "newspaper",  name: "Newspaper",      description: "Serif type on newsprint, like a printed page." },
+  { id: "scribble",   name: "Scribble",       description: "Hand-drawn borders on warm paper." },
 ];
 
-/* ── Page ───────────────────────────────────────────────────── */
 export default function FormDesignPage() {
   const { id } = useParams<{ id: string }>();
-  const utils  = trpc.useUtils();
+  const utils = trpc.useUtils();
 
-  const { data: form, isLoading } = trpc.forms.get.useQuery(
-    { formId: id },
-    { enabled: !!id },
-  );
+  const { data: form, isLoading } = trpc.forms.get.useQuery({ formId: id }, { enabled: !!id });
 
   const updateMut = trpc.forms.update.useMutation({
     onSuccess: () => {
-      toast.success("Theme applied!");
+      toast.success("Theme applied");
       utils.forms.get.invalidate({ formId: id });
     },
     onError: (e) => toast.error(e.message),
   });
 
-  const [selected,   setSelected]   = useState<FormTheme>("brutalist");
-  const [previewing, setPreviewing] = useState<FormTheme>("brutalist");
+  const savedTheme = resolveFormTheme((form as any)?.settings?.formTheme);
+  const [selected, setSelected] = useState<FormTheme>(savedTheme);
+  const [hovered, setHovered] = useState<FormTheme | null>(null);
+  const previewing = hovered ?? selected;
 
-  /* Seed from server — re-runs when settings change */
+  /* Start from the saved theme whenever it changes on the server */
   useEffect(() => {
-    if (!form) return;
-    const saved = ((form as any).settings?.formTheme as FormTheme) ?? "brutalist";
-    setSelected(saved);
-    setPreviewing(saved);
+    if (form) setSelected(savedTheme);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [(form as any)?.settings?.formTheme]);
+  }, [savedTheme, !!form]);
 
-  function handleApply() {
+  const slug = (form as any)?.slug as string | undefined;
+  const isPublished = (form as any)?.status === "published";
+  const isDirty = selected !== savedTheme;
+
+  function apply() {
     updateMut.mutate({
       formId: id,
-      settings: {
-        ...(form as any)?.settings,
-        formTheme: selected,
-      },
+      settings: { ...(form as any)?.settings, formTheme: selected },
     });
   }
 
-  const slug       = (form as any)?.slug as string | undefined;
-  const isPublished = (form as any)?.status === "published";
-  const savedTheme  = ((form as any)?.settings?.formTheme as FormTheme) ?? "brutalist";
-  const isDirty     = selected !== savedTheme;
-
   return (
-    <div className="flex h-full overflow-hidden">
-
-      {/* ── Left: theme list ──────────────────────────────────── */}
-      <aside className="w-72 shrink-0 flex flex-col border-r-2 border-[#0A0A0A] bg-[var(--bg-panel)] overflow-hidden">
-        {/* Header */}
-        <div className="border-b-2 border-[#0A0A0A] px-5 py-4">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-3.5 w-3.5 text-[var(--color-accent)]" />
-            <p className="label-overline">Choose a theme</p>
-          </div>
-          <p className="mt-1 font-mono text-[10px] text-[var(--text-muted)]">
-            Hover to preview · click to select
+    <div className="flex h-full flex-col overflow-hidden lg:flex-row">
+      {/* ── Theme list ─────────────────────────────────────── */}
+      <aside className="flex shrink-0 flex-col border-[var(--border-color)] bg-[var(--bg-panel)] max-lg:max-h-[46vh] max-lg:border-b lg:w-[360px] lg:border-r">
+        <div className="px-5 pb-4 pt-6">
+          <h2 className="font-display text-[28px] leading-none text-[var(--text-primary)]">Design</h2>
+          <p className="mt-2 text-sm text-[var(--text-secondary)]">
+            Choose how respondents see this form. Hover to preview, click to select.
           </p>
         </div>
 
-        {/* Theme list */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {isLoading
-            ? Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-20 w-full" />
-              ))
-            : THEMES.map((t) => {
-                const isSelected = selected === t.id;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => { setSelected(t.id); setPreviewing(t.id); }}
-                    onMouseEnter={() => setPreviewing(t.id)}
-                    onMouseLeave={() => setPreviewing(selected)}
-                    className={cn(
-                      "group w-full text-left border-2 transition-all p-3 space-y-1",
-                      isSelected
-                        ? "border-[var(--color-accent)] shadow-[3px_3px_0_var(--color-accent)] bg-[var(--bg-inset)]"
-                        : "border-[#0A0A0A] shadow-[2px_2px_0_#0A0A0A] bg-[var(--bg-panel)] hover:shadow-[3px_3px_0_#0A0A0A] hover:bg-[var(--bg-inset)]",
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-display text-xs font-extrabold uppercase tracking-wide">
-                        {t.name}
-                      </span>
-                      {isSelected && (
-                        <span
-                          className="flex h-4 w-4 items-center justify-center"
-                          style={{ background: t.accent }}
-                        >
-                          <Check className="h-2.5 w-2.5 text-white" />
+        <div className="flex-1 overflow-y-auto px-5 pb-5" role="radiogroup" aria-label="Form theme">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            {THEMES.map((t) => {
+              const isSelected = selected === t.id;
+              const isSaved = savedTheme === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  onClick={() => setSelected(t.id)}
+                  onMouseEnter={() => setHovered(t.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  onFocus={() => setHovered(t.id)}
+                  onBlur={() => setHovered(null)}
+                  className={cn(
+                    "group flex gap-3 rounded-xl p-2.5 text-left transition-[background-color,box-shadow] duration-150",
+                    isSelected
+                      ? "bg-[var(--color-accent-soft)] ring-2 ring-[var(--color-accent)]"
+                      : "ring-1 ring-[var(--border-color)] hover:bg-[var(--bg-inset)]",
+                  )}
+                >
+                  {/* Thumbnail of the theme */}
+                  <span className="pointer-events-none h-[72px] w-[96px] shrink-0 overflow-hidden rounded-lg ring-1 ring-[var(--border-color)]">
+                    <span className="block h-[144px] w-[192px] origin-top-left scale-50">
+                      <ThemePreview theme={t.id} />
+                    </span>
+                  </span>
+                  <span className="min-w-0 flex-1 py-0.5">
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-[var(--text-primary)]">{t.name}</span>
+                      {isSaved && (
+                        <span className="rounded-full bg-[var(--bg-inset)] px-2 py-0.5 text-[11px] text-[var(--text-secondary)]">
+                          In use
                         </span>
                       )}
-                    </div>
-                    <p className="font-mono text-[10px] text-[var(--text-muted)] leading-snug">
-                      {t.tagline}
-                    </p>
-                    <div className="flex flex-wrap gap-1 pt-0.5">
-                      {t.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="font-mono text-[9px] border border-[var(--border-muted)] px-1.5 py-0.5 text-[var(--text-muted)]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </button>
-                );
-              })}
+                    </span>
+                    <span className="mt-1 block text-[13px] leading-snug text-[var(--text-secondary)]">
+                      {t.description}
+                    </span>
+                  </span>
+                  {isSelected && <Check className="mt-1 h-4 w-4 shrink-0 text-[var(--color-accent)]" aria-hidden />}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Apply CTA */}
-        <div className="border-t-2 border-[#0A0A0A] p-4 space-y-2">
+        <div className="flex items-center gap-2 border-t border-[var(--border-color)] px-5 py-4">
           <Button
-            size="sm"
-            loading={updateMut.isPending}
+            className="flex-1 !text-white"
             disabled={!isDirty}
-            onClick={handleApply}
-            className="w-full gap-2"
+            loading={updateMut.isPending}
+            onClick={apply}
           >
-            <Check className="h-3.5 w-3.5" />
             {isDirty ? "Apply theme" : "Theme applied"}
           </Button>
-
-          {slug ? (
-            isPublished ? (
-              <a
-                href={`/f/${slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 w-full font-mono text-[10px] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-              >
-                <ExternalLink className="h-3 w-3" />
-                View live form
+          {isPublished && slug && (
+            <Button variant="secondary" asChild>
+              <a href={`/f/${slug}`} target="_blank" rel="noreferrer" className="gap-1.5">
+                <ExternalLink className="h-4 w-4" />
+                Open form
               </a>
-            ) : (
-              <div className="flex items-center justify-center gap-1.5 w-full font-mono text-[10px] text-[var(--text-muted)]">
-                <Globe className="h-3 w-3" />
-                Publish form to view live
-              </div>
-            )
-          ) : null}
+            </Button>
+          )}
         </div>
       </aside>
 
-      {/* ── Right: live preview ───────────────────────────────── */}
-      <main className="flex-1 flex flex-col overflow-hidden bg-[var(--bg-page)]">
-        {/* Preview label bar */}
-        <div className="flex h-10 shrink-0 items-center justify-between border-b-2 border-[#0A0A0A] bg-[var(--bg-panel)] px-5">
-          <div className="flex items-center gap-2">
-            <div className="h-2.5 w-2.5 rounded-full bg-[var(--color-red)] border border-[#0A0A0A]" />
-            <div className="h-2.5 w-2.5 rounded-full bg-[var(--color-yellow)] border border-[#0A0A0A]" />
-            <div className="h-2.5 w-2.5 rounded-full bg-[var(--color-green)] border border-[#0A0A0A]" />
-            <span className="ml-2 font-mono text-[10px] text-[var(--text-muted)]">
-              {slug ? `/f/${slug}` : "form preview"}
+      {/* ── Live preview of this form in the previewed theme ── */}
+      <main className="flex min-h-0 flex-1 flex-col p-3 sm:p-5">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl ring-1 ring-[var(--border-color)]">
+          <div className="flex h-10 shrink-0 items-center justify-between gap-3 bg-[var(--bg-panel)] px-4 text-[13px]">
+            <span className="truncate text-[var(--text-muted)]">{slug ? `/f/${slug}` : "Form preview"}</span>
+            <span className="shrink-0 font-medium text-[var(--text-primary)]">
+              {THEMES.find((t) => t.id === previewing)?.name}
+              {hovered && hovered !== selected && <span className="text-[var(--text-muted)]"> (preview)</span>}
             </span>
           </div>
-          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[var(--color-accent)]">
-            {THEMES.find((t) => t.id === previewing)?.name}
-          </span>
-        </div>
 
-        {/* Real form preview with the current previewing theme */}
-        <div className="flex-1 overflow-auto">
-          <AnimatePresence mode="wait">
-            {isLoading ? (
-              <motion.div
-                key="skeleton"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="p-10 space-y-4 max-w-xl mx-auto"
-              >
-                <Skeleton className="h-10 w-48" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-24 w-full" />
-              </motion.div>
-            ) : form ? (
-              <motion.div
-                key={previewing}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="pointer-events-none select-none"
-              >
-                <PublicForm
-                  form={{ ...(form as any), settings: { ...(form as any)?.settings, showProgressBar: false } }}
-                  theme={previewing}
-                  values={{}}
-                  errors={{}}
-                  email=""
-                  emailError=""
-                  isSubmitting={false}
-                  submitError={null}
-                  onFieldChange={() => {}}
-                  onEmailChange={() => {}}
-                  onSubmit={(e) => e.preventDefault()}
-                  progress={0}
-                />
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
+          <div className="min-h-0 flex-1 overflow-auto bg-[var(--bg-page)]">
+            <AnimatePresence mode="wait">
+              {isLoading ? (
+                <motion.div key="loading" exit={{ opacity: 0 }} className="mx-auto max-w-xl space-y-4 p-10">
+                  <Skeleton className="h-10 w-48" />
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </motion.div>
+              ) : form ? (
+                <motion.div
+                  key={previewing}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="pointer-events-none select-none"
+                  aria-hidden
+                >
+                  <PublicForm
+                    form={{ ...(form as any), settings: { ...(form as any)?.settings, showProgressBar: false } }}
+                    theme={previewing}
+                    values={{}}
+                    errors={{}}
+                    email=""
+                    emailError=""
+                    isSubmitting={false}
+                    submitError={null}
+                    onFieldChange={() => {}}
+                    onEmailChange={() => {}}
+                    onSubmit={(e) => e.preventDefault()}
+                    progress={0}
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
         </div>
       </main>
     </div>

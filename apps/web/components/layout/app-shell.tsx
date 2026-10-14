@@ -1,17 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useUIStore } from "@/stores/ui-store";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
-import { FloatingMascot } from "@/components/mascot";
 import {
   CommandDialog, CommandInput, CommandList, CommandEmpty,
   CommandGroup, CommandItem, CommandShortcut, CommandSeparator,
 } from "@/components/ui/command";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants";
-import { LayoutDashboard, FileText, Plus, Settings, Compass } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import {
+  LayoutDashboard, FileText, Plus, Settings, Compass, BarChart3, LayoutTemplate, ShieldCheck,
+} from "lucide-react";
 
 interface AppShellProps {
   children:   React.ReactNode;
@@ -22,17 +24,7 @@ interface AppShellProps {
 export function AppShell({ children, title, actions }: AppShellProps) {
   const { commandOpen, setCommandOpen } = useUIStore();
   const router = useRouter();
-  const mainRef = useRef<HTMLElement>(null);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const el = mainRef.current;
-    if (!el) return;
-    const onScroll = () => setScrolled(el.scrollTop > 10);
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, []);
-
+  const { data: adminMe } = trpc.admin.me.useQuery(undefined, { staleTime: 5 * 60_000, retry: false });
   /* ⌘K shortcut */
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -51,29 +43,27 @@ export function AppShell({ children, title, actions }: AppShellProps) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--bg-page)]">
+    // No fill here: the dot grid on <body> is the ground the whole app sits on
+    <div className="flex h-[100dvh] overflow-hidden">
       <Sidebar />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar title={title} actions={actions} scrolled={scrolled} />
-        <main ref={mainRef} className="flex-1 overflow-y-auto p-6 lg:p-8">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <Topbar title={title} actions={actions} />
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           {children}
         </main>
       </div>
 
-      {/* Floating mascot */}
-      <FloatingMascot />
-
       {/* Command Palette */}
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
-        <CommandInput placeholder="Search forms, actions..." />
+        <CommandInput placeholder="Search pages and actions" />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandEmpty>Nothing matches that search.</CommandEmpty>
 
           <CommandGroup heading="Actions">
             <CommandItem onSelect={() => navigate(ROUTES.formNew)}>
               <Plus className="h-4 w-4 text-[var(--text-muted)]" />
-              Create New Form
+              Create form
               <CommandShortcut>⌘N</CommandShortcut>
             </CommandItem>
           </CommandGroup>
@@ -87,12 +77,26 @@ export function AppShell({ children, title, actions }: AppShellProps) {
             </CommandItem>
             <CommandItem onSelect={() => navigate(ROUTES.forms)}>
               <FileText className="h-4 w-4 text-[var(--text-muted)]" />
-              My Forms
+              Forms
+            </CommandItem>
+            <CommandItem onSelect={() => navigate(ROUTES.analytics)}>
+              <BarChart3 className="h-4 w-4 text-[var(--text-muted)]" />
+              Analytics
+            </CommandItem>
+            <CommandItem onSelect={() => navigate(ROUTES.templates)}>
+              <LayoutTemplate className="h-4 w-4 text-[var(--text-muted)]" />
+              Templates
             </CommandItem>
             <CommandItem onSelect={() => navigate(ROUTES.explore)}>
               <Compass className="h-4 w-4 text-[var(--text-muted)]" />
               Explore
             </CommandItem>
+            {adminMe?.isAdmin && (
+              <CommandItem onSelect={() => navigate(ROUTES.admin)}>
+                <ShieldCheck className="h-4 w-4 text-[var(--text-muted)]" />
+                Admin
+              </CommandItem>
+            )}
             <CommandItem onSelect={() => navigate(ROUTES.settings)}>
               <Settings className="h-4 w-4 text-[var(--text-muted)]" />
               Settings

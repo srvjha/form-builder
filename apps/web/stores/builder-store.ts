@@ -23,6 +23,8 @@ export interface FieldValidations {
 
 export interface BuilderField {
   id:           string;
+  /** Stable React key: the temporary id a field was created with, kept after the server id replaces `id` */
+  clientKey?:   string;
   type:         FieldType;
   label:        string;
   placeholder?: string;

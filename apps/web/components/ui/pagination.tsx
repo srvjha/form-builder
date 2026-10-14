@@ -43,13 +43,15 @@ const PaginationLink = ({ className, isActive, ...props }: PaginationLinkProps) 
   <a
     aria-current={isActive ? "page" : undefined}
     className={cn(
-      "inline-flex h-9 w-9 items-center justify-center",
-      "border-2 rounded-none",
-      "text-xs font-bold font-mono",
-      "transition-all duration-100 cursor-pointer",
+      "inline-flex h-9 min-w-9 items-center justify-center px-2",
+      "border rounded-md",
+      "font-sans text-sm font-medium tabular-nums",
+      "transition-colors duration-150 cursor-pointer",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
+      "aria-disabled:pointer-events-none aria-disabled:opacity-50",
       isActive
-        ? "bg-[var(--color-accent)] text-white border-[var(--border-color)] shadow-brut-xs"
-        : "bg-[var(--bg-panel)] text-[var(--text-primary)] border-[var(--border-muted)] hover:bg-[var(--bg-inset)]",
+      ? "bg-[var(--color-action)] text-white border-transparent"
+      : "bg-[var(--bg-panel)] text-[var(--text-primary)] border-[var(--border-color)] hover:bg-[var(--bg-inset)]",
       className,
     )}
     {...props}
@@ -64,7 +66,7 @@ const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof
     {...props}
   >
     <ChevronLeft className="h-4 w-4" />
-    <span className="text-[11px] font-bold uppercase tracking-wider">Prev</span>
+    <span>Previous</span>
   </PaginationLink>
 );
 PaginationPrevious.displayName = "PaginationPrevious";
@@ -75,7 +77,7 @@ const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof Pag
     className={cn("gap-1 px-3 w-auto", className)}
     {...props}
   >
-    <span className="text-[11px] font-bold uppercase tracking-wider">Next</span>
+    <span>Next</span>
     <ChevronRight className="h-4 w-4" />
   </PaginationLink>
 );

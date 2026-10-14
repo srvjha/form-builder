@@ -1,93 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { SignInButton, SignUpButton, useAuth } from "@clerk/nextjs";
-import { UserButton } from "@clerk/nextjs";
-import { Zap, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { SignInButton, SignUpButton, UserButton, useAuth } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
-import { cn } from "@/lib/utils";
 import { ROUTES, APP_NAME } from "@/lib/constants";
+import { Logo } from "@/components/shared/logo";
 
 const NAV_LINKS = [
-  { label: "Features",   href: "/#features"      },
-  { label: "Explore",    href: ROUTES.explore     },
-  { label: "The Crew",   href: ROUTES.characters  },
-  { label: "About",      href: ROUTES.about       },
+  { label: "Features",     href: "/#features" },
+  { label: "How it works", href: "/#how-it-works" },
+  { label: "Explore",      href: ROUTES.explore },
 ];
 
+const linkCls =
+  "text-[16px] text-[var(--text-primary)] underline decoration-transparent decoration-[0.07em] underline-offset-[0.25em] transition-[text-decoration-color] hover:decoration-current";
+
+/* A plain bar over the dotted ground: wordmark, three links, one action */
 export function MarketingNav() {
   const { isSignedIn, isLoaded } = useAuth();
-  const pathname = usePathname();
 
   return (
-    <header className={cn(
-      "sticky top-0 z-[var(--z-sticky)]",
-      "flex h-14 items-center justify-between px-6",
-      "border-b-2 border-[var(--border-color)] bg-[var(--bg-page)]",
-    )}>
-      {/* Logo */}
-      <Link href={ROUTES.home} className="flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center bg-[var(--color-accent)] border-2 border-[var(--border-color)] shadow-brut-xs">
-          <Zap className="h-4 w-4 text-white" />
+    <header className="absolute inset-x-0 top-0 z-40">
+      <div className="mx-auto flex h-20 max-w-[1280px] items-center justify-between gap-4 px-4 sm:px-8">
+        <Link href={ROUTES.home} aria-label={APP_NAME} className="rounded-md">
+          <Logo />
+        </Link>
+
+        <nav aria-label="Main" className="hidden items-center gap-8 md:flex">
+          {NAV_LINKS.map(({ label, href }) => (
+            <Link key={href} href={href} className={linkCls}>
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          {isLoaded &&
+            (isSignedIn ? (
+              <>
+                <Link href={ROUTES.dashboard} className={`hidden sm:inline ${linkCls}`}>
+                  Dashboard
+                </Link>
+                <UserButton appearance={{ elements: { avatarBox: "h-8 w-8 rounded-full" } }} />
+              </>
+            ) : (
+              <>
+                <SignInButton mode="redirect" fallbackRedirectUrl={ROUTES.dashboard}>
+                  <button type="button" className={`hidden sm:inline ${linkCls}`}>
+                    Sign in
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="redirect" fallbackRedirectUrl={ROUTES.dashboard}>
+                  <button
+                    type="button"
+                    className="inline-flex min-h-[40px] items-center rounded-full bg-[var(--color-action)] px-5 text-[16px] font-medium text-white transition-[transform,background-color] hover:bg-[var(--color-action-hover)] active:scale-[0.97]"
+                  >
+                    Start free
+                  </button>
+                </SignUpButton>
+              </>
+            ))}
         </div>
-        <span className="font-display text-sm font-extrabold uppercase tracking-widest">
-          {APP_NAME}
-        </span>
-      </Link>
-
-      {/* Desktop Nav */}
-      <nav className="hidden items-center gap-6 md:flex">
-        {NAV_LINKS.map(({ label, href }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "text-xs font-bold uppercase tracking-wider transition-colors duration-100",
-              pathname === href
-                ? "text-[var(--color-accent)]"
-                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
-            )}
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
-
-      {/* Auth */}
-      <div className="flex items-center gap-2">
-        <ThemeToggle />
-
-        {isLoaded && (
-          isSignedIn ? (
-            <>
-              <Button variant="secondary" size="sm" asChild>
-                <Link href={ROUTES.dashboard}>Dashboard</Link>
-              </Button>
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "h-8 w-8 rounded-none border-2 border-[var(--border-color)]",
-                  },
-                }}
-              />
-            </>
-          ) : (
-            <>
-              <SignInButton mode="redirect" fallbackRedirectUrl={ROUTES.dashboard}>
-                <Button variant="ghost" size="sm">Sign In</Button>
-              </SignInButton>
-              <SignUpButton mode="redirect" fallbackRedirectUrl={ROUTES.dashboard}>
-                <Button variant="primary" size="sm" className="gap-1.5">
-                  Start Free
-                  <ArrowRight className="h-3 w-3" />
-                </Button>
-              </SignUpButton>
-            </>
-          )
-        )}
       </div>
     </header>
   );

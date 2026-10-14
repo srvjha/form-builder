@@ -1,10 +1,9 @@
 "use client";
 
-import { Menu, Command as CommandIcon } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { useUIStore } from "@/stores/ui-store";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface TopbarProps {
@@ -13,73 +12,60 @@ interface TopbarProps {
   scrolled?: boolean;
 }
 
-export function Topbar({ title, actions, scrolled }: TopbarProps) {
-  const { toggleSidebar, toggleCommand } = useUIStore();
+export function Topbar({ title, actions }: TopbarProps) {
+  const { setMobileNavOpen, toggleCommand } = useUIStore();
 
   return (
     <header
       className={cn(
-        "flex h-14 shrink-0 items-center gap-3 px-4",
-        "border-b-2 transition-all duration-300",
-        scrolled
-          ? [
-              // Glass state
-              "border-[var(--border-color)]/40",
-              "bg-[var(--bg-panel)]/75",
-              "backdrop-blur-md",
-              "shadow-[0_4px_24px_rgba(0,0,0,0.08)]",
-            ]
-          : [
-              // Default state
-              "border-[var(--border-color)]",
-              "bg-[var(--bg-panel)]",
-            ],
+        "relative z-20 flex h-16 shrink-0 items-center gap-2 border-b border-[var(--border-color)] px-4 sm:gap-3 sm:px-6 lg:px-8",
+        // Plain bar over the dots. <main> scrolls separately below it, so it needs no fill or blur.
       )}
     >
-      {/* Mobile menu toggle */}
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        onClick={toggleSidebar}
-        className="lg:hidden"
-        aria-label="Toggle menu"
+      {/* Mobile menu */}
+      <button
+        type="button"
+        onClick={() => setMobileNavOpen(true)}
+        className="-ml-1.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--text-secondary)] hover:bg-[var(--bg-inset)] hover:text-[var(--text-primary)] lg:hidden"
+        aria-label="Open menu"
       >
         <Menu className="h-4 w-4" />
-      </Button>
+      </button>
 
-      {/* Page title */}
       {title && (
-        <h1 className="font-display text-sm font-extrabold uppercase tracking-widest truncate">
+        <h1 className="min-w-0 truncate text-[28px] text-[var(--text-primary)]">
           {title}
         </h1>
       )}
 
       <div className="flex-1" />
 
-      {/* Action slot */}
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex min-w-0 items-center gap-2">{actions}</div>}
 
       {/* Command palette trigger */}
-      <Button
-        variant="outline"
-        size="sm"
+      <button
+        type="button"
         onClick={toggleCommand}
-        className="hidden gap-2 border-[var(--border-muted)] text-[var(--text-muted)] sm:flex"
-        aria-label="Open command palette"
+        aria-label="Search (⌘K)"
+        className={cn(
+          "flex h-8 shrink-0 items-center gap-2 rounded-md border border-[var(--border-color)] bg-[var(--bg-panel)]",
+          "w-8 justify-center text-sm text-[var(--text-muted)] sm:w-auto sm:justify-start sm:pl-2.5 sm:pr-1.5",
+          "transition-colors duration-150 hover:text-[var(--text-primary)]",
+        )}
       >
-        <CommandIcon className="h-3.5 w-3.5" />
-        <span>Search</span>
-        <kbd className="ml-1 bg-[var(--bg-inset)] border border-[var(--border-muted)] px-1.5 py-0.5 font-mono text-[10px]">
+        <Search className="h-3.5 w-3.5" />
+        <span className="hidden pr-6 sm:inline">Search</span>
+        <kbd className="hidden rounded border border-[var(--border-color)] bg-[var(--bg-inset)] px-1.5 py-px font-sans text-[11px] text-[var(--text-muted)] sm:inline">
           ⌘K
         </kbd>
-      </Button>
+      </button>
 
       <ThemeToggle />
 
       <UserButton
         appearance={{
           elements: {
-            avatarBox: "h-8 w-8 rounded-none border-2 border-[var(--border-color)]",
+            avatarBox: "h-8 w-8 rounded-full",
           },
         }}
       />

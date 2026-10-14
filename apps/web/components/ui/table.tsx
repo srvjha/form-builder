@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="w-full overflow-x-auto border-2 border-[var(--border-color)]">
+    <div className="w-full overflow-x-auto rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)]">
       <table
         ref={ref}
         className={cn("w-full caption-bottom text-sm", className)}
@@ -20,7 +20,7 @@ const TableHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn("bg-[var(--color-black)] text-[var(--color-white)]", className)}
+    className={cn("bg-[var(--bg-inset)]", className)}
     {...props}
   />
 ));
@@ -32,7 +32,7 @@ const TableBody = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={cn("divide-y-2 divide-[var(--border-muted)] bg-[var(--bg-panel)]", className)}
+    className={cn("divide-y divide-[var(--border-muted)] bg-[var(--bg-panel)]", className)}
     {...props}
   />
 ));
@@ -45,7 +45,7 @@ const TableFooter = React.forwardRef<
   <tfoot
     ref={ref}
     className={cn(
-      "border-t-2 border-[var(--border-color)] bg-[var(--bg-inset)] font-medium",
+      "border-t border-[var(--border-color)] bg-[var(--bg-inset)] font-medium",
       className,
     )}
     {...props}
@@ -59,7 +59,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
       ref={ref}
       className={cn(
         "transition-colors duration-100 hover:bg-[var(--bg-inset)]",
-        "data-[selected=true]:bg-[var(--bg-inset)] data-[selected=true]:border-l-[3px] data-[selected=true]:border-l-[var(--color-accent)]",
+        "data-[selected=true]:bg-[var(--color-accent-soft)] data-[state=selected]:bg-[var(--color-accent-soft)]",
         className,
       )}
       {...props}
@@ -76,9 +76,9 @@ const TableHead = React.forwardRef<
     ref={ref}
     className={cn(
       "h-10 px-4 text-left align-middle",
-      "text-[11px] font-bold uppercase tracking-widest text-[var(--color-white)]",
+      "whitespace-nowrap font-sans text-[13px] font-medium text-[var(--text-secondary)]",
       "[&:has([role=checkbox])]:pr-0",
-      "border-r-[1px] border-r-[#333] last:border-r-0",
+      "border-b border-[var(--border-color)]",
       className,
     )}
     {...props}

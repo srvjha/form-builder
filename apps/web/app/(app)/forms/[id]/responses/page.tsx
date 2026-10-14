@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { Fragment, useState, useEffect, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { Trash2, ChevronDown, ChevronUp, Mail, Download, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button }      from "@/components/ui/button";
-import { Badge }       from "@/components/ui/badge";
 import { Skeleton }    from "@/components/ui/skeleton";
 import { EmptyState }  from "@/components/shared/empty-state";
 import { ErrorState }  from "@/components/shared/error-state";
@@ -74,15 +73,15 @@ export default function ResponsesPage() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div className="h-full overflow-y-auto px-4 py-6 sm:p-8">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="label-overline mb-1">Responses</p>
+            <h1 className="text-[32px] text-[var(--text-primary)]">Responses</h1>
             {data && (
-              <p className="font-mono text-xs text-[var(--text-muted)]">
-                {total} total response{total !== 1 ? "s" : ""}
+              <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                {total} response{total !== 1 ? "s" : ""} so far
               </p>
             )}
           </div>
@@ -107,8 +106,12 @@ export default function ResponsesPage() {
 
         {/* Loading */}
         {isLoading && (
-          <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
+          <div className="overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)]">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="border-b border-[var(--border-muted)] px-4 py-3 last:border-b-0">
+                <Skeleton className="h-5 w-2/3" />
+              </div>
+            ))}
           </div>
         )}
 
@@ -124,96 +127,127 @@ export default function ResponsesPage() {
         {/* Responses */}
         {!isLoading && responses.length > 0 && (
           <>
-            <div className="border-2 border-[#0A0A0A]">
-              {/* Table header */}
-              <div className="grid grid-cols-[1fr_160px_120px_80px] gap-4 border-b-2 border-[#0A0A0A] bg-[#0A0A0A] px-4 py-2.5">
-                <span className="font-display text-xs font-extrabold uppercase tracking-wider text-white">Respondent</span>
-                <span className="font-display text-xs font-extrabold uppercase tracking-wider text-white">Submitted</span>
-                <span className="font-display text-xs font-extrabold uppercase tracking-wider text-white">Duration</span>
-                <span className="font-display text-xs font-extrabold uppercase tracking-wider text-white">Actions</span>
-              </div>
-
-              {responses.map((res: any, i: number) => {
-                const isExpanded = expandedId === res.id;
-                return (
-                  <div key={res.id} id={`response-${res.id}`} className={i < responses.length - 1 ? "border-b-2 border-[#0A0A0A]" : ""}>
-                    <div
-                      className="grid grid-cols-[1fr_160px_120px_80px] cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-[var(--bg-inset)]"
-                      onClick={() => setExpandedId(isExpanded ? null : res.id)}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        {isExpanded
-                          ? <ChevronUp   className="h-3.5 w-3.5 shrink-0 text-[var(--color-accent)]" />
-                          : <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[var(--text-muted)]" />}
-                        <span className="truncate font-mono text-xs">
-                          {res.respondentEmail ?? <span className="text-[var(--text-muted)]">Anonymous</span>}
-                        </span>
-                      </div>
-                      <span className="font-mono text-xs text-[var(--text-muted)]">
-                        {format(new Date(res.submittedAt), "MMM d, yyyy HH:mm")}
-                      </span>
-                      <span className="font-mono text-xs text-[var(--text-muted)]">
-                        {res.completionTimeMs ? `${Math.round(res.completionTimeMs / 1000)}s` : "—"}
-                      </span>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setDeleteId(res.id); }}
-                        className="flex h-7 w-7 items-center justify-center border-2 border-[#0A0A0A] hover:bg-[var(--color-red)] hover:text-white transition-colors"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden border-t-2 border-dashed border-[var(--border-muted)]"
+            <div className="overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--bg-panel)]">
+              <table className="w-full table-fixed border-collapse text-left text-sm">
+                <thead className="bg-[var(--bg-inset)]">
+                  <tr className="border-b border-[var(--border-color)]">
+                    <th scope="col" className="px-4 py-2.5 text-[13px] font-medium text-[var(--text-secondary)]">Respondent</th>
+                    <th scope="col" className="hidden w-[170px] px-4 py-2.5 text-[13px] font-medium text-[var(--text-secondary)] sm:table-cell">Submitted</th>
+                    <th scope="col" className="hidden w-[100px] px-4 py-2.5 text-[13px] font-medium text-[var(--text-secondary)] sm:table-cell">Time taken</th>
+                    <th scope="col" className="w-[56px] px-4 py-2.5"><span className="sr-only">Actions</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {responses.map((res: any, i: number) => {
+                    const isExpanded = expandedId === res.id;
+                    const isLast     = i === responses.length - 1;
+                    const submitted  = format(new Date(res.submittedAt), "MMM d, yyyy HH:mm");
+                    const duration   = res.completionTimeMs ? `${Math.round(res.completionTimeMs / 1000)}s` : "—";
+                    return (
+                      <Fragment key={res.id}>
+                        <tr
+                          id={`response-${res.id}`}
+                          aria-expanded={isExpanded}
+                          className={`cursor-pointer transition-colors hover:bg-[var(--bg-inset)] ${isExpanded ? "bg-[var(--bg-inset)]" : ""} ${!isLast || isExpanded ? "border-b border-[var(--border-muted)]" : ""}`}
+                          onClick={() => setExpandedId(isExpanded ? null : res.id)}
                         >
-                          <div className="grid gap-4 p-6 sm:grid-cols-2">
-                            {(res.answers ?? []).map((ans: any) => {
-                              const field = fieldsById.get(ans.fieldId) as any;
-                              const text  = formatAnswerValue(field, ans.value);
-                              return (
-                                <div key={ans.id} className="border-2 border-[var(--border-muted)] bg-[var(--bg-inset)] p-4">
-                                  <p className="label-overline mb-1.5 text-[var(--text-muted)]">{field?.label ?? "Deleted field"}</p>
-                                  <p className="text-sm font-semibold text-[var(--text-primary)] break-words">
-                                    {text || <span className="italic text-[var(--text-muted)]">No answer</span>}
-                                  </p>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              })}
+                          <td className="px-4 py-3">
+                            <div className="flex min-w-0 items-center gap-2">
+                              {isExpanded
+                                ? <ChevronUp   className="h-4 w-4 shrink-0 text-[var(--color-accent)]" />
+                                : <ChevronDown className="h-4 w-4 shrink-0 text-[var(--text-muted)]" />}
+                              <div className="min-w-0">
+                                <p className="truncate text-sm text-[var(--text-primary)]">
+                                  {res.respondentEmail ?? <span className="text-[var(--text-muted)]">Anonymous</span>}
+                                </p>
+                                <p className="truncate text-xs text-[var(--text-muted)] sm:hidden">
+                                  {submitted} · {duration}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="hidden px-4 py-3 text-sm tabular-nums text-[var(--text-secondary)] sm:table-cell">
+                            {submitted}
+                          </td>
+                          <td className="hidden px-4 py-3 text-sm tabular-nums text-[var(--text-secondary)] sm:table-cell">
+                            {duration}
+                          </td>
+                          <td className="px-3 py-3 text-right">
+                            <button
+                              type="button"
+                              aria-label="Delete response"
+                              onClick={(e) => { e.stopPropagation(); setDeleteId(res.id); }}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-muted)] transition-colors hover:bg-[var(--color-red)]/10 hover:text-[var(--color-red)]"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </td>
+                        </tr>
+
+                        <AnimatePresence initial={false}>
+                          {isExpanded && (
+                            <tr className={!isLast ? "border-b border-[var(--border-color)]" : ""}>
+                              <td colSpan={4} className="p-0">
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden"
+                                >
+                                  <dl className="divide-y divide-[var(--border-muted)] px-4 py-2 sm:px-10">
+                                    {(res.answers ?? []).length === 0 && (
+                                      <p className="py-3 text-sm text-[var(--text-muted)]">This response has no answers.</p>
+                                    )}
+                                    {(res.answers ?? []).map((ans: any) => {
+                                      const field = fieldsById.get(ans.fieldId) as any;
+                                      const text  = formatAnswerValue(field, ans.value);
+                                      return (
+                                        <div key={ans.id} className="grid gap-1 py-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] sm:gap-6">
+                                          <dt className="text-[13px] text-[var(--text-muted)]">{field?.label ?? "Deleted field"}</dt>
+                                          <dd className="whitespace-pre-wrap break-words text-sm text-[var(--text-primary)]">
+                                            {text || <span className="text-[var(--text-muted)]">No answer</span>}
+                                          </dd>
+                                        </div>
+                                      );
+                                    })}
+                                  </dl>
+                                </motion.div>
+                              </td>
+                            </tr>
+                          )}
+                        </AnimatePresence>
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="mt-4 flex items-center justify-between">
-                <span className="font-mono text-xs text-[var(--text-muted)]">
+                <span className="text-sm text-[var(--text-secondary)]">
                   Page {page} of {totalPages}
                 </span>
                 <div className="flex gap-2">
                   <button
+                    type="button"
+                    aria-label="Previous page"
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1}
-                    className="flex h-8 w-8 items-center justify-center border-2 border-[#0A0A0A] bg-[var(--bg-panel)] disabled:opacity-30 hover:bg-[var(--bg-inset)] transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-color)] bg-[var(--bg-panel)] transition-colors hover:bg-[var(--bg-inset)] disabled:opacity-30"
                   >
-                    <ChevronLeft className="h-3.5 w-3.5" />
+                    <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button
+                    type="button"
+                    aria-label="Next page"
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages}
-                    className="flex h-8 w-8 items-center justify-center border-2 border-[#0A0A0A] bg-[var(--bg-panel)] disabled:opacity-30 hover:bg-[var(--bg-inset)] transition-colors"
+                    className="flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border-color)] bg-[var(--bg-panel)] transition-colors hover:bg-[var(--bg-inset)] disabled:opacity-30"
                   >
-                    <ChevronRight className="h-3.5 w-3.5" />
+                    <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -226,7 +260,7 @@ export default function ResponsesPage() {
       <Dialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <DialogContent size="sm">
           <DialogHeader>
-            <DialogTitle>Delete Response</DialogTitle>
+            <DialogTitle>Delete response</DialogTitle>
             <DialogDescription>This permanently removes this response and all its answers. This cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -236,7 +270,7 @@ export default function ResponsesPage() {
               loading={deleteMut.isPending}
               onClick={() => deleteId && deleteMut.mutate({ formId: id, responseId: deleteId })}
             >
-              Delete
+              Delete response
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -244,3 +278,4 @@ export default function ResponsesPage() {
     </div>
   );
 }
+

@@ -17,7 +17,6 @@ import { FileText } from "lucide-react";
 import { FieldPalette, makeDefaultField } from "@/components/builder/field-palette";
 import { FieldCard }     from "@/components/builder/field-card";
 import { FieldSettings } from "@/components/builder/field-settings";
-import { EmptyState }     from "@/components/shared/empty-state";
 import { Skeleton }       from "@/components/ui/skeleton";
 import { trpc }           from "@/lib/trpc";
 import { useBuilderStore } from "@/stores/builder-store";
@@ -52,6 +51,8 @@ export default function FormEditPage() {
       maxResponses:   data.maxResponses ?? undefined,
       closesAt:       data.closesAt ? String(data.closesAt) : undefined,
       settings: {
+        // keep every saved setting (e.g. formTheme) so autosave never drops one
+        ...((data.settings as Record<string, unknown> | null) ?? {}),
         showProgressBar:  data.settings?.showProgressBar  ?? true,
         shuffleFields:    data.settings?.shuffleFields    ?? false,
         oneResponsePerIp: data.settings?.oneResponsePerIp ?? false,
@@ -62,7 +63,7 @@ export default function FormEditPage() {
     setFields(
       (data.fields ?? []).map((f: any) => ({
         id:           f.id,
-        type:         f.fieldType,
+        type:         f.type, // the column is `type` (was read as `fieldType`, which is undefined)
         label:        f.label,
         placeholder:  f.placeholder   ?? undefined,
         helpText:     f.helpText      ?? undefined,
@@ -160,7 +161,7 @@ export default function FormEditPage() {
       setFields(
         current.map((f) =>
           f.id === field.id
-            ? { ...f, id: serverField.id, order: serverField.order }
+            ? { ...f, id: serverField.id, clientKey: f.clientKey ?? f.id, order: serverField.order }
             : f,
         ),
       );
@@ -250,12 +251,11 @@ export default function FormEditPage() {
   /* ── Preview mode ─────────────────────────────────────────── */
   if (previewMode) {
     return (
-      <div className="h-full overflow-y-auto bg-[var(--bg-page)] bg-dot-grid px-6 py-10">
-        <div className="mx-auto max-w-2xl space-y-6">
-          <div>
-            <p className="label-overline mb-2 text-[var(--color-accent)]">Preview</p>
-            <h1 className="font-display text-4xl font-black uppercase tracking-tight">{form.title || "Untitled Form"}</h1>
-            {form.description && <p className="mt-2 text-[var(--text-muted)]">{form.description}</p>}
+      <div className="h-full overflow-y-auto px-4 py-8 sm:px-6 sm:py-12">
+        <div className="mx-auto max-w-2xl space-y-4">
+          <div className="mb-8">
+            <h1 className="font-display text-4xl text-[var(--text-primary)] sm:text-5xl">{form.title || "Untitled form"}</h1>
+            {form.description && <p className="mt-3 max-w-prose text-[var(--text-secondary)]">{form.description}</p>}
           </div>
           {fields.map((f) => (
             <FieldCard key={f.id} field={f} isActive={false} preview />
@@ -267,29 +267,34 @@ export default function FormEditPage() {
 
   /* ── Builder UI ───────────────────────────────────────────── */
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* ── Left: Field palette ─────────────────────────────── */}
-      <aside className="w-52 shrink-0 border-r-2 border-[#0A0A0A] bg-[var(--bg-panel)] overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden md:flex-row">
+      {/* ── Left: Field palette (top strip on phones) ───────── */}
+      <aside className="shrink-0 border-b-1 border-[var(--border-color)] bg-[var(--bg-panel)] md:w-56 md:border-b-0 md:border-r-1 md:overflow-hidden">
         <FieldPalette onAdd={handleAddField} />
       </aside>
 
-      {/* ── Center: Canvas ──────────────────────────────────── */}
+      {/* ── Center: Canvas — transparent so the dotted ground shows ── */}
       <main
-        className="flex-1 overflow-y-auto bg-[var(--bg-page)] p-6"
+        className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6 md:px-10 md:py-10"
         onClick={() => setActiveField(null)}
+        aria-label="Form canvas"
       >
         {isLoading ? (
-          <div className="mx-auto max-w-2xl space-y-4">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
+          <div className="mx-auto max-w-2xl space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
           </div>
         ) : (
-          <div className="mx-auto max-w-2xl space-y-4">
+          <div className="mx-auto max-w-2xl space-y-3 pb-16">
             {fields.length === 0 ? (
-              <EmptyState
-                icon={<FileText className="h-8 w-8 text-[var(--text-muted)]" />}
-                title="No fields yet"
-                description="Click a field type on the left to add it to your form."
-              />
+              <div className="flex flex-col items-center rounded-xl border-1 border-dashed border-[var(--border-color)] bg-[var(--bg-panel)] px-6 py-14 text-center">
+                <FileText className="h-6 w-6 text-[var(--text-muted)]" aria-hidden />
+                <h2 className="mt-4 font-sans text-base font-semibold leading-snug tracking-normal text-[var(--text-primary)]">
+                  Add your first field
+                </h2>
+                <p className="mt-1 max-w-xs text-sm text-[var(--text-secondary)]">
+                  Pick a field type from the list and it will land here. Drag cards to reorder them.
+                </p>
+              </div>
             ) : (
               <DndContext
                 sensors={sensors}
@@ -301,7 +306,9 @@ export default function FormEditPage() {
                   <AnimatePresence>
                     {fields.map((f) => (
                       <FieldCard
-                        key={f.id}
+                        // Keyed by the id it was created with, so swapping in the server id
+                        // does not unmount and re-animate the card (that caused the jump)
+                        key={f.clientKey ?? f.id}
                         field={f}
                         isActive={f.id === activeFieldId}
                         onRemove={handleRemoveField}
@@ -315,7 +322,7 @@ export default function FormEditPage() {
         )}
       </main>
 
-      {/* ── Right: Settings panel ───────────────────────────── */}
+      {/* ── Right: Settings panel (full-screen sheet on phones) ── */}
       <AnimatePresence>
         {activeField && (
           <motion.aside
@@ -324,7 +331,7 @@ export default function FormEditPage() {
             animate={{ x: 0,   opacity: 1 }}
             exit={{   x: 280,  opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="w-72 shrink-0 border-l-2 border-[#0A0A0A] bg-[var(--bg-panel)] overflow-hidden"
+            className="fixed inset-y-0 right-0 z-40 w-full max-w-sm overflow-hidden border-l-1 border-[var(--border-color)] bg-[var(--bg-panel)] shadow-soft-xl md:static md:z-auto md:w-80 md:max-w-none md:shrink-0 md:shadow-none"
           >
             <FieldSettings
               field={activeField}

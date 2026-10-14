@@ -13,12 +13,13 @@ export const ROUTES = {
   formAnalytics: (id: string) => `/forms/${id}/analytics`,
   publicForm:  (slug: string) => `/f/${slug}`,
   explore:     "/explore",
-  themes:      "/themes",
+  analytics:   "/analytics",
+  templates:   "/templates",
+  admin:       "/admin",
   settings:    "/settings",
   settingsAppearance:    "/settings/appearance",
   settingsNotifications: "/settings/notifications",
   pricing:     "/pricing",
-  characters:  "/characters",
   about:       "/about",
 } as const;
 
@@ -47,20 +48,21 @@ export const FORM_STATUS_LABELS = {
 } as const;
 
 export const FORM_STATUS_COLORS = {
-  draft:     { bg: "bg-brut-yellow", text: "text-brut-black", border: "border-brut-yellow" },
-  published: { bg: "bg-brut-green",  text: "text-brut-black", border: "border-brut-green" },
-  closed:    { bg: "bg-brut-red",    text: "text-white",      border: "border-brut-red" },
-  archived:  { bg: "bg-muted",       text: "text-muted-foreground", border: "border-input" },
+  draft:     { bg: "bg-zinc-100 dark:bg-zinc-800/70",  text: "text-zinc-700 dark:text-zinc-200", border: "border-zinc-200 dark:border-zinc-700" },
+  published: { bg: "bg-blue-50 dark:bg-blue-500/15",   text: "text-blue-700 dark:text-blue-300", border: "border-blue-200 dark:border-blue-500/30" },
+  closed:    { bg: "bg-zinc-50 dark:bg-zinc-900",      text: "text-zinc-500 dark:text-zinc-400", border: "border-zinc-200 dark:border-zinc-800" },
+  archived:  { bg: "bg-transparent",                   text: "text-zinc-500 dark:text-zinc-500", border: "border-zinc-200 dark:border-zinc-800" },
 } as const;
 
 export const NAV_ITEMS = [
   { label: "Dashboard",  href: ROUTES.dashboard,  icon: "LayoutDashboard" },
   { label: "Forms",      href: ROUTES.forms,       icon: "FileText" },
+  { label: "Analytics",  href: ROUTES.analytics,   icon: "BarChart3" },
+  { label: "Templates",  href: ROUTES.templates,   icon: "LayoutTemplate" },
   { label: "Explore",    href: ROUTES.explore,     icon: "Compass" },
 ] as const;
 
 export const NAV_BOTTOM_ITEMS = [
-  { label: "Themes",   href: ROUTES.themes,   icon: "Palette" },
   { label: "Settings", href: ROUTES.settings, icon: "Settings" },
 ] as const;
 

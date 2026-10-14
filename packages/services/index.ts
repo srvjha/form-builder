@@ -9,3 +9,4 @@ export { generateSlug } from "./utils/slug";
 export type { FormWithFields, FormWithStats } from "./form/index";
 export type { SubmitFormInput, PaginatedResponses, ResponseWithAnswers } from "./response/index";
 export type { FormAnalyticsSummary } from "./analytics/index";
+export { default as AdminService } from "./admin/index";

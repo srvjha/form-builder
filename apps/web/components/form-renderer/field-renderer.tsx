@@ -31,24 +31,34 @@ interface FieldRendererProps {
   error?:   string;
 }
 
+/* ── Shared option styles ─────────────────────────────────────── */
+const OPTION_BASE =
+  "flex w-full items-center gap-3 rounded-md border px-4 py-3 text-left text-sm font-medium transition-colors " +
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]";
+
+const OPTION_ACTIVE =
+  "border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--text-primary)]";
+
+const OPTION_IDLE =
+  "border-[var(--border-color)] bg-[var(--bg-inset)] text-[var(--text-primary)] hover:border-[var(--color-accent)]";
+
 /* ── Rating stars ─────────────────────────────────────────────── */
 function RatingInput({ field, value, onChange }: Pick<FieldRendererProps, "field" | "value" | "onChange">) {
   const max   = field.maxValue ?? 5;
   const stars = Array.from({ length: max }, (_, i) => i + 1);
   const cur   = Number(value) || 0;
   return (
-    <div className="flex gap-1">
+    <div className="flex flex-wrap gap-1.5">
       {stars.map((n) => (
         <button
           key={n}
           type="button"
           onClick={() => onChange(String(n))}
           className={cn(
-            "h-10 w-10 border-2 border-[#0A0A0A] font-display text-lg font-black transition-all",
-            "hover:translate-x-[1px] hover:translate-y-[1px]",
+            "flex h-10 w-10 items-center justify-center rounded-md border text-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
             cur >= n
-              ? "bg-[var(--color-accent)] text-white shadow-[2px_2px_0_#0A0A0A]"
-              : "bg-[var(--bg-inset)] text-[var(--text-muted)] shadow-[2px_2px_0_#0A0A0A]",
+              ? "border-[var(--color-action)] bg-[var(--color-action)] text-white"
+              : "border-[var(--border-color)] bg-[var(--bg-inset)] text-[var(--text-muted)] hover:border-[var(--color-accent)]",
           )}
           aria-label={`${n} star${n > 1 ? "s" : ""}`}
         >
@@ -66,18 +76,18 @@ function ScaleInput({ field, value, onChange }: Pick<FieldRendererProps, "field"
   const cur = Number(value) || null;
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-1">
+      <div className="flex flex-wrap gap-1.5">
         {Array.from({ length: max - min + 1 }, (_, i) => i + min).map((n) => (
           <button
             key={n}
             type="button"
+            aria-pressed={cur === n}
             onClick={() => onChange(String(n))}
             className={cn(
-              "h-10 w-10 border-2 border-[#0A0A0A] font-mono text-sm font-bold transition-all",
-              "hover:translate-x-[1px] hover:translate-y-[1px]",
+              "flex h-10 min-w-10 items-center justify-center rounded-md border px-2 text-sm font-medium tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]",
               cur === n
-                ? "bg-[var(--color-accent)] text-white shadow-[2px_2px_0_#0A0A0A]"
-                : "bg-[var(--bg-inset)] text-[var(--text-muted)] shadow-[2px_2px_0_#0A0A0A]",
+                ? "border-[var(--color-action)] bg-[var(--color-action)] text-white"
+                : "border-[var(--border-color)] bg-[var(--bg-inset)] text-[var(--text-secondary)] hover:border-[var(--color-accent)]",
             )}
           >
             {n}
@@ -85,9 +95,9 @@ function ScaleInput({ field, value, onChange }: Pick<FieldRendererProps, "field"
         ))}
       </div>
       {(field.minLabel || field.maxLabel) && (
-        <div className="flex justify-between">
-          <span className="font-mono text-xs text-[var(--text-muted)]">{field.minLabel}</span>
-          <span className="font-mono text-xs text-[var(--text-muted)]">{field.maxLabel}</span>
+        <div className="flex justify-between gap-4">
+          <span className="text-xs text-[var(--text-muted)]">{field.minLabel}</span>
+          <span className="text-xs text-[var(--text-muted)]">{field.maxLabel}</span>
         </div>
       )}
     </div>
@@ -105,17 +115,19 @@ function SelectInput({ field, value, onChange }: Pick<FieldRendererProps, "field
           <button
             key={opt.value}
             type="button"
+            aria-pressed={active}
             onClick={() => onChange(active ? "" : opt.value)}
-            className={cn(
-              "flex items-center gap-3 border-2 border-[#0A0A0A] px-4 py-3 text-left text-sm font-semibold transition-all",
-              "hover:translate-x-[1px] hover:translate-y-[1px]",
-              active
-                ? "bg-[var(--color-accent)] text-white shadow-[2px_2px_0_#0A0A0A]"
-                : "bg-[var(--bg-inset)] text-[var(--text-primary)] shadow-[2px_2px_0_#0A0A0A]",
-            )}
+            className={cn(OPTION_BASE, active ? OPTION_ACTIVE : OPTION_IDLE)}
           >
-            <span className={cn("h-4 w-4 border-2 border-current flex-shrink-0", active && "bg-white/30")} />
-            {opt.label}
+            <span
+              className={cn(
+                "flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border",
+                active ? "border-[var(--color-accent)]" : "border-[var(--border-color)]",
+              )}
+            >
+              {active && <span className="h-2 w-2 rounded-full bg-[var(--color-accent)]" />}
+            </span>
+            <span>{opt.label}</span>
           </button>
         );
       })}
@@ -138,21 +150,21 @@ function MultiSelectInput({ field, value, onChange }: Pick<FieldRendererProps, "
           <button
             key={opt.value}
             type="button"
+            aria-pressed={active}
             onClick={() => toggle(opt.value)}
-            className={cn(
-              "flex items-center gap-3 border-2 border-[#0A0A0A] px-4 py-3 text-left text-sm font-semibold transition-all",
-              "hover:translate-x-[1px] hover:translate-y-[1px]",
-              active
-                ? "bg-[var(--color-accent)] text-white shadow-[2px_2px_0_#0A0A0A]"
-                : "bg-[var(--bg-inset)] text-[var(--text-primary)] shadow-[2px_2px_0_#0A0A0A]",
-            )}
+            className={cn(OPTION_BASE, active ? OPTION_ACTIVE : OPTION_IDLE)}
           >
-            <span className={cn(
-              "h-4 w-4 border-2 border-current flex-shrink-0 flex items-center justify-center",
-            )}>
-              {active && <span className="block h-2 w-2 bg-current" />}
+            <span
+              className={cn(
+                "flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-[4px] border",
+                active
+                  ? "border-[var(--color-action)] bg-[var(--color-action)]"
+                  : "border-[var(--border-color)]",
+              )}
+            >
+              {active && <span className="h-1.5 w-2 -translate-y-px rotate-[-45deg] border-b-2 border-l-2 border-white" />}
             </span>
-            {opt.label}
+            <span>{opt.label}</span>
           </button>
         );
       })}
@@ -214,7 +226,7 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
             checked={strVal === "true"}
             onCheckedChange={(c) => onChange(c ? "true" : "false")}
           />
-          <Label htmlFor={field.id} className="text-sm leading-relaxed cursor-pointer">
+          <Label htmlFor={field.id} required={field.required} className="text-sm leading-relaxed cursor-pointer">
             {field.placeholder || field.label}
           </Label>
         </div>
@@ -230,11 +242,11 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
       control = (
         <label
           htmlFor={field.id}
-          className="flex cursor-pointer flex-col items-center gap-3 border-2 border-dashed border-[#0A0A0A] p-8 transition-colors hover:bg-[var(--bg-inset)]"
+          className="flex cursor-pointer flex-col items-center gap-2 rounded-md border border-dashed border-[var(--border-color)] bg-[var(--bg-inset)] p-8 text-center transition-colors hover:border-[var(--color-accent)]"
         >
-          <span className="font-mono text-xs text-[var(--text-muted)]">Click to upload a file</span>
+          <span className="text-sm font-medium text-[var(--text-secondary)]">Click to upload a file</span>
           <input id={field.id} type="file" className="sr-only" onChange={(e) => onChange(e.target.files?.[0]?.name ?? "")} />
-          {strVal && <span className="font-mono text-xs font-bold text-[var(--color-accent)]">{strVal}</span>}
+          {strVal && <span className="text-[13px] font-medium text-[var(--color-accent)]">{strVal}</span>}
         </label>
       );
       break;
@@ -245,15 +257,15 @@ export function FieldRenderer({ field, value, onChange, error }: FieldRendererPr
   return (
     <div className="space-y-2">
       {field.type !== "checkbox" && (
-        <Label htmlFor={field.id} required={field.required} className="text-sm">
+        <Label htmlFor={field.id} required={field.required} className="text-[15px] font-medium text-[var(--text-primary)]">
           {field.label}
         </Label>
       )}
       {field.helpText && (
-        <p className="text-xs text-[var(--text-muted)] -mt-1">{field.helpText}</p>
+        <p className="-mt-1 text-[13px] text-[var(--text-secondary)]">{field.helpText}</p>
       )}
       {control}
-      {error && <p className="font-mono text-xs text-[var(--color-red)]">{error}</p>}
+      {error && <p role="alert" className="text-[13px] text-[var(--color-red)]">{error}</p>}
     </div>
   );
 }

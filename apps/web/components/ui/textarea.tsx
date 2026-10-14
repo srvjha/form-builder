@@ -16,22 +16,23 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           maxLength={maxLength}
           value={value}
+          aria-invalid={error || undefined}
           className={cn(
-            "w-full min-h-[120px] border-2 bg-[var(--bg-inset)] px-3 py-2",
-            "text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-            "resize-y transition-all duration-100",
-            "focus:border-[var(--color-accent)] focus:shadow-[3px_3px_0px_var(--color-accent)] focus:outline-none",
-            "disabled:cursor-not-allowed disabled:opacity-50",
+            "w-full min-h-[120px] rounded-md border bg-[var(--bg-panel)] px-3 py-2.5",
+            "font-sans text-sm leading-relaxed text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
+            "resize-y transition-[border-color,box-shadow] duration-150",
+            "focus:outline-none focus:border-[var(--color-accent)] focus:ring-[3px] focus:ring-[var(--color-accent)]/25",
+            "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-[var(--bg-inset)]",
             error
-              ? "border-[var(--color-red)] shadow-[3px_3px_0px_var(--color-red)]"
-              : "border-[var(--border-color)]",
+              ? "border-[var(--color-red)] focus:border-[var(--color-red)] focus:ring-[var(--color-red)]/20"
+              : "border-[var(--border-color)] hover:border-[var(--text-muted)]/40",
             showCount && "pb-7",
             className,
           )}
           {...props}
         />
         {showCount && maxLength && (
-          <span className="absolute bottom-2 right-3 text-[11px] font-mono text-[var(--text-muted)] pointer-events-none">
+          <span className="pointer-events-none absolute bottom-2 right-3 text-xs tabular-nums text-[var(--text-muted)]">
             {charCount} / {maxLength}
           </span>
         )}

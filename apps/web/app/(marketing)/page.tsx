@@ -2,90 +2,959 @@
 
 import Link from "next/link";
 import { SignUpButton, useAuth } from "@clerk/nextjs";
-import { motion } from "framer-motion";
-import { ArrowRight, Zap, BarChart2, Shield, Code2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { MascotScene } from "@/components/mascot/mascot-scene";
-import { useMascotStore } from "@/stores/mascot-store";
+import { AnimatePresence, animate, motion, useReducedMotion, type Variants } from "framer-motion";
+import { Check, ChevronDown, Copy, GripVertical, Mail, Star, Type, User } from "lucide-react";
+import { useEffect, useId, useState } from "react";
 import { ROUTES } from "@/lib/constants";
 
-/* ─── Static data ─────────────────────────────────────────────── */
-const FEATURES = [
-  {
-    icon: Zap,
-    title: "14 Field Types",
-    description:
-      "Text, email, number, rating, scale, file upload — everything you need. No plugins, no upsells.",
-  },
-  {
-    icon: BarChart2,
-    title: "Real-Time Analytics",
-    description:
-      "Completion rates, drop-off funnels, per-field breakdowns. Live, no delays.",
-  },
-  {
-    icon: Shield,
-    title: "Secure by Default",
-    description:
-      "Rate limiting, IP dedup, Clerk auth. GDPR-ready data handling out of the box.",
-  },
-  {
-    icon: Code2,
-    title: "Open API",
-    description:
-      "Full REST + tRPC API. Build on top of it, integrate with anything, own your data.",
-  },
-];
+/* Same rule the server uses (packages/services/utils/slug.ts) */
+function generateSlug(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 100);
+}
 
-const STEPS = [
-  { step: "01", title: "Create",  description: "Drag fields onto the canvas. Name it. Done." },
-  { step: "02", title: "Publish", description: "Hit publish. Get a shareable link instantly." },
-  { step: "03", title: "Collect", description: "Responses arrive live. Export, filter, analyse." },
-];
+const SITE_HOST = "formcraft.srvjha.in";
 
-/* ─── Brix reaction map ───────────────────────────────────────── */
-import type { BrixState } from "@/stores/mascot-store";
+/* ─── Motion ──────────────────────────────────────────────────── */
+const EASE = [0.22, 1, 0.36, 1] as const;
 
-type Reaction = { state: BrixState; message: string };
-
-const REACTIONS = {
-  signUp:   { state: "excited",  message: "No credit card. No excuses." } as Reaction,
-  explore:  { state: "thinking", message: "Inspiration awaits..."       } as Reaction,
-  features: { state: "waving",   message: "This is just the beginning." } as Reaction,
-  pricing:  { state: "success",  message: "We keep it honest. Always."  } as Reaction,
-  cta:      { state: "excited",  message: "Let's build something great!" } as Reaction,
+const group: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.075 } },
+};
+const rise: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
 };
 
-/* ─── Animation variants ──────────────────────────────────────── */
-const fadeUp = {
-  hidden:  { opacity: 0, y: 24 },
-  visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.08, duration: 0.35 },
-  }),
-};
+/* Buttons: one shape on the whole page — fully round */
+const primaryBtn =
+  "inline-flex min-h-[48px] items-center justify-center rounded-full bg-[var(--color-action)] px-7 text-[16px] font-medium text-white transition-[transform,background-color] duration-150 hover:bg-[var(--color-action-hover)] active:scale-[0.97]";
+const secondaryBtn =
+  "inline-flex min-h-[48px] items-center justify-center rounded-full bg-[var(--bg-inset)] px-7 text-[16px] font-medium text-[var(--text-primary)] transition-[transform,background-color] duration-150 hover:bg-[var(--border-color)] active:scale-[0.97]";
 
-/* ─── Hoverable wrapper ───────────────────────────────────────── */
-function Reactive({
-  reaction,
-  children,
-  className,
-}: {
-  reaction: Reaction;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  const { setState, reset } = useMascotStore();
+/* ─── Hero: a real field set inside the headline ─────────────── */
+/* Four real field types take turns in one fixed box: the current one slides up
+   and out while the next rises in, so there is never an empty frame or a resize. */
+/* The fields almost every form has, so visitors recognise them at a glance */
+const SLOT_FIELDS = ["name", "email", "gender", "rating"] as const;
+type SlotField = (typeof SLOT_FIELDS)[number];
+
+function SlotContent({ kind }: { kind: SlotField }) {
+  if (kind === "name") {
+    return (
+      <>
+        <User className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
+        <span className="whitespace-nowrap">Jane Cooper</span>
+        <span className="ml-auto h-[1.2em] w-[0.08em] shrink-0 bg-[var(--color-accent)]" />
+      </>
+    );
+  }
+  if (kind === "email") {
+    return (
+      <>
+        <Mail className="h-[1.1em] w-[1.1em] shrink-0 text-[var(--color-accent)]" />
+        <span className="whitespace-nowrap">jane@company.com</span>
+      </>
+    );
+  }
+  if (kind === "gender") {
+    /* A single-choice field: one option picked */
+    return (
+      <span className="flex w-full items-center gap-[0.5em]">
+        {(["Female", "Male"] as const).map((g, k) => (
+          <span
+            key={g}
+            className={`flex flex-1 items-center justify-center gap-[0.4em] rounded-full py-[0.35em] ${
+              k === 0 ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]" : "text-[var(--text-muted)] ring-1 ring-[var(--border-color)]"
+            }`}
+          >
+            <span
+              className={`h-[0.7em] w-[0.7em] rounded-full ${
+                k === 0 ? "bg-[var(--color-accent)]" : "ring-1 ring-[var(--text-muted)]"
+              }`}
+            />
+            {g}
+          </span>
+        ))}
+      </span>
+    );
+  }
   return (
-    <span
-      className={className}
-      onMouseEnter={() => setState(reaction.state, reaction.message, true)}
-      onMouseLeave={() => reset()}
-    >
-      {children}
+    <span className="flex w-full items-center justify-between">
+      {[0, 1, 2, 3, 4].map((s) => (
+        <Star
+          key={s}
+          className={`h-[1.4em] w-[1.4em] ${s < 4 ? "fill-[var(--color-accent)] text-[var(--color-accent)]" : "text-[var(--border-color)]"}`}
+        />
+      ))}
     </span>
+  );
+}
+
+/* What the label on the field's border reads for each field */
+const SLOT_LABELS: Record<SlotField, string> = {
+  name: "Full name",
+  email: "Email",
+  gender: "Gender",
+  rating: "Rate your visit",
+};
+
+/* Drawn as a form field being filled in: a blue focus ring and a label notched into its top border.
+   The outer layer holds the ring and label; only the inner layer clips the sliding fields. */
+function FieldInSentence() {
+  const reduce = useReducedMotion();
+  const [i, setI] = useState(0);
+  const kind = SLOT_FIELDS[i]!;
+
+  useEffect(() => {
+    if (reduce) return;
+    const id = setInterval(() => setI((v) => (v + 1) % SLOT_FIELDS.length), 2400);
+    return () => clearInterval(id);
+  }, [reduce]);
+
+  return (
+    <motion.span
+      data-ui
+      aria-hidden
+      /* Shutter: opens once from the baseline; negative insets leave room for the label and ring */
+      initial={reduce ? false : { clipPath: "inset(100% -10% -10% -10%)" }}
+      animate={{ clipPath: "inset(-40% -10% -10% -10%)" }}
+      transition={{ duration: 1.1, ease: EASE, delay: 0.35 }}
+      className="relative mx-[0.14em] inline-flex h-[0.86em] w-[2.8em] translate-y-[0.06em] rounded-[0.16em] align-baseline [--slot-fill:var(--bg-panel)] dark:[--slot-fill:var(--bg-inset)] bg-[var(--slot-fill)] ring-[0.012em] ring-[var(--color-accent)] shadow-[0_0_0_0.03em_color-mix(in_srgb,var(--color-accent)_16%,transparent)] max-sm:mx-auto max-sm:my-[0.2em] max-sm:flex max-sm:h-[1.1em] max-sm:w-full max-sm:ring-[0.03em]" /* taste-skill-ignore: the field's own focus ring, part of a drawn interface fragment */
+    >
+      {/* Label notched into the top border; its background is split so it cuts the ring cleanly */}
+      <span className="absolute left-[2.4em] top-0 z-10 -translate-y-1/2 overflow-hidden rounded-[0.04em] bg-[linear-gradient(to_bottom,var(--bg-page)_50%,var(--slot-fill)_50%)] px-[0.4em] font-sans text-[0.115em] leading-[1.5] tracking-normal text-[var(--color-accent)] max-sm:left-[1.2em] max-sm:px-[0.3em] max-sm:text-[0.28em]" /* taste-skill-ignore: hard two-tone stop so the label notches the ring */>
+        <AnimatePresence initial={false} mode="popLayout">
+          <motion.span
+            key={kind}
+            className="block whitespace-nowrap"
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: "0%", opacity: 1 }}
+            exit={{ y: "-100%", opacity: 0 }}
+            transition={{ duration: 0.55, ease: EASE }}
+          >
+            {SLOT_LABELS[kind]}
+          </motion.span>
+        </AnimatePresence>
+      </span>
+
+      <span className="absolute inset-0 overflow-hidden rounded-[inherit]">
+        {/* The current field slides up and out while the next rises in, at the same time */}
+        <AnimatePresence initial={false}>
+          <motion.span
+            key={kind}
+            initial={{ y: "100%" }}
+            animate={{ y: "0%" }}
+            exit={{ y: "-100%" }}
+            transition={{ duration: 0.55, ease: EASE }}
+            className="absolute inset-0 flex items-center gap-[0.6em] px-[1.1em] font-sans text-[0.2em] leading-none tracking-normal text-[var(--text-primary)] max-sm:text-[0.36em]"
+          >
+            <SlotContent kind={kind} />
+          </motion.span>
+        </AnimatePresence>
+      </span>
+    </motion.span>
+  );
+}
+
+function Hero({ primaryCta }: { primaryCta: React.ReactNode }) {
+  const reduce = useReducedMotion();
+  return (
+    <section className="relative flex min-h-[92svh] flex-col items-center justify-center px-4 pb-16 pt-28 text-center sm:px-8">
+      <h1 className="font-display text-[clamp(44px,10.2vw,168px)] leading-[0.92] tracking-[-0.03em] text-[var(--text-primary)]">
+        <motion.span
+          className="block"
+          initial={reduce ? false : { opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: EASE }}
+        >
+          Ask <FieldInSentence /> <span className="max-sm:hidden">and</span>
+        </motion.span>
+        <motion.span
+          className="block"
+          initial={reduce ? false : { opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.1 }}
+        >
+          <span className="sm:hidden">and </span>read every answer.
+        </motion.span>
+      </h1>
+
+      <motion.p
+        initial={reduce ? false : { opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: EASE, delay: 0.55 }}
+        className="mt-10 max-w-[34rem] text-[clamp(17px,1.1vw+12px,20px)] leading-relaxed text-[var(--text-primary)]"
+      >
+        Build a form in minutes, share one link, and see every response with readable labels and a
+        funnel that shows where people stop.
+      </motion.p>
+
+      <motion.div
+        initial={reduce ? false : { opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: EASE, delay: 0.7 }}
+        className="mt-9 flex flex-wrap items-center justify-center gap-3"
+      >
+        {primaryCta}
+        <Link href={ROUTES.explore} className={secondaryBtn}>
+          Explore public forms
+        </Link>
+      </motion.div>
+    </section>
+  );
+}
+
+/* ─── Showcase: the headline is an input, and the form below it works ── */
+type PreviewField = {
+  id: string;
+  label: string;
+  type: "text" | "email" | "number" | "textarea" | "select" | "rating";
+  required?: boolean;
+  options?: string[];
+};
+
+const DEFAULT_FIELDS: PreviewField[] = [
+  { id: "rating", label: "How did we do?", type: "rating", required: true },
+  { id: "improve", label: "What should we improve?", type: "textarea" },
+  { id: "email", label: "Your email", type: "email", required: true },
+];
+
+const EXAMPLES: { title: string; fields: PreviewField[] }[] = [
+  {
+    title: "Event RSVP",
+    fields: [
+      { id: "attend", label: "Will you attend?", type: "select", required: true, options: ["Yes", "No", "Maybe"] },
+      { id: "guests", label: "How many guests?", type: "number", required: true },
+      { id: "diet", label: "Any dietary needs?", type: "text" },
+    ],
+  },
+  {
+    title: "Job application",
+    fields: [
+      { id: "name", label: "Full name", type: "text", required: true },
+      { id: "email", label: "Email", type: "email", required: true },
+      { id: "years", label: "Years of experience", type: "number", required: true },
+    ],
+  },
+  {
+    title: "Bug report",
+    fields: [
+      { id: "what", label: "What went wrong?", type: "textarea", required: true },
+      { id: "urgency", label: "How urgent is it?", type: "select", required: true, options: ["Low", "Medium", "High"] },
+      { id: "email", label: "Your email", type: "email" },
+    ],
+  },
+];
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validate(fields: PreviewField[], values: Record<string, string>) {
+  const errors: Record<string, string> = {};
+  for (const f of fields) {
+    const v = (values[f.id] ?? "").trim();
+    if (f.required && !v) errors[f.id] = f.type === "rating" ? "Pick a rating." : "This question is required.";
+    else if (v && f.type === "email" && !EMAIL_RE.test(v)) errors[f.id] = "Enter an email like name@example.com.";
+    else if (v && f.type === "number" && Number(v) < 0) errors[f.id] = "Enter 0 or more.";
+  }
+  return errors;
+}
+
+function displayValue(f: PreviewField, v: string) {
+  if (!v) return "No answer";
+  if (f.type === "rating") return `${v} of 5`;
+  return v;
+}
+
+const inputCls =
+  "mt-2 block w-full rounded-md bg-[var(--bg-inset)] px-3 py-2.5 text-[16px] text-[var(--text-primary)] ring-1 ring-[var(--border-color)] outline-none transition-shadow placeholder:text-[var(--text-muted)] focus:ring-2 focus:ring-[var(--color-accent)]";
+
+function PreviewInput({
+  field,
+  value,
+  error,
+  onChange,
+}: {
+  field: PreviewField;
+  value: string;
+  error?: string;
+  onChange: (v: string) => void;
+}) {
+  const id = useId();
+  const errId = `${id}-err`;
+  const common = {
+    id,
+    "aria-invalid": !!error,
+    "aria-describedby": error ? errId : undefined,
+  };
+
+  let control: React.ReactNode;
+  if (field.type === "rating") {
+    control = (
+      <div role="radiogroup" aria-labelledby={`${id}-label`} className="mt-2 flex gap-1">
+        {[1, 2, 3, 4, 5].map((n) => {
+          const on = Number(value) >= n;
+          return (
+            <button
+              key={n}
+              type="button"
+              role="radio"
+              aria-checked={Number(value) === n}
+              aria-label={`${n} of 5`}
+              onClick={() => onChange(String(n))}
+              className="rounded-md p-1 transition-transform active:scale-90"
+            >
+              <Star className={`h-7 w-7 ${on ? "fill-[var(--color-accent)] text-[var(--color-accent)]" : "text-[var(--border-color)]"}`} />
+            </button>
+          );
+        })}
+      </div>
+    );
+  } else if (field.type === "select") {
+    control = (
+      <div role="radiogroup" aria-labelledby={`${id}-label`} className="mt-2 flex flex-wrap gap-2">
+        {field.options!.map((o) => (
+          <button
+            key={o}
+            type="button"
+            role="radio"
+            aria-checked={value === o}
+            onClick={() => onChange(o)}
+            className={`min-h-[40px] rounded-full px-4 text-[16px] transition-colors ${
+              value === o
+                ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)] ring-1 ring-[var(--color-accent)]"
+                : "bg-[var(--bg-inset)] text-[var(--text-primary)] ring-1 ring-[var(--border-color)] hover:bg-[var(--border-color)]"
+            }`}
+          >
+            {o}
+          </button>
+        ))}
+      </div>
+    );
+  } else if (field.type === "textarea") {
+    control = <textarea {...common} rows={2} value={value} onChange={(e) => onChange(e.target.value)} className={`${inputCls} resize-none`} />;
+  } else {
+    control = (
+      <input
+        {...common}
+        type={field.type}
+        inputMode={field.type === "number" ? "numeric" : undefined}
+        min={field.type === "number" ? 0 : undefined}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={field.type === "email" ? "name@example.com" : undefined}
+        className={inputCls}
+      />
+    );
+  }
+
+  return (
+    <div>
+      <label id={`${id}-label`} htmlFor={field.type === "rating" || field.type === "select" ? undefined : id} className="block text-[16px] text-[var(--text-primary)]">
+        {field.label}
+        {field.required && <span className="text-[var(--color-accent)]"> *</span>}
+      </label>
+      {control}
+      {error && (
+        <p id={errId} className="mt-1.5 text-[13px] text-[var(--color-red)]">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function TypeTheTitle() {
+  const inputId = useId();
+  const [title, setTitle] = useState("Customer feedback");
+  const example = EXAMPLES.find((e) => e.title === title);
+  const fields = example?.fields ?? DEFAULT_FIELDS;
+  const formKey = example?.title ?? "custom";
+  const slug = generateSlug(title) || "untitled-form";
+
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  /* A different form starts empty */
+  const [lastKey, setLastKey] = useState(formKey);
+  if (lastKey !== formKey) {
+    setLastKey(formKey);
+    setValues({});
+    setErrors({});
+    setSubmitted(false);
+  }
+
+  function setValue(id: string, v: string) {
+    setValues((prev) => ({ ...prev, [id]: v }));
+    if (errors[id]) setErrors((prev) => ({ ...prev, [id]: "" }));
+  }
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const found = validate(fields, values);
+    setErrors(found);
+    if (Object.values(found).every((v) => !v)) setSubmitted(true);
+  }
+
+  function reset() {
+    setValues({});
+    setErrors({});
+    setSubmitted(false);
+  }
+
+  return (
+    <section aria-labelledby={`${inputId}-label`} className="mx-auto max-w-[1280px] px-4 py-32 sm:px-8 md:py-44">
+      <motion.div variants={group} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-80px" }}>
+        <motion.label
+          variants={rise}
+          id={`${inputId}-label`}
+          htmlFor={inputId}
+          className="block text-[16px] text-[var(--text-primary)]"
+        >
+          Name your form, then try filling it in:
+        </motion.label>
+
+        <motion.div variants={rise} data-ui className="mt-4 flex items-baseline">
+          <input
+            id={inputId}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={60}
+            spellCheck={false}
+            className="w-full min-w-0 bg-transparent font-display text-[clamp(44px,8vw,132px)] leading-none tracking-[-0.03em] text-[var(--text-primary)] caret-[var(--color-accent)] outline-none placeholder:text-[var(--text-muted)]"
+            placeholder="Type a form name"
+          />
+        </motion.div>
+
+        <motion.div
+          variants={rise}
+          data-ui
+          className="mt-12 overflow-hidden rounded-xl bg-[var(--bg-panel)] ring-1 ring-[var(--border-color)]"
+        >
+          {/* The public link this form would get */}
+          <div className="flex items-center gap-2 bg-[var(--bg-inset)] p-2 pl-4">
+            <span className="truncate text-[16px] text-[var(--text-primary)]">
+              {SITE_HOST}/f/<span className="text-[var(--color-accent)]">{slug}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1400);
+              }}
+              className="ml-auto inline-flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full bg-[var(--color-action)] px-4 text-[13px] font-medium text-white transition-transform active:scale-[0.97]"
+              aria-live="polite"
+            >
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? "Copied" : "Copy link"}
+            </button>
+          </div>
+
+          <div className="grid gap-8 p-6 sm:p-10 md:grid-cols-[1fr_1.4fr]">
+            <div>
+              <p className="font-display text-[36px] leading-tight text-[var(--text-primary)]">{title || "Untitled form"}</p>
+              <p className="mt-3 text-[16px] text-[var(--text-muted)]">
+                {submitted ? "This is the respondent's view after they submit." : "This preview works. Fill it in and submit."}
+              </p>
+            </div>
+
+            <AnimatePresence mode="wait" initial={false}>
+              {submitted ? (
+                <motion.div
+                  key="done"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3, ease: EASE }}
+                  aria-live="polite"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+                      <Check className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="text-[16px] font-medium text-[var(--text-primary)]">Response submitted</p>
+                      <p className="text-[13px] text-[var(--text-muted)]">You can now close this window.</p>
+                    </div>
+                  </div>
+
+                  <p className="mt-8 text-[13px] text-[var(--text-muted)]">How it shows up in your responses:</p>
+                  <dl className="mt-3 space-y-2">
+                    {fields.map((f) => (
+                      <div key={f.id} className="flex items-baseline justify-between gap-4 rounded-md bg-[var(--bg-inset)] px-3 py-2.5">
+                        <dt className="truncate text-[13px] text-[var(--text-muted)]">{f.label}</dt>
+                        <dd className="text-right text-[16px] font-medium text-[var(--text-primary)]">{displayValue(f, (values[f.id] ?? "").trim())}</dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  <button
+                    type="button"
+                    onClick={reset}
+                    className="mt-6 inline-flex min-h-[44px] items-center rounded-full bg-[var(--bg-inset)] px-6 text-[16px] font-medium text-[var(--text-primary)] transition-[transform,background-color] hover:bg-[var(--border-color)] active:scale-[0.97]"
+                  >
+                    Fill it in again
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.form
+                  key={`form-${formKey}`}
+                  noValidate
+                  onSubmit={onSubmit}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3, ease: EASE }}
+                  className="space-y-5"
+                >
+                  {fields.map((f) => (
+                    <PreviewInput key={f.id} field={f} value={values[f.id] ?? ""} error={errors[f.id] || undefined} onChange={(v) => setValue(f.id, v)} />
+                  ))}
+                  <button
+                    type="submit"
+                    className="inline-flex min-h-[44px] items-center rounded-full bg-[var(--color-action)] px-6 text-[16px] font-medium text-white transition-[transform,background-color] hover:bg-[var(--color-action-hover)] active:scale-[0.97]"
+                  >
+                    Submit response
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+
+        <motion.div variants={rise} className="mt-10 flex flex-wrap items-center gap-2">
+          <span className="w-full text-[16px] text-[var(--text-muted)] sm:w-auto sm:pr-2">Try another:</span>
+          {EXAMPLES.map((e) => (
+            <button
+              key={e.title}
+              type="button"
+              onClick={() => setTitle(e.title)}
+              aria-pressed={title === e.title}
+              className={`min-h-[44px] rounded-full px-5 text-[16px] font-medium transition-[transform,background-color,color] active:scale-[0.97] ${
+                title === e.title
+                  ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
+                  : "bg-[var(--bg-inset)] text-[var(--text-primary)] hover:bg-[var(--border-color)]"
+              }`}
+            >
+              {e.title}
+            </button>
+          ))}
+        </motion.div>
+      </motion.div>
+    </section>
+  );
+}
+
+/* ─── Features: real form settings, each with a working switch ── */
+const SETTINGS = [
+  { label: "Collect each person's email", effect: "A required email field appears before your first question.", on: true },
+  { label: "Show a progress bar", effect: "Respondents see how far along they are, from 0 to 100%.", on: false },
+  { label: "Email me for every response", effect: "One email per submission, with a link to that response.", on: true },
+  { label: "Allow one response per person", effect: "A second submission from the same network is turned away.", on: false },
+  { label: "Require sign-in to answer", effect: "Only people signed in to FormCraft can submit.", on: false },
+];
+
+/* Blue tone steps, one per band: one hue, different depths */
+const BAND_FILLS = [
+  "bg-[color-mix(in_srgb,var(--color-action)_12%,var(--bg-page))]",
+  "bg-[color-mix(in_srgb,var(--color-action)_20%,var(--bg-page))]",
+  "bg-[color-mix(in_srgb,var(--color-action)_8%,var(--bg-page))]",
+  "bg-[color-mix(in_srgb,var(--color-action)_24%,var(--bg-page))]",
+  "bg-[color-mix(in_srgb,var(--color-action)_16%,var(--bg-page))]",
+];
+
+function Toggle({ on, onChange, label }: { on: boolean; onChange: () => void; label: string }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      onClick={onChange}
+      data-ui
+      className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full"
+    >
+      <span
+        className={`relative flex h-[30px] w-[54px] items-center rounded-full px-[3px] transition-colors duration-200 ${
+          on ? "justify-end bg-[var(--color-action)]" : "justify-start bg-[var(--border-color)]"
+        }`}
+      >
+        <motion.span layout transition={{ type: "spring", stiffness: 500, damping: 32 }} className="h-6 w-6 rounded-full bg-white" />
+      </span>
+    </button>
+  );
+}
+
+function SettingBands() {
+  const [state, setState] = useState(SETTINGS.map((s) => s.on));
+  return (
+    <section aria-label="Form settings you control" className="w-full">
+      {SETTINGS.map((s, i) => {
+        const on = state[i]!;
+        return (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.6, ease: EASE, delay: i * 0.06 }}
+            className={`transition-colors duration-300 ${on ? BAND_FILLS[i % BAND_FILLS.length] : "bg-transparent"}`}
+          >
+            <div className="mx-auto flex min-h-[132px] max-w-[1280px] items-center gap-6 px-4 py-6 sm:px-8 md:min-h-[20vh]">
+              <div className="min-w-0 flex-1">
+                <p
+                  className={`font-display text-[clamp(26px,3.4vw,36px)] leading-tight tracking-[-0.01em] transition-colors ${
+                    on ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"
+                  }`}
+                >
+                  {s.label}
+                </p>
+                <AnimatePresence initial={false}>
+                  {on && (
+                    <motion.p
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="mt-2 overflow-hidden text-[16px] text-[var(--text-primary)]"
+                    >
+                      {s.effect}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+              <Toggle
+                on={on}
+                label={s.label}
+                onChange={() => setState((prev) => prev.map((v, k) => (k === i ? !v : v)))}
+              />
+            </div>
+          </motion.div>
+        );
+      })}
+    </section>
+  );
+}
+
+/* ─── Responses: answers as the words people picked ──────────── */
+const RESPONSES = [
+  { when: "2 min ago", email: "maya@studio.co", visit: "Weekly", rating: 5 },
+  { when: "14 min ago", email: "dev.patel@mail.com", visit: "Every day", rating: 4 },
+  { when: "1 h ago", email: "sam.k@uni.edu", visit: "Monthly", rating: 4 },
+  { when: "3 h ago", email: "lee@shop.io", visit: "Rarely", rating: 2 },
+];
+
+function ReadableAnswers() {
+  return (
+    <section className="mx-auto max-w-[1280px] px-4 py-32 sm:px-8 md:py-44">
+      <motion.div variants={group} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-80px" }}>
+        <motion.h2 variants={rise} className="max-w-[16ch] font-display text-[clamp(40px,4.6vw,76px)] leading-[0.98] tracking-[-0.02em] text-[var(--text-primary)]">
+          Answers you can actually read.
+        </motion.h2>
+        <motion.p variants={rise} className="mt-6 max-w-[36rem] text-[20px] leading-relaxed text-[var(--text-primary)]">
+          A choice shows up as the word your respondent picked, never as option_2. Open any response straight
+          from its email, or export them all to CSV.
+        </motion.p>
+
+        <div className="mt-14 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+          <motion.div variants={rise} data-ui className="min-h-[300px] overflow-x-auto rounded-xl bg-[var(--bg-panel)] ring-1 ring-[var(--border-color)]">
+            <table className="w-full text-left sm:min-w-[520px]">
+              <thead className="bg-[var(--bg-inset)] text-[13px] text-[var(--text-muted)]">
+                <tr>
+                  <th className="px-5 py-3 font-medium max-sm:hidden">Submitted</th>
+                  <th className="px-5 py-3 font-medium">Email</th>
+                  <th className="px-5 py-3 font-medium">How often do you visit?</th>
+                  <th className="px-5 py-3 font-medium">Rating</th>
+                </tr>
+              </thead>
+              <tbody className="text-[16px] text-[var(--text-primary)]">
+                {RESPONSES.map((r, k) => (
+                  <motion.tr
+                    key={r.email}
+                    initial={{ opacity: 0, x: -12 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: 0.2 + k * 0.08 }}
+                    className={k === 0 ? "bg-[var(--color-accent-soft)]" : "transition-colors hover:bg-[var(--bg-inset)]"}
+                  >
+                    <td className="whitespace-nowrap px-5 py-4 text-[13px] text-[var(--text-muted)] max-sm:hidden">{r.when}</td>
+                    <td className="px-5 py-4">{r.email}</td>
+                    <td className="px-5 py-4 font-medium">{r.visit}</td>
+                    <td className="px-5 py-4">
+                      <span className="flex gap-0.5" aria-label={`${r.rating} of 5`}>
+                        {[0, 1, 2, 3, 4].map((s) => (
+                          <Star
+                            key={s}
+                            className={`h-4 w-4 ${s < r.rating ? "fill-[var(--color-accent)] text-[var(--color-accent)]" : "text-[var(--border-color)]"}`}
+                          />
+                        ))}
+                      </span>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="px-5 py-3 text-[13px] text-[var(--text-muted)]">Sample responses</p>
+          </motion.div>
+
+          <motion.div variants={rise} data-ui className="flex min-h-[300px] flex-col rounded-xl bg-[var(--bg-panel)] p-6 ring-1 ring-[var(--border-color)]">
+            <p className="text-[16px] font-medium text-[var(--text-primary)]">Where people stop</p>
+            <div className="mt-6 flex-1 space-y-5">
+              {(
+                [
+                  ["Viewed", 412, 100],
+                  ["Started", 297, 72],
+                  ["Submitted", 223, 54],
+                ] as const
+              ).map(([label, n, pct], k) => (
+                <div key={label}>
+                  <div className="mb-1.5 flex justify-between text-[13px]">
+                    <span className="text-[var(--text-primary)]">{label}</span>
+                    <span className="tabular-nums text-[var(--text-primary)]">
+                      {n} · {pct}%
+                    </span>
+                  </div>
+                  <div className="h-3 rounded-full bg-[var(--bg-inset)]">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${pct}%` }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.9, delay: 0.3 + k * 0.15, ease: EASE }}
+                      className="h-full rounded-full bg-[var(--color-action)]"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-6 text-[13px] text-[var(--text-muted)]">74 people left before submitting. Example figures.</p>
+          </motion.div>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+/* ─── How it works: one slider drives the stage ──────────────── */
+const STAGES = [
+  { name: "Build", clause: "First, drag in your fields." },
+  { name: "Publish", clause: "Then publish one public link." },
+  { name: "Collect", clause: "Answers arrive as they're sent." },
+  { name: "Read", clause: "Finally, see where people stop." },
+];
+
+function StageFragment({ stage }: { stage: number }) {
+  if (stage === 0) {
+    return (
+      <ul className="space-y-2">
+        {[
+          { l: "Full name", I: Type },
+          { l: "Email address", I: Mail },
+          { l: "How often do you visit?", I: ChevronDown },
+        ].map(({ l, I }, k) => (
+          <li
+            key={l}
+            className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-[16px] text-[var(--text-primary)] ${
+              k === 1 ? "bg-[var(--color-accent-soft)] ring-1 ring-[var(--color-accent)]" : "bg-[var(--bg-inset)]"
+            }`}
+          >
+            <GripVertical className="h-4 w-4 text-[var(--text-muted)]" />
+            <I className="h-4 w-4 text-[var(--color-accent)]" />
+            {l}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  if (stage === 1) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[16px] text-[var(--text-primary)]">Customer feedback</span>
+          <span className="rounded-full bg-[var(--color-accent-soft)] px-3 py-1 text-[13px] font-medium text-[var(--color-accent)]">Published</span>
+        </div>
+        <div className="flex items-center gap-2 rounded-md bg-[var(--bg-inset)] p-1.5 pl-3">
+          <span className="truncate text-[16px] text-[var(--text-primary)]">{SITE_HOST}/f/customer-feedback</span>
+          <span className="ml-auto rounded-full bg-[var(--color-action)] px-3 py-1.5 text-[13px] font-medium text-white">Copy</span>
+        </div>
+      </div>
+    );
+  }
+  if (stage === 2) {
+    return (
+      <ul className="space-y-2">
+        {["Weekly", "Monthly", "Every day"].map((a) => (
+          <li key={a} className="flex items-center justify-between gap-3 rounded-md bg-[var(--bg-inset)] px-3 py-2.5">
+            <span className="truncate text-[13px] text-[var(--text-muted)]">How often do you visit?</span>
+            <span className="shrink-0 text-[16px] font-medium text-[var(--text-primary)]">{a}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {(
+        [
+          ["Viewed", 100],
+          ["Started", 72],
+          ["Submitted", 54],
+        ] as const
+      ).map(([label, pct]) => (
+        <div key={label}>
+          <div className="mb-1 flex justify-between text-[13px]">
+            <span className="text-[var(--text-primary)]">{label}</span>
+            <span className="tabular-nums text-[var(--text-primary)]">{pct}%</span>
+          </div>
+          <div className="h-2.5 rounded-full bg-[var(--bg-inset)]">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 0.8, ease: EASE }}
+              className="h-full rounded-full bg-[var(--color-action)]"
+            />
+          </div>
+        </div>
+      ))}
+      <p className="pt-1 text-right text-[13px] text-[var(--text-muted)]">Example figures</p>
+    </div>
+  );
+}
+
+function Stages() {
+  const reduce = useReducedMotion();
+  const sliderId = useId();
+  const last = STAGES.length - 1;
+  const [pos, setPos] = useState(0); // 0..last, fractional while dragging
+  const stage = Math.round(pos);
+  const current = STAGES[stage]!;
+
+  /* Glide to a stage instead of jumping */
+  function settle(target: number) {
+    const to = Math.max(0, Math.min(last, Math.round(target)));
+    if (reduce) {
+      setPos(to);
+      return;
+    }
+    animate(pos, to, { duration: 0.35, ease: EASE, onUpdate: setPos });
+  }
+
+  /* The thumb centre runs from half a thumb in from each end */
+  const at = (t: number) => `calc(var(--thumb) / 2 + (100% - var(--thumb)) * ${t})`;
+  const fill = at(pos / last);
+
+  return (
+    <section aria-labelledby={`${sliderId}-h`} className="mx-auto flex max-w-[1280px] flex-col items-center px-4 py-32 text-center sm:px-8 md:py-44">
+      <div className="flex min-h-[2.1em] items-center font-display text-[clamp(40px,4.6vw,76px)] leading-[0.98] tracking-[-0.02em]">
+        <AnimatePresence mode="wait">
+          <motion.h2
+            key={current.name}
+            id={`${sliderId}-h`}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2 }}
+            className="mx-auto max-w-[14ch] text-[var(--text-primary)]"
+          >
+            {current.clause}
+          </motion.h2>
+        </AnimatePresence>
+      </div>
+
+      <div data-ui className="mt-12 flex min-h-[260px] w-full max-w-[600px] items-center rounded-xl bg-[var(--bg-panel)] p-6 text-left ring-1 ring-[var(--border-color)] sm:p-8">
+        <AnimatePresence mode="wait">
+          <motion.div key={stage} className="w-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+            <StageFragment stage={stage} />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <div className="stage-track mt-14 w-full max-w-[720px]">
+        <label htmlFor={sliderId} className="sr-only">
+          Stage
+        </label>
+        <input
+          id={sliderId}
+          type="range"
+          min={0}
+          max={last}
+          step={0.001}
+          value={pos}
+          onChange={(e) => setPos(Number(e.target.value))}
+          onPointerUp={(e) => settle(Number((e.target as HTMLInputElement).value))}
+          onTouchEnd={(e) => settle(Number((e.target as HTMLInputElement).value))}
+          onKeyDown={(e) => {
+            if (["ArrowRight", "ArrowUp"].includes(e.key)) { e.preventDefault(); settle(stage + 1); }
+            if (["ArrowLeft", "ArrowDown"].includes(e.key)) { e.preventDefault(); settle(stage - 1); }
+            if (e.key === "Home") { e.preventDefault(); settle(0); }
+            if (e.key === "End") { e.preventDefault(); settle(last); }
+          }}
+          aria-valuetext={current.name}
+          className="stage-slider w-full"
+          style={{ ["--fill" as string]: fill }}
+        />
+        {/* Each label sits under the centre of the thumb at its stop */}
+        <div className="relative mt-3 h-11">
+          {STAGES.map((s, k) => (
+            <button
+              key={s.name}
+              type="button"
+              onClick={() => settle(k)}
+              style={{ left: at(k / last) }}
+              className={`absolute top-0 min-h-[44px] -translate-x-1/2 whitespace-nowrap px-2 text-[16px] transition-colors ${k === stage ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"}`}
+            >
+              {s.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Close: the idea again, colours inverted ────────────────── */
+function Close({ isSignedIn }: { isSignedIn: boolean }) {
+  const btn =
+    "inline-flex min-h-[56px] items-center justify-center rounded-full bg-[var(--color-action)] px-8 text-base font-medium text-white transition-[transform,background-color] hover:bg-[var(--color-action-hover)] active:scale-[0.97] max-sm:w-full";
+  return (
+    <section className="bg-[var(--text-primary)] text-[var(--bg-page)]">
+      <motion.div
+        variants={group}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: "-80px" }}
+        className="mx-auto flex min-h-[70svh] max-w-[1280px] flex-col items-center justify-center px-4 pb-20 pt-32 text-center sm:px-8"
+      >
+        <motion.h2 variants={rise} className="font-display text-[clamp(42px,10vw,160px)] leading-[0.9] tracking-[-0.03em]">
+          Ask once.
+          <br />
+          Read everything.
+        </motion.h2>
+        <motion.p variants={rise} className="mt-10 max-w-[30rem] text-[20px] leading-relaxed">
+          Free to start. Your first form can be live before your coffee cools.
+        </motion.p>
+        <motion.div variants={rise} className="mt-10 w-full sm:w-auto">
+          {isSignedIn ? (
+            <Link href={ROUTES.dashboard} className={btn}>
+              Go to your dashboard
+            </Link>
+          ) : (
+            <SignUpButton mode="redirect" fallbackRedirectUrl={ROUTES.dashboard}>
+              <button type="button" className={btn}>
+                Create your first form
+              </button>
+            </SignUpButton>
+          )}
+        </motion.div>
+      </motion.div>
+    </section>
   );
 }
 
@@ -93,310 +962,30 @@ function Reactive({
 export default function LandingPage() {
   const { isSignedIn } = useAuth();
 
+  const primaryCta = isSignedIn ? (
+    <Link href={ROUTES.dashboard} className={primaryBtn}>
+      Go to your dashboard
+    </Link>
+  ) : (
+    <SignUpButton mode="redirect" fallbackRedirectUrl={ROUTES.dashboard}>
+      <button type="button" className={primaryBtn}>
+        Start building free
+      </button>
+    </SignUpButton>
+  );
+
   return (
-    <div className="bg-[var(--bg-page)] bg-dot-grid">
-
-      {/* ═══ Hero ═══════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden border-b-2 border-[var(--border-color)] px-6 py-20 md:py-28">
-
-        {/* Gigantic background "FORM" watermark */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-4 select-none text-center font-display text-[18vw] font-black uppercase leading-none tracking-tighter text-[var(--border-muted)] opacity-[0.07]"
-        >
-          FORM
-        </span>
-
-        <div className="relative mx-auto max-w-content">
-          <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-center lg:gap-16">
-
-            {/* ── Left: copy + CTAs ──────────────────────────── */}
-            <div className="flex-1 text-center lg:text-left">
-              <motion.div initial="hidden" animate="visible" custom={0} variants={fadeUp}>
-                <Badge variant="accent" className="mb-6 inline-flex">
-                  Now in Public Beta
-                </Badge>
-              </motion.div>
-
-              <motion.h1
-                initial="hidden" animate="visible" custom={1} variants={fadeUp}
-                className="font-display text-5xl font-black uppercase leading-tight tracking-tight md:text-6xl lg:text-7xl"
-              >
-                BUILD FORMS.
-                <br /><span className="text-[var(--color-accent)]">GET ANSWERS.</span>
-              </motion.h1>
-
-              <motion.p
-                initial="hidden" animate="visible" custom={2} variants={fadeUp}
-                className="mx-auto mt-6 max-w-xl text-lg text-[var(--text-muted)] lg:mx-0 md:text-xl"
-              >
-                Collect data. Understand people. No fluff, no gradients, no lorem ipsum.
-              </motion.p>
-
-              <motion.div
-                initial="hidden" animate="visible" custom={3} variants={fadeUp}
-                className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
-              >
-                <Reactive reaction={REACTIONS.signUp}>
-                  {isSignedIn ? (
-                    <Button size="lg" className="gap-2 shadow-brut-lg" asChild>
-                      <Link href={ROUTES.dashboard}>
-                        Go to Dashboard
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <SignUpButton mode="redirect" fallbackRedirectUrl="/dashboard">
-                      <Button size="lg" className="gap-2 shadow-brut-lg">
-                        Start Building Free
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </SignUpButton>
-                  )}
-                </Reactive>
-
-                <Reactive reaction={REACTIONS.explore}>
-                  <Button variant="secondary" size="lg" asChild>
-                    <Link href={ROUTES.explore}>See Live Forms</Link>
-                  </Button>
-                </Reactive>
-              </motion.div>
-
-              <motion.ul
-                initial="hidden" animate="visible" custom={4} variants={fadeUp}
-                className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] lg:justify-start"
-              >
-                {["No credit card", "Free forever plan", "100 responses/mo free"].map((item) => (
-                  <li key={item} className="flex items-center gap-1.5">
-                    <span className="text-[var(--color-green)]">✓</span>
-                    {item}
-                  </li>
-                ))}
-              </motion.ul>
-            </div>
-
-            {/* ── Right: Brix mascot ─────────────────────────── */}
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
-              className="hidden shrink-0 lg:flex lg:items-center lg:justify-center"
-            >
-              <MascotScene size={220} withBubble />
-            </motion.div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Features ═══════════════════════════════════════════ */}
-      <section id="features" className="border-b-2 border-[var(--border-color)] px-6 py-20">
-        <div className="mx-auto max-w-content">
-          <div className="mb-12 flex items-end justify-between">
-            <div>
-              <p className="label-overline mb-3">What you get</p>
-              <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight md:text-4xl">
-                Everything needed.
-                <br />Nothing that isn&apos;t.
-              </h2>
-            </div>
-            <Reactive reaction={REACTIONS.features} className="hidden md:block">
-              <span className="font-mono text-xs text-[var(--text-muted)] cursor-default select-none">
-                hover to meet Brix →
-              </span>
-            </Reactive>
-          </div>
-
-          <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-4">
-            {FEATURES.map(({ icon: Icon, title, description }, i) => (
-              <motion.div
-                key={title}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
-                custom={i}
-                variants={fadeUp}
-              >
-                <Card
-                  className="border-r-0 last:border-r-2 sm:[&:nth-child(2)]:border-r-0 sm:[&:nth-child(4)]:border-r-2 lg:border-r-0 lg:last:border-r-2"
-                  shadow="none"
-                  asMotion
-                  interactive
-                >
-                  <CardContent className="p-6">
-                    <div className="mb-4 flex h-10 w-10 items-center justify-center border-2 border-[var(--border-color)] bg-[var(--bg-inset)]">
-                      <Icon className="h-5 w-5 text-[var(--color-accent)]" />
-                    </div>
-                    <h3 className="mb-2 font-display text-base font-extrabold uppercase tracking-wide">
-                      {title}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-[var(--text-muted)]">
-                      {description}
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ How it works ════════════════════════════════════════ */}
-      <section
-        id="how-it-works"
-        className="border-b-2 border-[var(--border-color)] bg-[var(--color-black)] px-6 py-20 text-[var(--color-white)]"
-      >
-        <div className="mx-auto max-w-content">
-          <div className="mb-12">
-            <p className="label-overline mb-3 text-[var(--text-muted)]">How it works</p>
-            <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight md:text-4xl">
-              Three steps.
-              <br />No tutorial needed.
-            </h2>
-          </div>
-
-          <ol className="grid gap-0 md:grid-cols-3">
-            {STEPS.map(({ step, title, description }, i) => (
-              <motion.li
-                key={step}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                custom={i}
-                variants={fadeUp}
-                className="border-2 border-[#333] p-8 md:border-r-0 md:last:border-r-2"
-              >
-                <span className="font-display text-7xl font-black text-[#2A2A2A] leading-none">
-                  {step}
-                </span>
-                <h3 className="mt-4 font-display text-xl font-extrabold uppercase tracking-tight">
-                  {title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#888]">{description}</p>
-              </motion.li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* ═══ Pricing teaser ══════════════════════════════════════ */}
-      <Reactive reaction={REACTIONS.pricing}>
-        <section id="pricing" className="border-b-2 border-[var(--border-color)] px-6 py-20">
-          <div className="mx-auto max-w-content">
-            <div className="mb-2">
-              <p className="label-overline mb-3">Pricing</p>
-              <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight md:text-4xl">
-                Honest pricing.
-                <br />No gotchas.
-              </h2>
-            </div>
-            <div className="mt-10 grid gap-0 sm:grid-cols-3">
-              {[
-                { plan: "Free",    price: "$0",  note: "Forever", features: ["100 responses/mo", "5 forms", "Basic analytics"] },
-                { plan: "Pro",     price: "$12", note: "/month",  features: ["Unlimited responses", "Unlimited forms", "Full analytics", "Custom domains"] },
-                { plan: "Team",    price: "$39", note: "/month",  features: ["Everything in Pro", "5 seats", "Priority support", "API access"] },
-              ].map(({ plan, price, note, features }, i) => (
-                <motion.div
-                  key={plan}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  custom={i}
-                  variants={fadeUp}
-                  className={`border-2 border-[var(--border-color)] border-r-0 last:border-r-2 p-8 ${i === 1 ? "bg-[var(--color-accent)] text-white" : "bg-[var(--bg-panel)]"}`}
-                >
-                  <p className="label-overline mb-4 opacity-70">{plan}</p>
-                  <div className="flex items-baseline gap-1">
-                    <span className="font-display text-5xl font-black">{price}</span>
-                    <span className={`text-sm font-bold ${i === 1 ? "text-white/70" : "text-[var(--text-muted)]"}`}>{note}</span>
-                  </div>
-                  <ul className="mt-6 space-y-2">
-                    {features.map((f) => (
-                      <li key={f} className={`flex items-center gap-2 text-sm ${i === 1 ? "text-white/90" : "text-[var(--text-muted)]"}`}>
-                        <span className={i === 1 ? "text-white" : "text-[var(--color-green)]"}>✓</span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </Reactive>
-
-      {/* ═══ Meet the Crew teaser ═══════════════════════════════ */}
-      <section className="border-b-2 border-[var(--border-color)] px-6 py-20">
-        <div className="mx-auto max-w-content">
-          <div className="flex flex-col items-start gap-4 md:flex-row md:items-end md:justify-between mb-12">
-            <div>
-              <p className="label-overline mb-3">The characters</p>
-              <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight md:text-4xl">
-                Meet the crew.
-                <br />They all have opinions.
-              </h2>
-            </div>
-            <Link
-              href={ROUTES.characters}
-              className="shrink-0 inline-flex items-center gap-2 border-2 border-[var(--border-color)] px-4 py-2 font-display text-xs font-extrabold uppercase tracking-wider shadow-brut-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
-            >
-              Full introductions <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-
-          <div className="grid gap-0 border-2 border-[var(--border-color)] sm:grid-cols-3">
-            {[
-              { name: "Brix", title: "The Builder",   color: "#FFD600", line: "\"Let's build.\"",           sub: "Form builder · Landing page"  },
-              { name: "Rex",  title: "The Analyst",   color: "#00C853", line: "\"23% drop-off. Interesting.\"", sub: "Analytics · Responses"   },
-              { name: "Flux", title: "The Messenger", color: "#FF3B00", line: "\"Ship it. Now.\"",            sub: "Publish · Share · Deploy"    },
-            ].map(({ name, title, color, line, sub }, i) => (
-              <motion.div
-                key={name}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.35 }}
-                className={`p-6 ${i < 2 ? "border-b-2 border-[var(--border-color)] sm:border-b-0 sm:border-r-2" : ""}`}
-              >
-                <div className="h-1.5 w-12 mb-4" style={{ background: color }} />
-                <p className="font-display text-xl font-black uppercase tracking-tight">{name}</p>
-                <p className="font-mono text-xs text-[var(--text-muted)] mt-0.5">{title}</p>
-                <p className="mt-4 font-display text-sm font-bold italic text-[var(--text-primary)]">{line}</p>
-                <p className="mt-3 font-mono text-xs text-[var(--text-muted)] border-t border-[var(--border-muted)] pt-3">{sub}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ CTA ═════════════════════════════════════════════════ */}
-      <section className="px-6 py-20">
-        <div className="mx-auto max-w-content">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4 }}
-            className="border-4 border-[var(--border-color)] bg-[var(--color-accent)] p-12 shadow-brut-xl text-center"
-          >
-            <h2 className="font-display text-3xl font-black uppercase tracking-tight text-white md:text-4xl">
-              Ready to build?
-            </h2>
-            <p className="mt-3 text-sm text-white/80">
-              Free to start. No credit card. No expiry.
-            </p>
-            <Reactive reaction={REACTIONS.cta} className="inline-block mt-8">
-              <SignUpButton mode="redirect" fallbackRedirectUrl="/dashboard">
-                <Button variant="secondary" size="lg" className="gap-2 shadow-brut-md">
-                  Create Your First Form
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </SignUpButton>
-            </Reactive>
-          </motion.div>
-        </div>
-      </section>
-
+    <div className="overflow-x-clip">
+      <Hero primaryCta={primaryCta} />
+      <div id="features" className="scroll-mt-20">
+        <TypeTheTitle />
+        <SettingBands />
+      </div>
+      <ReadableAnswers />
+      <div id="how-it-works" className="scroll-mt-20">
+        <Stages />
+      </div>
+      <Close isSignedIn={!!isSignedIn} />
     </div>
   );
 }

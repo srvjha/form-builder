@@ -33,7 +33,7 @@ export function CopyButton({ value, label, className }: CopyButtonProps) {
       ) : (
         <Copy className="h-3.5 w-3.5" />
       )}
-      {label && <span>{copied ? "Copied!" : label}</span>}
+      {label && <span>{copied ? "Copied" : label}</span>}
     </Button>
   );
 }
